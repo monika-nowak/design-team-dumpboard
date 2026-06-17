@@ -6,8 +6,8 @@ alwaysApply: true
 # Dumpboard — kontekst projektu
 
 Wewnętrzne ćwiczenie dla zespołu designerów. Każdy buduje swoją osobistą,
-edytowalną stronę („blank canvas") i publikuje ją na GitHub Pages w swoim
-folderze. Wspólna strona główna („hub") zbiera oznaczone wrzutki w jeden
+edytowalną stronę („blank canvas") i publikuje ją na GitHub Pages w folderze
+`people/<nick>/`. Wspólna strona główna („hub") zbiera oznaczone wrzutki w jeden
 pinterestowy feed.
 
 ## Pliki (deliverables)
@@ -16,8 +16,9 @@ pinterestowy feed.
 - `index.html` — router wejścia (mały plik): pierwsza wizyta → `start.html`, kolejne → `hub.html` (localStorage `dumpboard_intro_seen`).
 - `start.html` — intro / landing; przycisk „Let's start" ustawia flagę i prowadzi na `hub.html`.
 - `hub.html` — feed zespołu.
-- `people.json` — lista osób `{ "nick", "folder" }` (auto-generowana przez Actions, patrz niżej).
-- `.github/workflows/generate-people.yml` — skanuje foldery i nadpisuje `people.json` przy każdym pushu.
+- `people.json` — lista osób `{ "nick", "folder": "people/<nick>" }` (auto-generowana przez Actions).
+- `people/` — katalog na strony uczestników (każdy ma własny podfolder).
+- `.github/workflows/generate-people.yml` — skanuje `people/<nick>/` i nadpisuje `people.json` przy każdym pushu.
 - `.claude/server.js`, `.claude/launch.json` — statyczny serwer node do lokalnych testów (NIE część produktu).
 
 ## Twarde ograniczenia (NIE łamać)
@@ -56,11 +57,11 @@ Zawsze tworzy **ZIP** (`dumpboard-eksport.zip`), składany ręcznie w czystym JS
 ## Feed i hub
 
 - `feed.json`: `{ generated, items: [...] }`. Wpis zdjęcia = `{ file, caption, added }`; wpis filmu = `{ type:"youtube", videoId, caption, added }`. **Bez pola autora** — autorstwo wynika z folderu.
-- Hub: czyta `people.json` → dla każdej osoby `folder/feed.json` (+ opcjonalnie `folder/profile.json`). Pomija osoby bez/ z pustym feedem (bez błędu). Brakujący obrazek → placeholder.
+- Hub: czyta `people.json` → dla każdej osoby `people/<nick>/feed.json` (+ opcjonalnie `profile.json`). Pomija osoby bez/ z pustym feedem (bez błędu). Brakujący obrazek → placeholder.
 - Wygląd: masonry (kolumny CSS, responsywne do 1 kolumny). Kafelek: media + opcjonalny opis + podpis autora (avatar z `profile.json` lub kółko z inicjałem; nazwa z `profile.json` lub nazwa folderu). Klik w autora → strona osoby.
 - Film w feedzie = **klikalna miniatura + play, link do YouTube w nowej karcie** (BEZ `<iframe>` — hub ma być lekki).
 - Przycisk „＋ Zrób swoją stronę" linkuje do `canvas-editor.html`; modal „Jak to działa" tłumaczy flow (3 kroki, bez ręcznej edycji people.json).
-- `people.json` auto-generowany przez GitHub Actions (skan folderów z `index.html`/`feed.json`, lista EXCLUDE pomija zasoby techniczne). Statyczna strona sama nie wykryje folderów (Pages nie ma listingu katalogów).
+- `people.json` auto-generowany przez GitHub Actions (skan `people/<nick>/` z `index.html` lub `feed.json`). Uczestnicy wgrywają tylko do `people/`, nie do korzenia repo.
 
 ## Konwencje wizualne
 

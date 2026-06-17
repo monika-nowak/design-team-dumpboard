@@ -550,8 +550,8 @@
             w środku jest <code>index.html</code> (Twoja strona), <code>project.json</code>
             (do późniejszej edycji) oraz — jeśli ich użyjesz — <code>profile.json</code>,
             <code>avatar.jpg</code>, <code>feed.json</code> i <code>feed-images/</code>.</li>
-        <li>Na GitHubie w repo huba <strong>utwórz folder ze swoim nickiem</strong>, np. <code>ania/</code>.</li>
-        <li><strong>Wgraj</strong> do niego całą zawartość ZIP-a.</li>
+        <li>Na GitHubie w repo huba wejdź w folder <strong><code>people/</code></strong> i utwórz <strong>podfolder ze swoim nickiem</strong>, np. <code>people/ania/</code>.</li>
+        <li><strong>Wgraj</strong> do niego całą zawartość ZIP-a (nie do korzenia repo!).</li>
       </ol>
       <p class="lead" style="margin: 4px 0 12px">To wszystko — lista osób uzupełni się sama,
          a Ty pojawisz się we wspólnym feedzie. 🎉</p>
@@ -573,7 +573,7 @@
       <label class="profile-label" for="welcome-nick">Twój nick</label>
       <input type="text" id="welcome-nick" class="profile-input" maxlength="40"
              placeholder="np. monika.nowak" autocomplete="username">
-      <p class="field-hint">Bez spacji — użyjesz go też jako nazwy folderu na GitHubie (np. <code>monika.nowak/</code>).</p>
+      <p class="field-hint">Bez spacji — folder na GitHubie: <code>people/twoj-nick/</code> (np. <code>people/monika.nowak/</code>).</p>
       <p class="field-error" id="welcome-error">Podaj nick (min. 2 znaki: litery, cyfry, kropka, myślnik).</p>
       <button class="btn primary" id="welcome-start" style="margin-top:18px">Zaczynam tworzyć</button>
     </div>
@@ -1985,7 +1985,7 @@ ${elementsHtml}
   }
   toast("Pobrano " + zipName + " — w środku: " + inside.join(", ")
       + (missing.length ? " · uwaga: część fontów pominięta" : "")
-      + ". Rozpakuj CAŁOŚĆ do swojego folderu w repo i wgraj na GitHub.", 9000);
+      + ". Wgraj CAŁOŚĆ do people/twoj-nick/ w repo (nie do korzenia!).", 9000);
 }
 document.getElementById("export").addEventListener("click", () => {
   if (!profile.nick) { openWelcome(); return; }
