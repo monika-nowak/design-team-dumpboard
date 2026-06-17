@@ -144,7 +144,6 @@
     background: var(--bg);
     max-width: 1440px;
     margin: 0 auto;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   /* ── Wiersz narzędzi (Figma: Background / Sticker / Text) ─────────── */
@@ -628,15 +627,13 @@
   /* ── Kontekst zaznaczenia — w tym samym rzędzie co główne narzędzia ─ */
   #toolbar-context {
     display: none;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
   }
-  #toolbar-context.show { display: flex; }
+  /* display:contents — dzieci kontekstu siedzą w .tool-group obok Background/Sticker/Text */
+  #toolbar-context.show { display: contents; }
 
   .tb-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-  /* Pigułki kontekstu — jaśniejsze tło niż główne narzędzia (5% vs 10%) */
+  /* Pigułki kontekstu — ten sam styl co główne narzędzia */
   .ctx-btn,
   .ctx-input,
   #toolbar-context select {
@@ -649,14 +646,14 @@
     font-size: 16px;
     font-weight: 600;
     line-height: 24px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
     cursor: pointer;
     white-space: nowrap;
   }
   .ctx-input { width: 72px; cursor: text; font-weight: 400; }
   .ctx-btn:hover,
-  #toolbar-context select:hover { background: rgba(255, 255, 255, 0.08); }
+  #toolbar-context select:hover { background: rgba(255, 255, 255, 0.14); }
   .ctx-btn.is-on { background: #fff; color: #0e0e0e; }
   #bold-toggle { font-weight: 800; }
   .ctx-btn--danger { color: #ff9aad; }
@@ -690,14 +687,14 @@
     height: 48px;
     border-radius: 8px;
     padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
   }
-  .ctx-swatch-btn:hover { background: rgba(255, 255, 255, 0.08); }
+  .ctx-swatch-btn:hover { background: rgba(255, 255, 255, 0.14); }
   .ctx-swatch-btn .mini-swatch {
     width: 24px;
     height: 24px;
