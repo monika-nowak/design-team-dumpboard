@@ -627,7 +627,6 @@
   }
   .item.editing { cursor: text; }
   .item.sticker {
-    overflow: hidden;
     box-sizing: border-box;
     aspect-ratio: 1;
   }
@@ -635,7 +634,7 @@
   .item.sticker img.sticker-img {
     display: block; width: 100%; height: 100%;
     pointer-events: none; user-select: none;
-    object-fit: cover; object-position: center center;
+    object-fit: contain; object-position: center center;
     border-radius: 0;
   }
   .item.draw {
@@ -1599,7 +1598,7 @@ function strokeBounds(points, width = PENCIL_WIDTH) {
   };
 }
 
-function strokePathD(points, ox, oy) {
+function strokePathD(points, ox = 0, oy = 0) {
   if (!points || !points.length) return "";
   let d = `M ${(points[0].x - ox).toFixed(1)} ${(points[0].y - oy).toFixed(1)}`;
   for (let i = 1; i < points.length; i++) {
@@ -1608,12 +1607,25 @@ function strokePathD(points, ox, oy) {
   return d;
 }
 
-function finalizeStrokeItem(item) {
+/** Podczas rysowania — punkty w absolutnych współrzędnych płótna; ustaw tylko ramkę. */
+function updateStrokeBounds(item) {
   const b = strokeBounds(item.points, item.width || PENCIL_WIDTH);
   item.x = b.x;
   item.y = b.y;
   item.w = b.w;
   item.h = b.h;
+}
+
+/** Po zakończeniu kreski — punkty względem item.x/y, żeby dało się przesuwać. */
+function localizeStrokeItem(item) {
+  if (item.pointsLocal || !item.points?.length) return;
+  const b = strokeBounds(item.points, item.width || PENCIL_WIDTH);
+  item.points = item.points.map(p => ({ x: p.x - b.x, y: p.y - b.y }));
+  item.x = b.x;
+  item.y = b.y;
+  item.w = b.w;
+  item.h = b.h;
+  item.pointsLocal = true;
 }
 
 function setPencilMode(on) {
@@ -2062,7 +2074,7 @@ function render() {
       }
     } else if (item.type === "draw") {
       if (!item.points || item.points.length < 2) return;
-      if (!item.w || !item.h) finalizeStrokeItem(item);
+      localizeStrokeItem(item);
       el.classList.add("draw");
       el.style.left = item.x + "px";
       el.style.top = item.y + "px";
@@ -2072,7 +2084,7 @@ function render() {
       const svg = document.createElementNS(SVG_NS, "svg");
       svg.setAttribute("viewBox", `0 0 ${item.w} ${item.h}`);
       const path = document.createElementNS(SVG_NS, "path");
-      path.setAttribute("d", strokePathD(item.points, item.x, item.y));
+      path.setAttribute("d", strokePathD(item.points));
       path.setAttribute("stroke", item.color || "#fff");
       path.setAttribute("stroke-width", String(item.width || PENCIL_WIDTH));
       path.setAttribute("fill", "none");
@@ -2425,7 +2437,7 @@ function startPencilStroke(e) {
     const last = item.points[item.points.length - 1];
     if (Math.hypot(p.x - last.x, p.y - last.y) < 1.5) return;
     item.points.push(p);
-    finalizeStrokeItem(item);
+    updateStrokeBounds(item);
     const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
     if (el) {
       el.style.left = item.x + "px";
@@ -2449,7 +2461,7 @@ function startPencilStroke(e) {
     if (item.points.length < 2) {
       state.items = state.items.filter(i => i.id !== item.id);
     } else {
-      finalizeStrokeItem(item);
+      localizeStrokeItem(item);
     }
     render();
     syncCanvasHeight();
@@ -3204,7 +3216,7 @@ async function exportPage() {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     freeItems.forEach(it => {
       if (it.type === "draw") {
-        if (!it.w || !it.h) finalizeStrokeItem(it);
+        localizeStrokeItem(it);
         const w = it.w || 1, h = it.h || 1;
         minX = Math.min(minX, it.x || 0);
         maxX = Math.max(maxX, (it.x || 0) + w);
@@ -3246,10 +3258,9 @@ async function exportPage() {
           const style = [
             `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
             `width:${item.w}px`, `height:${item.h}px`,
-            `overflow:hidden`,
             `transform:rotate(${item.rot}deg)`, `transform-origin:center center`, `z-index:${z}`,
           ].join(";");
-          return `        <div style="${style}"><img src="${src}" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" alt=""></div>`;
+          return `        <div style="${style}"><img src="${src}" style="width:100%;height:100%;object-fit:contain;object-position:center;display:block" alt=""></div>`;
         }
         const style = [
           `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
@@ -3259,8 +3270,8 @@ async function exportPage() {
         return `        <div style="${style}">${escapeHtml(item.char)}</div>`;
       }
       if (item.type === "draw" && item.points && item.points.length > 1) {
-        if (!item.w || !item.h) finalizeStrokeItem(item);
-        const path = strokePathD(item.points, item.x, item.y);
+        localizeStrokeItem(item);
+        const path = strokePathD(item.points);
         const style = [
           `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
           `width:${item.w}px`, `height:${item.h}px`, `z-index:${z}`, `overflow:visible`,
