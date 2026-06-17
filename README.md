@@ -16,4 +16,6 @@
 
 ## Edit later
 
-Open **canvas-editor.html**, **Shift+click the logo**, choose your `project.json`, edit, download again, and replace the files in your folder on GitHub.
+1. Open **your published page** (from the feed or your folder).
+2. Click **Edit page** at the top — the editor opens with your work already loaded.
+3. Make changes → **Download my page** → replace the files in your folder on GitHub.

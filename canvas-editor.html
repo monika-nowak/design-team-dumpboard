@@ -489,6 +489,10 @@
 
       <div class="toolbar-spacer"></div>
 
+      <button type="button" class="pill-btn" id="open-project-btn" title="Open a saved project">
+        <span class="label">Open</span>
+      </button>
+
       <button type="button" class="pill-btn pill-btn--primary" id="export">
         <span class="label">Download my page</span>
       </button>
@@ -499,7 +503,6 @@
   <div id="hidden-tools">
     <button type="button" id="undo"></button>
     <button type="button" id="redo"></button>
-    <button type="button" id="open-project-btn"></button>
     <button type="button" id="profile-btn"></button>
     <button type="button" id="help-btn"></button>
   </div>
@@ -552,8 +555,9 @@
       </ol>
       <p class="lead" style="margin: 4px 0 12px">That's it — the people list updates automatically
          and you appear on the team feed. 🎉</p>
-      <p class="lead" style="margin: 0 0 18px">Want to change something later? Open the editor,
-         load your <code>project.json</code>, edit, and download again.</p>
+      <p class="lead" style="margin: 0 0 18px">Want to change something later? On your published page,
+         click <strong>Edit page</strong> — the editor opens with your work already loaded.
+         Edit, download again, and replace the files on GitHub.</p>
       <p class="lead" style="margin: 0 0 18px">Tip: set your display name and avatar in
          <strong>Profile</strong> — they show up next to your feed posts.</p>
       <button class="btn primary" id="how-close">Got it</button>
@@ -1872,6 +1876,9 @@ async function exportPage() {
   //    normalnie — jak każda strona WWW. Wrapper rezerwuje przeskalowaną
   //    wysokość, dzięki czemu pojawia się zwykły pasek przewijania.
   const pageTitle = escapeHtml((profile.name || profile.nick || "My page").trim() || "My page");
+  const editHref = profile.nick
+    ? "../../canvas-editor.html?project=" + encodeURIComponent("people/" + profile.nick + "/project.json")
+    : "../../canvas-editor.html";
 
   const doc =
 `<!DOCTYPE html>
@@ -1944,7 +1951,7 @@ ${fontFaces}    * { margin: 0; box-sizing: border-box; }
     </a>
     <div class="nav-links">
       <a href="../../index.html">Feed</a>
-      <a class="nav-pill" href="../../canvas-editor.html">Edit page</a>
+      <a class="nav-pill" href="${editHref}">Edit page</a>
     </div>
   </nav>
   <div id="wrap">
@@ -2127,7 +2134,7 @@ pageNick.style.cursor = "pointer";
 pageNick.title = "Edit profile";
 pageNick.addEventListener("click", () => document.getElementById("profile-btn").click());
 
-/* Logo: Shift+klik → otwórz project.json */
+/* Logo: Shift+click still opens project.json from disk (fallback). */
 document.querySelector(".logo-link").addEventListener("click", e => {
   if (e.shiftKey) { e.preventDefault(); document.getElementById("open-project-btn").click(); }
 });
@@ -2168,7 +2175,28 @@ function loadProject(data) {
   [...new Set(state.items.filter(i => i.type === "text").map(i => i.fontFamily))]
     .forEach(ensureFontCached);
   render();
+  welcomeModal.classList.remove("show");
   toast("Project loaded — you can keep editing and download again.", 5000);
+}
+
+/** Open project.json from ?project=people/nick/project.json (link from published page). */
+async function tryLoadProjectFromUrl() {
+  const raw = new URLSearchParams(location.search).get("project");
+  if (!raw) return false;
+  const path = decodeURIComponent(raw).replace(/^\/+/, "");
+  if (!/^people\/[a-z0-9][a-z0-9._-]*\/project\.json$/i.test(path)) {
+    toast("Invalid project link.", 4000);
+    return false;
+  }
+  try {
+    const res = await fetch(path + "?_=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("not found");
+    loadProject(await res.json());
+    return true;
+  } catch (e) {
+    toast("Could not load your project — try Open and pick project.json.", 5000);
+    return false;
+  }
 }
 
 document.getElementById("open-project-btn").addEventListener("click", () => {
@@ -2223,12 +2251,15 @@ window.addEventListener("beforeunload", e => {
 });
 
 /* ════════════════════════════════════════════════════════════════════
-   START — demo-naklejka Alf od razu na płótnie
+   START
    ════════════════════════════════════════════════════════════════════ */
-seedDemoSticker();
 updateUndoButtons();
-render();
-if (!profile.nick) openWelcome();
+(async function initEditor() {
+  if (await tryLoadProjectFromUrl()) return;
+  seedDemoSticker();
+  render();
+  if (!profile.nick) openWelcome();
+})();
 </script>
 </body>
 </html>
