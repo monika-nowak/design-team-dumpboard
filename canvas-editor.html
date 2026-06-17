@@ -89,8 +89,39 @@
   .site-nav-actions {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
   }
+
+  /* Przyciski nav (Figma 6:368 — pill 44px) */
+  .nav-btn {
+    appearance: none;
+    border: none;
+    height: 44px;
+    border-radius: 999px;
+    padding: 12px 16px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .nav-btn img { width: 20px; height: 20px; display: block; flex-shrink: 0; }
+
+  .nav-btn--secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  .nav-btn--secondary:hover { background: rgba(255, 255, 255, 0.14); }
+
+  .nav-btn--primary {
+    background: #fff;
+    color: #0e0e0e;
+  }
+  .nav-btn--primary:hover { background: rgba(255, 255, 255, 0.88); }
 
   .nav-link-btn {
     appearance: none;
@@ -105,25 +136,7 @@
   }
   .nav-link-btn:hover { color: #fff; }
 
-  .nav-download {
-    appearance: none;
-    border: none;
-    background: #fff;
-    color: #0e0e0e;
-    border-radius: 999px;
-    padding: 12px 16px;
-    font: inherit;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-  }
-  .nav-download:hover { background: rgba(255, 255, 255, 0.88); }
-  .nav-download img { width: 20px; height: 20px; display: block; flex-shrink: 0; }
-
+  /* legacy alias — nie używane */
   /* ── Przyklejony pasek narzędzi (pod nav — widoczny przy scrollu w dół) ─ */
   #editor-sticky-bar {
     position: sticky;
@@ -737,7 +750,7 @@
     #editor-tools { padding: 16px var(--tools-pad); }
     #toolbar-context { padding: 0 var(--tools-pad) 16px; }
     .nav-link-btn { display: none; }
-    .nav-download span { display: none; }
+    .nav-btn span { display: none; }
     #media-grid { gap: 48px; padding-bottom: 64px; }
     .media-add { min-height: 320px; height: auto; aspect-ratio: 16 / 10; }
     .media-add-option--image img { width: 100px; height: 100px; }
@@ -754,7 +767,11 @@
       <img src="assets/landing/logo.svg" alt="">
     </a>
     <div class="site-nav-actions">
-      <button type="button" class="nav-download" id="export">
+      <button type="button" class="nav-btn nav-btn--secondary" id="open-project-btn" title="Load project.json from a previous download">
+        <img src="assets/icons/nav-open.svg" alt="">
+        <span>Open existing project</span>
+      </button>
+      <button type="button" class="nav-btn nav-btn--primary" id="export">
         <img src="assets/icons/tool-download.svg" alt="">
         <span>Download</span>
       </button>
@@ -814,10 +831,6 @@
         <button type="button" class="tool-btn" id="add-text">
           <img src="assets/icons/tool-text.svg" class="tool-icon" alt="">
           <span>Text</span>
-        </button>
-        <button type="button" class="tool-btn" id="open-project-btn" title="Load project.json from a previous download">
-          <img src="assets/icons/tool-open.svg" class="tool-icon" alt="">
-          <span>Open project</span>
         </button>
       </div>
     </div>
