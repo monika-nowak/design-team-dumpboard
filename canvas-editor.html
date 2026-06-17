@@ -251,8 +251,9 @@
   .item img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; border-radius: 16px; }
   .item .text-body {
     outline: none;
-    white-space: pre-wrap;
-    word-break: break-word;
+    /* pre = bez automatycznego zawijania; ramka rośnie z tekstem,
+       nowa linia tylko po wciśnięciu Enter */
+    white-space: pre;
     line-height: 1.25;
     cursor: inherit;
   }
@@ -911,7 +912,8 @@ function addText() {
   const c = canvasCenter();
   const item = {
     id: uid++, type: "text",
-    x: c.x - 140, y: c.y - 30, w: 280,
+    // bez sztywnej szerokości — pole dopasowuje się do treści (patrz render/eksport)
+    x: c.x - 80, y: c.y - 30,
     rot: 0,
     text: "Your text",
     fontFamily: "Inter", fontSize: 40, color: "#ffffff", bold: false,
@@ -1055,7 +1057,7 @@ function render() {
     el.style.transform = `rotate(${item.rot}deg)`;
 
     if (item.type === "text") {
-      el.style.width = item.w + "px";
+      // brak el.style.width → element absolutny dopasowuje szerokość do treści
       const body = document.createElement("div");
       body.className = "text-body";
       body.style.fontFamily = `'${item.fontFamily}', sans-serif`;
@@ -1822,14 +1824,15 @@ async function exportPage() {
     if (item.type === "text") {
       const style = [
         `position:absolute`,
-        `left:${item.x - offX}px`, `top:${item.y - offY}px`, `width:${item.w}px`,
+        `left:${item.x - offX}px`, `top:${item.y - offY}px`,
         `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
         `z-index:${z}`,
         `font-family:'${item.fontFamily}', sans-serif`,
         `font-size:${item.fontSize}px`,
         `font-weight:${item.bold ? 700 : 400}`,
         `color:${item.color}`,
-        `line-height:1.25`, `white-space:pre-wrap`, `word-break:break-word`,
+        // bez szerokości i zawijania — pole dopasowuje się do treści jak w edytorze
+        `line-height:1.25`, `white-space:pre`,
       ].join(";");
       return `    <div style="${style}">${escapeHtml(item.text)}</div>`;
     }
