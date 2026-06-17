@@ -1,7 +1,5 @@
 {
-  "_komentarz": "Lista designerów. Dodanie osoby = dopisanie jednego wpisu: nick (podpis w feedzie) + folder (katalog tej osoby w repo). Autorstwo wrzutek wynika z folderu, nie z danych.",
   "people": [
-    { "nick": "ania",  "folder": "ania"  },
-    { "nick": "marek", "folder": "marek" }
+
   ]
 }
