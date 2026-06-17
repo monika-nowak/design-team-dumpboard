@@ -7,275 +7,358 @@
 
 <!--
   ╔══════════════════════════════════════════════════════════════════════╗
-  ║  DUMPBOARD — STARTER LANDING                                         ║
-  ║  Design: Figma „Main Page-Starter-1440”.                              ║
-  ║                                                                      ║
-  ║  Font: NaN Serf A Display Light → assets/fonts/NaNSerfADisplay-Light.ttf ║
+  ║  DUMPBOARD — HUB (feed) — strona główna repo / GitHub Pages           ║
+  ║  Design: Figma „Main page - feed” (node 2:76).                        ║
+  ║  Czyta people.json → <folder>/feed.json. Masonry, ciemny motyw.      ║
   ╚══════════════════════════════════════════════════════════════════════╝
 -->
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
-  /* NaN Serf A Display Light — font z Figmy */
-  @font-face {
-    font-family: "NaN Serf A Display";
-    src: url("assets/fonts/NaNSerfADisplay-Light.ttf") format("truetype");
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
-  }
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  html { -webkit-font-smoothing: antialiased; }
-
   body {
-    background: #1a1a1a;
+    background: #0e0e0e;
     color: #fff;
-    font-family: "NaN Serf A Display", "Times New Roman", serif;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* ── Stałe tło ────────────────────────────────────────────────────── */
-  .bg {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    background: #2a2520 url("assets/landing/bg.jpg") center / cover no-repeat;
+  /* ── Nagłówek (Figma: top 18px, px 64, logo 32px + przycisk pill) ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 64px;
+    max-width: 1440px;
+    margin: 0 auto;
   }
 
   .logo {
-    position: fixed;
-    top: 2.67vh;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 4;
-    width: 30px;
-    height: 30px;
-    pointer-events: none;
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
   }
   .logo img { display: block; width: 100%; height: 100%; }
 
-  /* ── Niewidoczna „szyna” scrolla (tylko wysokość) ─────────────────── */
-  .scroll-track {
-    position: relative;
-    z-index: 1;
-  }
-
-  .spacer {
-    height: 100vh;
-    height: 100dvh;
-  }
-
-  /* ── Warstwa tekstu: zawsze w centrum viewportu ───────────────────── */
-  .stage {
-    position: fixed;
-    inset: 0;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 24px 48px;
-  }
-
-  .lines {
-    position: relative;
-    width: min(1100px, 100%);
-    min-height: clamp(120px, 28vw, 280px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-  }
-
-  /* Wszystkie akapity w tym samym punkcie — crossfade przy scrollu */
-  .line {
-    position: absolute;
-    left: 0;
-    right: 0;
-    width: 100%;
-    text-align: center;
-    font-size: clamp(36px, 5.694vw, 82px);
-    font-weight: 300;
-    line-height: 1.12;
-    letter-spacing: -0.01em;
-    color: #fff;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(14px);
-    will-change: opacity, transform;
-  }
-
-  /* Przycisk — pojawia się razem z ostatnim akapitem */
-  .cta {
-    position: relative;
-    z-index: 50;
+  .create-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-top: 46px;
-    padding: 16px 24px;
-    background: #000;
-    color: #fff;
-    font-family: "Inter", system-ui, sans-serif;
+    padding: 12px 16px;
+    border-radius: 999px;
+    background: #fff;
+    color: #0e0e0e;
     font-size: 16px;
-    font-weight: 500;
-    line-height: 1;
+    font-weight: 600;
+    line-height: normal;
     text-decoration: none;
-    opacity: 0;
-    transform: translateY(18px);
-    will-change: opacity, transform;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+  .create-btn:hover { opacity: 0.88; }
+
+  /* ── Licznik dumpboarders (Figma: 14px, opacity 40%, gap 4px) ─────── */
+  .counter {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 48px 64px 0;
+    max-width: 1440px;
+    margin: 0 auto;
+    font-size: 14px;
+    line-height: 20px;
+    color: #fff;
+    opacity: 0.4;
+  }
+  .counter .num { font-weight: 600; }
+
+  /* ── Masonry feed (Figma: kolumny 310px, gap 24px, px 64) ─────────── */
+  main {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 18px 64px 64px;
+  }
+
+  #feed {
+    column-width: 310px;
+    column-gap: 24px;
+  }
+
+  .pin {
+    break-inside: avoid;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Media: zaokrąglenie 16px, placeholder #1f1f1f */
+  .pin-media {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #1f1f1f;
+  }
+
+  .pin-media img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .pin-media .ph {
+    aspect-ratio: 4 / 3;
+    background: #1f1f1f;
+  }
+
+  /* YouTube: miniatura + play */
+  .pin-media a.yt { display: block; position: relative; }
+  .pin-media .yt-badge {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 54px; height: 38px;
+    border-radius: 9px;
+    background: rgba(255, 0, 0, 0.88);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    padding-left: 2px;
     pointer-events: none;
-    transition: background 0.2s;
   }
 
-  .cta.is-ready {
-    pointer-events: auto;
-    cursor: pointer;
+  /* Handle pod zdjęciem (Figma: Inter Medium 14px, opacity 60%) */
+  .pin-handle {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    color: #fff;
+    opacity: 0.6;
+    text-decoration: none;
+    word-break: break-word;
   }
+  .pin-handle:hover { opacity: 0.85; }
 
-  .cta:hover { background: #1a1a1a; }
-  .cta:focus-visible {
-    outline: 2px solid #fff;
-    outline-offset: 3px;
+  /* ── Stany: ładowanie / pusto ─────────────────────────────────────── */
+  .state {
+    text-align: center;
+    padding: 80px 24px;
+    color: #fff;
+    opacity: 0.4;
+    font-size: 14px;
+    line-height: 20px;
   }
+  .state h2 {
+    font-size: 16px;
+    font-weight: 600;
+    opacity: 1;
+    color: #fff;
+    margin: 0 0 12px;
+  }
+  .state .create-btn { margin-top: 24px; }
+  .hidden { display: none !important; }
 
-  @media (prefers-reduced-motion: reduce) {
-    .line, .cta { transition: none !important; }
+  @media (max-width: 720px) {
+    header, .counter, main { padding-left: 24px; padding-right: 24px; }
   }
 </style>
 </head>
 <body>
 
-  <div class="bg" aria-hidden="true"></div>
+  <header>
+    <a class="logo" href="index.html" aria-label="Dumpboard">
+      <img src="assets/landing/logo.svg" alt="">
+    </a>
+    <a class="create-btn" href="canvas-editor.html">Create your dump</a>
+  </header>
 
-  <div class="logo" aria-hidden="true">
-    <img src="assets/landing/logo.svg" alt="">
-  </div>
+  <p class="counter hidden" id="counter">
+    <span class="num" id="counter-num">0</span>
+    <span>dumpboarders</span>
+  </p>
 
-  <!-- Wysokość strony = 7 × pełny ekran -->
-  <main class="scroll-track" aria-hidden="true">
-    <div class="spacer"></div>
-    <div class="spacer"></div>
-    <div class="spacer"></div>
-    <div class="spacer"></div>
-    <div class="spacer"></div>
-    <div class="spacer"></div>
-    <div class="spacer"></div>
+  <main>
+    <div class="state" id="loading">Loading feed…</div>
+
+    <div class="state hidden" id="empty">
+      <h2>No dumps yet</h2>
+      <p>Be the first to create yours.</p>
+      <a class="create-btn" href="canvas-editor.html">Create your dump</a>
+    </div>
+
+    <div id="feed" class="hidden"></div>
   </main>
 
-  <!-- Tekst i przycisk — nieruchome w centrum, animacja sterowana scrollem -->
-  <div class="stage" aria-live="polite">
-    <div class="lines">
-      <p class="line" data-i="0">Hey there, Fluxon Designer. Welcome to Dumpboard.</p>
-      <p class="line" data-i="1">Remember when the internet felt smaller? When your first website was a MySpace page or a Tumblr blog you built just because you could?</p>
-      <p class="line" data-i="2">Yeah. Me too....</p>
-      <p class="line" data-i="3">That's the whole idea here. Today you're building a personal page – and no, it won't swallow your whole year like a portfolio does. This isn't about work. It's about you.</p>
-      <p class="line" data-i="4">Start with a blank canvas. Drop in photos, YouTube links, stickers. Change the colors, swap the fonts, break things. I don't mind. It's yours.</p>
-      <p class="line" data-i="5">One rule: make it unapologetically you. Pin the images you keep coming back to, the things that inspire you, the dumb stuff that makes you grin. It's a Dumpboard.</p>
-      <p class="line" data-i="6">Be wild. Be free. Just us here on GitHub, doing it for the fun of it.</p>
-    </div>
-    <a class="cta" id="cta" href="hub.html">Let's start</a>
-  </div>
-
 <script>
-/* ── Scroll → crossfade akapitów w stałym centrum ekranu ─────────────── */
+/* ════════════════════════════════════════════════════════════════════
+   DANE — people.json → <folder>/feed.json (+ opcjonalnie profile.json)
+   ════════════════════════════════════════════════════════════════════ */
+const PEOPLE_FILE = "people.json";
 
-const lines = [...document.querySelectorAll(".line")];
-const cta   = document.getElementById("cta");
-const last  = lines.length - 1;
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let allPins = [];
 
-/** Płynna krzywa 0–1 (ease in-out) */
-function smoothstep(t) {
-  const x = Math.max(0, Math.min(1, t));
-  return x * x * (3 - 2 * x);
+const feedEl     = document.getElementById("feed");
+const loadingEl  = document.getElementById("loading");
+const emptyEl    = document.getElementById("empty");
+const counterEl  = document.getElementById("counter");
+const counterNum = document.getElementById("counter-num");
+
+/** Handle jak w Figmie: @monika.nowak — z nicku lub nazwy profilu */
+function handleFor(pin) {
+  const raw = (pin.handle || pin.nick || pin.folder || "").trim();
+  const h = raw.replace(/^@/, "").toLowerCase();
+  return "@" + h;
 }
 
-/*
- * Jeden czytelny akapit naraz. Każdy krok scrolla (i → i+1):
- *   wchodzi (rel -0.35→0) → trzyma (0→0.58) → wychodzi (0.58→0.95).
- * Nakładanie tylko na końcu kroku; nowy akapit jest na wierzchu (z-index).
- */
-function lineOpacity(progress, i) {
-  const rel = progress - i;
+async function loadAll() {
+  let people = [];
+  try {
+    const res = await fetch(PEOPLE_FILE, { cache: "no-cache" });
+    if (res.ok) {
+      const data = await res.json();
+      people = Array.isArray(data.people) ? data.people : [];
+    }
+  } catch (e) {
+    console.warn("Nie udało się wczytać", PEOPLE_FILE, e);
+  }
 
-  if (rel < -0.38) return 0;
-  if (rel > 0.98) return 0;
+  const pins = [];
+  for (const person of people) {
+    if (!person || !person.folder) continue;
+    const folder = person.folder.replace(/\/+$/, "");
+    const nick = person.nick || folder;
 
-  if (rel < 0) return smoothstep(1 + rel / 0.35);
+    try {
+      const res = await fetch(folder + "/feed.json", { cache: "no-cache" });
+      if (!res.ok) continue;
+      const feed = await res.json();
+      const items = Array.isArray(feed.items) ? feed.items : [];
+      if (!items.length) continue;
 
-  if (rel < 0.58) return 1;
+      let prof = {};
+      try {
+        const pr = await fetch(folder + "/profile.json", { cache: "no-cache" });
+        if (pr.ok) prof = await pr.json();
+      } catch (e) { /* brak profilu */ }
 
-  return 1 - smoothstep((rel - 0.58) / 0.37);
+      const name = (prof.name && String(prof.name).trim()) ? String(prof.name).trim() : "";
+      const profNick = (prof.nick && String(prof.nick).trim()) ? String(prof.nick).trim() : "";
+
+      for (const it of items) {
+        if (!it) continue;
+        const common = {
+          nick, folder, name,
+          handle: profNick || nick,
+          page: folder + "/index.html",
+        };
+        if (it.videoId) {
+          pins.push({
+            ...common, kind: "youtube",
+            videoId: it.videoId,
+            thumb: "https://img.youtube.com/vi/" + it.videoId + "/hqdefault.jpg",
+            watch: "https://www.youtube.com/watch?v=" + it.videoId,
+          });
+        } else if (it.file) {
+          pins.push({ ...common, kind: "image", src: folder + "/" + it.file });
+        }
+      }
+    } catch (e) {
+      console.warn("Pomijam osobę:", folder, e);
+    }
+  }
+
+  allPins = pins;
+  render();
 }
 
-function lineState(progress, i) {
-  const opacity = lineOpacity(progress, i);
-  const rel = progress - i;
-  const y = rel * 12 * (1 - opacity);
-  return { opacity, y };
+function updateCounter() {
+  const n = new Set(allPins.map(p => p.nick)).size;
+  if (!n) {
+    counterEl.classList.add("hidden");
+    return;
+  }
+  counterNum.textContent = String(n);
+  counterEl.classList.remove("hidden");
 }
 
-function update() {
-  const vh = window.innerHeight || 1;
-  const progress = window.scrollY / vh;
+function render() {
+  loadingEl.classList.add("hidden");
+  updateCounter();
 
-  lines.forEach((line, i) => {
-    const { opacity, y } = lineState(progress, i);
-    line.style.opacity = opacity;
-    line.style.transform = `translateY(${y}px)`;
-    line.style.visibility = opacity > 0.04 ? "visible" : "hidden";
-    line.style.zIndex = opacity > 0.04 ? String(20 + i) : "0";
-  });
+  if (!allPins.length) {
+    feedEl.classList.add("hidden");
+    emptyEl.classList.remove("hidden");
+    return;
+  }
 
-  /* Przycisk: widoczny na ostatnim kroku scrolla (progress ≥ last − 0.4) */
-  const ctaStart = last - 0.4;
-  const ctaIn = progress >= ctaStart
-    ? smoothstep(Math.min(1, (progress - ctaStart) / 0.4))
-    : 0;
-  cta.style.opacity = ctaIn;
-  cta.style.transform = `translateY(${(1 - ctaIn) * 14}px)`;
-  cta.style.visibility = ctaIn > 0.04 ? "visible" : "hidden";
-  cta.classList.toggle("is-ready", ctaIn > 0.25);
+  emptyEl.classList.add("hidden");
+  feedEl.classList.remove("hidden");
+  feedEl.innerHTML = "";
+  allPins.forEach(pin => feedEl.appendChild(makePin(pin)));
 }
 
-let ticking = false;
-function onScroll() {
-  if (ticking) return;
-  ticking = true;
-  requestAnimationFrame(() => {
-    update();
-    ticking = false;
-  });
+function brokenPlaceholder() {
+  const ph = document.createElement("div");
+  ph.className = "ph";
+  return ph;
 }
 
-if (reduceMotion) {
-  lines.forEach((line, i) => {
-    line.style.opacity = i === 0 ? "1" : "0";
-    line.style.transform = "none";
-    line.style.visibility = i === 0 ? "visible" : "hidden";
-  });
-  cta.style.opacity = "1";
-  cta.style.transform = "none";
-  cta.style.visibility = "visible";
-  cta.classList.add("is-ready");
-  window.addEventListener("scroll", () => {
-    const i = Math.min(last, Math.round(window.scrollY / window.innerHeight));
-    lines.forEach((line, j) => {
-      const on = j === i;
-      line.style.opacity = on ? "1" : "0";
-      line.style.visibility = on ? "visible" : "hidden";
-    });
-  }, { passive: true });
-} else {
-  window.addEventListener("scroll", onScroll, { passive: true });
-  window.addEventListener("resize", onScroll, { passive: true });
-  update();
+function makeMedia(pin) {
+  const wrap = document.createElement("div");
+  wrap.className = "pin-media";
+
+  if (pin.kind === "youtube") {
+    const a = document.createElement("a");
+    a.className = "yt";
+    a.href = pin.watch;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.title = "Open on YouTube";
+    const img = document.createElement("img");
+    img.src = pin.thumb;
+    img.loading = "lazy";
+    img.alt = "";
+    img.addEventListener("error", () => img.replaceWith(brokenPlaceholder()));
+    const badge = document.createElement("span");
+    badge.className = "yt-badge";
+    badge.textContent = "▶";
+    a.append(img, badge);
+    wrap.appendChild(a);
+    return wrap;
+  }
+
+  const img = document.createElement("img");
+  img.src = pin.src;
+  img.loading = "lazy";
+  img.alt = "";
+  img.addEventListener("error", () => img.replaceWith(brokenPlaceholder()));
+  wrap.appendChild(img);
+  return wrap;
 }
+
+function makePin(pin) {
+  const art = document.createElement("article");
+  art.className = "pin";
+  art.appendChild(makeMedia(pin));
+
+  const handle = document.createElement("a");
+  handle.className = "pin-handle";
+  handle.href = pin.page;
+  handle.textContent = handleFor(pin);
+  handle.title = "View page";
+  art.appendChild(handle);
+
+  return art;
+}
+
+loadAll();
 </script>
 
 </body>

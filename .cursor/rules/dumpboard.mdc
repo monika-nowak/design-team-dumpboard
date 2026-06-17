@@ -13,10 +13,11 @@ pinterestowy feed.
 ## Pliki (deliverables)
 
 - `canvas-editor.html` — jednoplikowy edytor WYSIWYG (Canva-like). To go pobierają designerzy.
-- `hub.html` — strona główna z feedem. Na GitHub Pages wgrywana jako `index.html` w korzeniu repo.
+- `index.html` — strona główna z feedem (GitHub Pages).
+- `start.html` — intro / landing (opcjonalny pierwszy ekran).
+- `hub.html` — przekierowanie do `index.html` (stare linki).
 - `people.json` — lista osób `{ "nick", "folder" }` (auto-generowana przez Actions, patrz niżej).
 - `.github/workflows/generate-people.yml` — skanuje foldery i nadpisuje `people.json` przy każdym pushu.
-- `demo/` — działający przykład huba (foldery ania/marek + kasia bez feedu + zepsuty obrazek). Tylko do podglądu, można usunąć.
 - `.claude/server.js`, `.claude/launch.json` — statyczny serwer node do lokalnych testów (NIE część produktu).
 
 ## Twarde ograniczenia (NIE łamać)
@@ -44,7 +45,7 @@ Zawsze tworzy **ZIP** (`dumpboard-eksport.zip`), składany ręcznie w czystym JS
 - `index.html` — czysta strona (bez UI/kodu edytora). Tekst inline, obrazki base64, YouTube jako `<iframe src="youtube.com/embed/<id>">`. Wszyte `@font-face` (base64) **tylko dla użytych** fontów.
 - `project.json` — pełny edytowalny stan (`{version, bg, items, profile}`) do ponownej edycji przez „📂 Otwórz". To „źródło" projektu; NIE jest serwowany oglądającym.
 - `profile.json` (+ `avatar.jpg`) — jeśli ustawiono profil. `{ name, avatar:"avatar.jpg" }`.
-- `feed.json` + `feed-images/*.jpg` — jeśli oznaczono elementy „do feedu".
+- `feed.json` + `feed-images/*.jpg` — gdy na stronie są zdjęcia lub filmy YouTube (trafiają do feedu automatycznie).
 
 ### Układ opublikowanej strony (ważne — zmieniane kilka razy)
 
@@ -59,7 +60,7 @@ Zawsze tworzy **ZIP** (`dumpboard-eksport.zip`), składany ręcznie w czystym JS
 - Wygląd: masonry (kolumny CSS, responsywne do 1 kolumny). Kafelek: media + opcjonalny opis + podpis autora (avatar z `profile.json` lub kółko z inicjałem; nazwa z `profile.json` lub nazwa folderu). Klik w autora → strona osoby.
 - Film w feedzie = **klikalna miniatura + play, link do YouTube w nowej karcie** (BEZ `<iframe>` — hub ma być lekki).
 - Przycisk „＋ Zrób swoją stronę" linkuje do `canvas-editor.html`; modal „Jak to działa" tłumaczy flow (3 kroki, bez ręcznej edycji people.json).
-- `people.json` auto-generowany przez GitHub Actions (skan folderów z `index.html`/`feed.json`, lista EXCLUDE pomija demo/zasoby). Statyczna strona sama nie wykryje folderów (Pages nie ma listingu katalogów).
+- `people.json` auto-generowany przez GitHub Actions (skan folderów z `index.html`/`feed.json`, lista EXCLUDE pomija zasoby techniczne). Statyczna strona sama nie wykryje folderów (Pages nie ma listingu katalogów).
 
 ## Konwencje wizualne
 
@@ -67,7 +68,7 @@ Zawsze tworzy **ZIP** (`dumpboard-eksport.zip`), składany ręcznie w czystym JS
 
 ## Testowanie lokalne
 
-- Serwer: `node .claude/server.js` (port 8753, serwuje korzeń repo, `no-store`). Hub testuj pod `http://localhost:8753/demo/index.html`.
+- Serwer: `node .claude/server.js` (port 8753, serwuje korzeń repo, `no-store`). Hub testuj pod `http://localhost:8753/index.html`.
 - SVG wymaga content-type `image/svg+xml` (jest w server.js) — inaczej `<img>` nie wyrenderuje.
 
 ## Częste pułapki

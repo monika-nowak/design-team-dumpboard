@@ -1,9 +1,0 @@
-{
-  "generated": "2026-06-16T09:12:00.000Z",
-  "items": [
-    { "file": "feed-images/mockup.svg",  "caption": "Eksploracja ekranu logowania", "added": "2026-06-16" },
-    { "file": "feed-images/paleta.svg",  "caption": "",                              "added": "2026-06-15" },
-    { "file": "feed-images/typografia.svg", "caption": "Test hierarchii nagłówków", "added": "2026-06-14" },
-    { "file": "feed-images/NIE-MA-TEGO-PLIKU.svg", "caption": "Celowo zepsuty obrazek (test placeholdera)", "added": "2026-06-13" }
-  ]
-}

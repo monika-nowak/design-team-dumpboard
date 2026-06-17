@@ -25,7 +25,7 @@ jobs:
       - name: Zbuduj people.json z folderów osób
         run: |
           # Foldery, których NIE traktujemy jako osoby (hub, demo, zasoby itp.):
-          EXCLUDE="demo feed-images assets img images node_modules"
+          EXCLUDE="feed-images assets img images node_modules .github .cursor .claude"
 
           {
             echo '{'
