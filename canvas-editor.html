@@ -165,6 +165,35 @@
     padding: 0 var(--page-pad) 64px;
   }
 
+  /* ── Profile header (Figma: avatar 96px + @nick) ─────────────────── */
+  #profile-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 64px var(--page-pad) 0;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+  .profile-avatar-btn {
+    appearance: none;
+    border: none;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 36px;
+    font-weight: 800;
+    cursor: pointer;
+    padding: 0;
+  }
+  .profile-avatar-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
   #page-nick {
     font-family: "NaN Serf A Display", "Times New Roman", serif;
     font-weight: 300;
@@ -172,72 +201,175 @@
     line-height: 1.12;
     letter-spacing: -0.01em;
     color: #fff;
-    max-width: 1100px;
-    margin: 0 0 24px;
+    opacity: 0.2;
+    margin: 0;
     word-break: break-word;
+    cursor: pointer;
   }
 
-  /* Tablica: strefy dodawania i płótno nałożone na siebie (ten sam obszar),
-     żeby naklejka demo była widoczna od razu, a nie pod placeholderami. */
-  #board {
-    position: relative;
-    display: grid;
-    margin-bottom: 64px;
-  }
-  #board > #dropzones,
-  #board > #canvas { grid-area: 1 / 1; }
-
-  /* Strefy dodawania (puste) — Figma: dashed, 900×500, radius 24 */
-  #dropzones {
+  /* ── Media grid (images + YouTube, vertical stack) ───────────────── */
+  #media-grid {
     display: flex;
     flex-direction: column;
     gap: 64px;
-    align-items: center;
+    max-width: calc(var(--content-w) + 256px);
+    margin: 0 auto;
+    padding: 64px max(0px, calc((100% - var(--content-w)) / 2)) 128px;
+    width: 100%;
   }
-  #dropzones.hidden { display: none; }
 
-  .dropzone {
-    appearance: none;
-    border: 1px dashed var(--line);
-    background: rgba(255, 255, 255, 0.05);
+  .media-card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: var(--content-w);
+    margin: 0 auto;
+  }
+  .media-card.is-selected { gap: 8px; }
+
+  .media-frame {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #1a1a1a;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  .media-card.is-selected .media-frame {
     border-radius: 24px;
-    width: min(var(--content-w), 100%);
+    border-color: #6f93ff;
+  }
+  .media-frame img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    user-select: none;
+  }
+  .media-frame .yt-preview {
+    width: 100%;
+    height: 100%;
+    background: #000 center / cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .media-frame .yt-play {
+    width: 56px; height: 40px; border-radius: 10px;
+    background: rgba(255, 0, 0, 0.88); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; padding-left: 3px;
+  }
+
+  .media-caption-text {
+    font-size: 14px;
+    line-height: 20px;
+    color: #fff;
+    opacity: 0.8;
+    margin: 0;
+    word-break: break-word;
+  }
+
+  .media-caption-edit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    padding: 12px 16px;
+  }
+  .media-caption-edit input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    outline: none;
+  }
+  .media-caption-edit input::placeholder { color: #fff; opacity: 0.4; }
+  .media-caption-save {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: #fff;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .media-caption-save svg { display: block; width: 16px; height: 16px; }
+
+  /* Add-media placeholder — always visible at end of grid */
+  .media-add {
+    appearance: none;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    background: transparent;
+    border-radius: 24px;
+    width: 100%;
+    max-width: var(--content-w);
+    margin: 0 auto;
     min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    cursor: default;
+    color: #fff;
+    font: inherit;
+    padding: 24px;
+  }
+  .media-add-option {
+    appearance: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 16px;
-    cursor: pointer;
-    color: #fff;
-    font: inherit;
-    font-size: 16px;
-    font-weight: 600;
-    transition: background 0.15s, border-color 0.15s;
+    gap: 8px;
+    opacity: 0.85;
+    transition: opacity 0.15s, transform 0.15s;
   }
-  .dropzone:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.35);
+  .media-add-option:hover { opacity: 1; transform: scale(1.03); }
+  .media-add-option svg { display: block; }
+  .media-add-option--image svg { width: 160px; height: 160px; }
+  .media-add-option--youtube svg { width: 140px; height: 140px; }
+  .media-add-divider {
+    width: 1px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
   }
-  .dropzone .dz-icon { width: 20px; height: 20px; opacity: 0.9; }
 
-  /* ── Płótno (elementy absolutne wewnątrz) ───────────────────────── */
+  /* ── Free canvas (text + stickers only, below grid) ──────────────── */
+  #canvas-wrap {
+    max-width: var(--content-w);
+    margin: 0 auto 64px;
+    padding: 0 var(--page-pad);
+  }
+  #canvas-wrap.is-empty { display: none; }
+
   #canvas {
     position: relative;
-    width: min(var(--content-w), 100%);
-    min-height: 400px;
-    margin: 0 auto;
+    width: 100%;
+    min-height: 120px;
     background: transparent;
-    z-index: 2;
   }
-  /* Pusta tablica: płótno przepuszcza kliknięcia do placeholderów pod spodem,
-     ale elementy (np. naklejka demo) pozostają klikalne i przeciągalne. */
-  #canvas { pointer-events: none; }
-  #canvas .item { pointer-events: auto; }
-  /* Gdy jest już treść — placeholdery znikają, płótno przejmuje interakcje. */
-  #board.has-content > #canvas { pointer-events: auto; }
-
-  #hint { display: none !important; }
 
   .item {
     position: absolute;
@@ -427,8 +559,11 @@
     :root { --page-pad: 24px; }
     #toolbar { padding: 12px var(--page-pad); }
     .toolbar-add .pill-btn span.label { display: none; }
-    .dropzone { min-height: 320px; }
-    #toolbar-context .cap { width: min(210px, 40vw); }
+    #media-grid { padding-left: var(--page-pad); padding-right: var(--page-pad); gap: 48px; }
+    .media-frame, .media-add { min-height: 320px; height: auto; aspect-ratio: 16 / 10; }
+    .media-add-option--image svg { width: 100px; height: 100px; }
+    .media-add-option--youtube svg { width: 88px; height: 88px; }
+    .media-add-divider { height: 72px; }
   }
 </style>
 </head>
@@ -441,14 +576,6 @@
     </a>
     <div class="toolbar-main">
       <div class="toolbar-add">
-        <button type="button" class="pill-btn" id="add-image">
-          <img src="assets/landing/plus.svg" class="pill-icon" alt="">
-          <span class="label">Image</span>
-        </button>
-        <button type="button" class="pill-btn" id="add-youtube">
-          <img src="assets/landing/plus.svg" class="pill-icon" alt="">
-          <span class="label">YouTube</span>
-        </button>
         <button type="button" class="pill-btn" id="add-sticker">
           <img src="assets/landing/plus.svg" class="pill-icon" alt="">
           <span class="label">Sticker</span>
@@ -472,12 +599,6 @@
           <button class="btn icon" id="bold-toggle" title="Bold" style="font-weight:800">B</button>
           <label>Color</label>
           <input type="color" id="text-color" class="mini-swatch" value="#ffffff" title="Text color">
-        </div>
-
-        <div class="tb-group" id="insp-image" style="display:none">
-          <label>Feed caption</label>
-          <input type="text" id="feed-caption" class="cap" maxlength="120"
-                 placeholder="Optional">
         </div>
 
         <div class="tb-group" id="insp-sticker" style="display:none">
@@ -515,25 +636,15 @@
 
   <!-- ═══════════════ STRONA EDYTORA ═══════════════ -->
   <div id="page-scroll">
-    <h1 id="page-nick">@…</h1>
+    <div id="profile-header">
+      <button type="button" id="header-avatar" class="profile-avatar-btn" title="Edit profile"></button>
+      <h1 id="page-nick">@…</h1>
+    </div>
 
-    <!-- Strefy dodawania i płótno leżą w tym samym miejscu (nakładka),
-         dzięki czemu naklejka demo jest widoczna od razu na pustej tablicy. -->
-    <div id="board">
-      <div id="dropzones">
-        <button type="button" class="dropzone" data-action="image">
-          <img src="assets/landing/plus.svg" class="dz-icon" alt="">
-          <span>Add a picture</span>
-        </button>
-        <button type="button" class="dropzone" data-action="youtube">
-          <img src="assets/landing/plus.svg" class="dz-icon" alt="">
-          <span>Add a youtube link</span>
-        </button>
-      </div>
+    <div id="media-grid" aria-label="Media"></div>
 
-      <div id="canvas">
-        <div id="hint"></div>
-      </div>
+    <div id="canvas-wrap" class="is-empty">
+      <div id="canvas"></div>
     </div>
   </div>
 
@@ -604,9 +715,8 @@
     <div class="modal">
       <h2>Add a YouTube video</h2>
       <p class="lead">Paste a video link (e.g. <code>youtu.be/…</code> or
-         <code>youtube.com/watch?v=…</code>). A player appears on the canvas — move and
-         scale it like an image. Note: on your published page the video loads from YouTube,
-         so it needs internet.</p>
+         <code>youtube.com/watch?v=…</code>). It will appear in your media grid.
+         Note: on your published page the video loads from YouTube, so it needs internet.</p>
       <input type="text" id="yt-url" class="profile-input"
              placeholder="https://www.youtube.com/watch?v=...">
       <p id="yt-error" style="color:#ff5470;font-size:13px;margin:8px 0 0;display:none">
@@ -667,10 +777,11 @@ let future = [];
 
 /* ── Skróty do elementów DOM ── */
 const canvas    = document.getElementById("canvas");
+const canvasWrap = document.getElementById("canvas-wrap");
+const mediaGrid = document.getElementById("media-grid");
 const pageScroll = document.getElementById("page-scroll");
 const pageNick  = document.getElementById("page-nick");
-const dropzones = document.getElementById("dropzones");
-const hintEl     = document.getElementById("hint");
+const headerAvatar = document.getElementById("header-avatar");
 const toolbarCtx = document.getElementById("toolbar-context");
 const ctxSep     = document.getElementById("ctx-sep");
 const inspText   = document.getElementById("insp-text");
@@ -682,9 +793,22 @@ const bgColor    = document.getElementById("bg-color");
 const fileInput  = document.getElementById("file-input");
 const stickerPop   = document.getElementById("sticker-pop");
 const toastEl    = document.getElementById("toast");
-const inspImage  = document.getElementById("insp-image");
 const inspSticker = document.getElementById("insp-sticker");
-const feedCaption = document.getElementById("feed-caption");
+
+/* SVG icons for add-media placeholder (Figma-style) */
+const ICON_IMAGE = `<svg viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="24" y="40" width="88" height="72" rx="12" stroke="white" stroke-opacity="0.5" stroke-width="2"/><rect x="48" y="24" width="88" height="72" rx="12" fill="#0e0e0e" stroke="white" stroke-opacity="0.8" stroke-width="2"/><circle cx="72" cy="48" r="8" fill="white" fill-opacity="0.6"/><path d="M56 80l16-16 12 12 24-24 16 16v16H56V80z" fill="white" fill-opacity="0.5"/></svg>`;
+const ICON_YOUTUBE = `<svg viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="20" y="36" width="100" height="68" rx="20" fill="#FF0000" fill-opacity="0.9"/><path d="M68 58l28 16-28 16V58z" fill="white"/></svg>`;
+const ICON_CHECK = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10.5l4 4 8-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function isMediaItem(item) {
+  return item && (item.type === "image" || item.type === "youtube");
+}
+function mediaItems() {
+  return state.items.filter(isMediaItem);
+}
+function isCanvasItem(item) {
+  return item && !isMediaItem(item) && !item.demo;
+}
 
 /* ════════════════════════════════════════════════════════════════════
    POMOCNICZE
@@ -744,6 +868,12 @@ function canvasCenter() {
 
 /* Po dodaniu elementu upewniamy się, że jest widoczny (przewijamy do niego). */
 function scrollItemIntoView(id) {
+  const item = state.items.find(i => i.id === id);
+  if (isMediaItem(item)) {
+    const card = mediaGrid && mediaGrid.querySelector(`.media-card[data-id="${id}"]`);
+    if (card) card.scrollIntoView({ block: "center", behavior: "smooth" });
+    return;
+  }
   requestAnimationFrame(() => {
     const el = canvas.querySelector(`.item[data-id="${id}"]`);
     if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -755,13 +885,25 @@ function updatePageNick() {
   pageNick.textContent = n;
 }
 
-function updateDropzones() {
-  if (!dropzones) return;
-  /* Demo-naklejka nie liczy się jako „treść" — strefy zostają do pierwszego dodatku */
-  const hasContent = state.items.some(i => !i.demo);
-  dropzones.classList.toggle("hidden", hasContent);
-  const board = document.getElementById("board");
-  if (board) board.classList.toggle("has-content", hasContent);
+function renderHeaderAvatar() {
+  if (!headerAvatar) return;
+  if (profile.avatar) {
+    headerAvatar.innerHTML = `<img src="${profile.avatar}" alt="">`;
+  } else {
+    const base = (profile.name || profile.nick || "").trim();
+    headerAvatar.textContent = base ? base.charAt(0).toUpperCase() : "";
+  }
+}
+
+function normalizeLegacyMedia() {
+  const media = state.items.filter(isMediaItem);
+  media.sort((a, b) => (a.y || 0) - (b.y || 0) || (a.id || 0) - (b.id || 0));
+  const rest = state.items.filter(i => !isMediaItem(i));
+  state.items = [...media, ...rest];
+  media.forEach(it => {
+    delete it.x; delete it.y; delete it.w; delete it.h; delete it.rot;
+    it.feed = true;
+  });
 }
 
 function applyPageBg() {
@@ -769,14 +911,106 @@ function applyPageBg() {
 }
 
 function syncCanvasHeight() {
-  let maxY = 400;
-  state.items.forEach(it => {
+  let maxY = 120;
+  state.items.filter(isCanvasItem).forEach(it => {
     let h = it.h;
     if (!h) h = it.fontSize || (it.src ? 200 : 80);
     const bottom = (it.y || 0) + h + 80;
     if (bottom > maxY) maxY = bottom;
   });
   canvas.style.minHeight = maxY + "px";
+  if (canvasWrap) canvasWrap.classList.toggle("is-empty", !state.items.some(isCanvasItem));
+}
+
+function renderMediaGrid() {
+  if (!mediaGrid) return;
+  mediaGrid.innerHTML = "";
+
+  mediaItems().forEach(item => {
+    const card = document.createElement("article");
+    card.className = "media-card" + (item.id === selectedId ? " is-selected" : "");
+    card.dataset.id = item.id;
+
+    const frame = document.createElement("div");
+    frame.className = "media-frame";
+    frame.title = "Select media";
+    if (item.type === "image") {
+      const img = document.createElement("img");
+      img.src = item.src;
+      img.alt = "";
+      frame.appendChild(img);
+    } else {
+      const yt = document.createElement("div");
+      yt.className = "yt-preview";
+      yt.style.backgroundImage = `url(https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg)`;
+      const play = document.createElement("span");
+      play.className = "yt-play";
+      play.textContent = "▶";
+      yt.appendChild(play);
+      frame.appendChild(yt);
+    }
+    frame.addEventListener("click", e => {
+      e.stopPropagation();
+      selectItem(item.id, false);
+    });
+    card.appendChild(frame);
+
+    if (item.id === selectedId) {
+      const edit = document.createElement("div");
+      edit.className = "media-caption-edit";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.maxLength = 120;
+      input.placeholder = "Description (optional)";
+      input.value = item.caption || "";
+      input.addEventListener("input", () => { item.caption = input.value; });
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter") { e.preventDefault(); commitMediaCaption(item); }
+      });
+      const save = document.createElement("button");
+      save.type = "button";
+      save.className = "media-caption-save";
+      save.title = "Save caption";
+      save.innerHTML = ICON_CHECK;
+      save.addEventListener("click", e => {
+        e.stopPropagation();
+        commitMediaCaption(item);
+      });
+      edit.append(input, save);
+      card.appendChild(edit);
+      requestAnimationFrame(() => input.focus());
+    } else if (item.caption) {
+      const cap = document.createElement("p");
+      cap.className = "media-caption-text";
+      cap.textContent = item.caption;
+      card.appendChild(cap);
+    }
+
+    mediaGrid.appendChild(card);
+  });
+
+  const add = document.createElement("div");
+  add.className = "media-add";
+  add.innerHTML =
+    `<button type="button" class="media-add-option media-add-option--image" id="grid-add-image" title="Add image">${ICON_IMAGE}</button>`
+    + `<span class="media-add-divider" aria-hidden="true"></span>`
+    + `<button type="button" class="media-add-option media-add-option--youtube" id="grid-add-youtube" title="Add YouTube video">${ICON_YOUTUBE}</button>`;
+  mediaGrid.appendChild(add);
+}
+
+function commitMediaCaption(item) {
+  pushUndo();
+  render();
+}
+
+function deselectMediaOutside(e) {
+  if (!selectedId) return;
+  const item = selectedItem();
+  if (!item || !isMediaItem(item)) return;
+  if (e.target.closest(".media-card") || e.target.closest(".media-add")) return;
+  if (e.target.closest("#toolbar")) return;
+  selectedId = null;
+  render();
 }
 
 /** Naklejka Alf na starcie — pokazuje, jak działają naklejki (bez wpisu w undo). */
@@ -938,13 +1172,9 @@ function parseYouTubeId(url) {
 /* Dodaje element typu „youtube" (osadzony odtwarzacz). Domyślnie 16:9. */
 function addYouTube(videoId) {
   pushUndo();
-  const w = 480, h = 270;                 // 16:9
-  const c = canvasCenter();
   const item = {
     id: uid++, type: "youtube",
-    x: c.x - w / 2, y: c.y - h / 2, w, h,
-    rot: 0, videoId,
-    // zdjęcia i filmy trafiają do feedu zespołu automatycznie
+    videoId,
     feed: true,
     caption: "",
     added: new Date().toISOString().slice(0, 10),
@@ -1004,21 +1234,13 @@ function handleImageFile(file) {
       const dataUrl = off.toDataURL("image/jpeg", 0.85);
 
       pushUndo();
-      // Dopasuj rozmiar wstawki do płótna (max ~45% szerokości).
-      const maxW = canvas.clientWidth * 0.45;
-      let dispW = width, dispH = height;
-      if (dispW > maxW) { const k = maxW / dispW; dispW = maxW; dispH = dispH * k; }
-      const c = canvasCenter();
       const item = {
         id: uid++, type: "image",
-        x: c.x - dispW / 2, y: c.y - dispH / 2,
-        w: Math.round(dispW), h: Math.round(dispH),
         rot: 0, src: dataUrl,
-        // zdjęcia trafiają do feedu zespołu automatycznie
         feed: true,
-        caption: "",                                  // krótki opis (opcjonalny)
-        baseName: sanitizeBaseName(file.name),        // baza nazwy pliku obrazka
-        added: new Date().toISOString().slice(0, 10), // data dodania (YYYY-MM-DD)
+        caption: "",
+        baseName: sanitizeBaseName(file.name),
+        added: new Date().toISOString().slice(0, 10),
       };
       state.items.push(item);
       selectedId = item.id;
@@ -1042,10 +1264,11 @@ function render() {
   [...canvas.querySelectorAll(".item, .guide")].forEach(el => el.remove());
 
   updatePageNick();
-  updateDropzones();
+  renderHeaderAvatar();
+  renderMediaGrid();
   syncCanvasHeight();
 
-  state.items.forEach((item, index) => {
+  state.items.filter(isCanvasItem).forEach((item, index) => {
     const el = document.createElement("div");
     el.className = "item" + (item.id === selectedId ? " selected" : "");
     el.dataset.id = item.id;
@@ -1145,7 +1368,13 @@ function syncInspector() {
     toolbarCtx.classList.remove("show");
     ctxSep.hidden = true;
     inspText.style.display = "none";
-    inspImage.style.display = "none";
+    inspSticker.style.display = "none";
+    return;
+  }
+  if (isMediaItem(item)) {
+    toolbarCtx.classList.add("show");
+    ctxSep.hidden = false;
+    inspText.style.display = "none";
     inspSticker.style.display = "none";
     return;
   }
@@ -1162,12 +1391,6 @@ function syncInspector() {
   } else {
     inspText.style.display = "none";
   }
-  if (item.type === "image" || item.type === "youtube") {
-    inspImage.style.display = "flex";
-    feedCaption.value = item.caption || "";
-  } else {
-    inspImage.style.display = "none";
-  }
   inspSticker.style.display = item.type === "sticker" ? "flex" : "none";
 }
 
@@ -1176,16 +1399,20 @@ function syncInspector() {
    ════════════════════════════════════════════════════════════════════ */
 function selectItem(id, bringToFront = true) {
   selectedId = id;
-  if (bringToFront) {
+  const item = state.items.find(i => i.id === id);
+  if (bringToFront && item && isCanvasItem(item)) {
     const idx = state.items.findIndex(i => i.id === id);
     if (idx !== -1 && idx !== state.items.length - 1) {
       const [it] = state.items.splice(idx, 1);
-      state.items.push(it);          // na koniec tablicy = na wierzch
+      state.items.push(it);
     }
   }
   render();
 }
-function deselect() { selectedId = null; render(); }
+function deselect() {
+  selectedId = null;
+  render();
+}
 
 function deleteSelected() {
   if (selectedId == null) return;
@@ -1432,7 +1659,6 @@ canvas.addEventListener("dblclick", e => {
    PODŁĄCZENIE KONTROLEK PASKA I INSPEKTORA
    ════════════════════════════════════════════════════════════════════ */
 document.getElementById("add-text").addEventListener("click", addText);
-document.getElementById("add-image").addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", e => {
   const f = e.target.files[0];
   if (f) handleImageFile(f);
@@ -1508,7 +1734,7 @@ bgColor.addEventListener("input", e => {
 document.getElementById("undo").addEventListener("click", undo);
 document.getElementById("redo").addEventListener("click", redo);
 
-// Inspektor: usuń
+// Delete works for media (grid) and canvas items
 document.getElementById("del-selected").addEventListener("click", deleteSelected);
 
 // Inspektor: font (dropdown z nagłówkami grup)
@@ -1559,20 +1785,13 @@ boldToggle.addEventListener("click", () => {
   render();
 });
 
-// Opis do feedu (zdjęcia i filmy trafiają tam automatycznie)
+// Opis do feedu — edytowany inline pod każdym medium w siatce.
 function isFeedable(item) {
   return item && (item.type === "image" || item.type === "youtube");
 }
 
-// Inspektor: opis do feedu (zapis na bieżąco, jeden wpis historii na zmianę)
-feedCaption.addEventListener("input", () => {
-  const item = selectedItem();
-  if (isFeedable(item)) item.caption = feedCaption.value;
-});
-feedCaption.addEventListener("change", () => { pushUndo(); });
-
 /* ════════════════════════════════════════════════════════════════════
-   SKRÓTY KLAWISZOWE
+   KEYBOARD SHORTCUTS
    ════════════════════════════════════════════════════════════════════ */
 document.addEventListener("keydown", e => {
   // nie przechwytuj, gdy edytujemy tekst lub jesteśmy w polu formularza
@@ -1736,8 +1955,8 @@ function downloadBlob(blob, filename) {
    ════════════════════════════════════════════════════════════════════ */
 async function exportPage() {
   if (profile.nick) saveNickLocal(profile.nick);
-  if (!state.items.some(i => !i.demo)) {
-    toast("Add something to the canvas first (besides the sample sticker).");
+  if (!mediaItems().length && !state.items.some(isCanvasItem)) {
+    toast("Add at least one image or video.");
     return;
   }
 
@@ -1782,109 +2001,100 @@ async function exportPage() {
           " (no internet when the font was selected). Rest is OK.", 5000);
   }
 
-  // 3b) Oblicz prostokąt obejmujący WSZYSTKIE elementy (z uwzględnieniem
-  //     obrotu). Opublikowana strona obejmie dokładnie ten obszar, wyśrodkuje
-  //     go i przeskaluje do okna → zawsze responsywne i wycentrowane.
-  //     Rozmiary mierzymy z aktualnego renderu w edytorze.
-  const PAD = 24;   // margines wokół kompozycji (px)
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  state.items.forEach(it => {
-    const el = canvas.querySelector(`.item[data-id="${it.id}"]`);
-    const w = it.w || (el ? el.offsetWidth : 0);
-    let h = it.h;
-    if (!h && (it.type === "image" || it.type === "youtube")) h = it.h;
-    if (!h) h = el ? el.offsetHeight : 0;
-    const cx = it.x + w / 2, cy = it.y + h / 2;
-    const rad = (it.rot || 0) * Math.PI / 180;
-    const cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
-    const bw = w * cos + h * sin, bh = w * sin + h * cos;   // obrócony AABB
-    minX = Math.min(minX, cx - bw / 2); maxX = Math.max(maxX, cx + bw / 2);
-    minY = Math.min(minY, cy - bh / 2); maxY = Math.max(maxY, cy + bh / 2);
-  });
-  const offX = minX - PAD, offY = minY - PAD;                // przesunięcie do 0,0
-  const stageW = Math.max(1, Math.ceil(maxX - minX + PAD * 2));
-  const stageH = Math.max(1, Math.ceil(maxY - minY + PAD * 2));
-
-  // 4) Wygeneruj czysty HTML elementów (z-index = kolejność w tablicy).
-  //    Pozycje przesuwamy o (offX, offY), żeby kompozycja zaczynała się w 0,0.
-  const elementsHtml = state.items.map((item, index) => {
-    const z = index + 1;
-    if (item.type === "text") {
-      const style = [
-        `position:absolute`,
-        `left:${item.x - offX}px`, `top:${item.y - offY}px`,
-        `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
-        `z-index:${z}`,
-        `font-family:'${item.fontFamily}', sans-serif`,
-        `font-size:${item.fontSize}px`,
-        `font-weight:${item.bold ? 700 : 400}`,
-        `color:${item.color}`,
-        // bez szerokości i zawijania — pole dopasowuje się do treści jak w edytorze
-        `line-height:1.25`, `white-space:pre`,
-      ].join(";");
-      return `    <div style="${style}">${escapeHtml(item.text)}</div>`;
-    }
+  // 3b) HTML siatki mediów + opcjonalna warstwa naklejek/tekstu
+  const mediaHtml = mediaItems().map(item => {
+    const cap = item.caption
+      ? `\n      <p class="media-caption">${escapeHtml(item.caption)}</p>` : "";
     if (item.type === "image") {
-      const style = [
-        `position:absolute`,
-        `left:${item.x - offX}px`, `top:${item.y - offY}px`,
-        `width:${item.w}px`, `height:${item.h}px`,
-        `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
-        `z-index:${z}`,
-      ].join(";");
-      // Zdjęcia w feedzie zespołu (wszystkie obrazki trafiają do feed.json)
-      const feedAttr = ` data-feed="true"`;
-      const capAttr  = item.caption
-        ? ` data-caption="${escapeAttr(item.caption)}"` : "";
-      return `    <img src="${item.src}"${feedAttr}${capAttr} style="${style}" alt="">`;
+      return `    <article class="media-card">
+      <div class="media-frame"><img src="${item.src}" alt=""></div>${cap}
+    </article>`;
     }
-    if (item.type === "sticker") {
-      if (item.src) {
-        const src = stickerExports.get(item.id)
-          || (item.src.startsWith("data:") ? item.src : (stickerSrcCache[item.src] || item.src));
-        const style = [
-          `position:absolute`,
-          `left:${item.x - offX}px`, `top:${item.y - offY}px`,
-          `width:${item.w}px`, `height:${item.h}px`,
-          `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
-          `z-index:${z}`,
-        ].join(";");
-        return `    <img src="${src}" style="${style}" alt="">`;
-      }
-      const style = [
-        `position:absolute`,
-        `left:${item.x - offX}px`, `top:${item.y - offY}px`,
-        `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
-        `z-index:${z}`,
-        `font-size:${item.fontSize}px`, `line-height:1`,
-      ].join(";");
-      return `    <div style="${style}">${escapeHtml(item.char)}</div>`;
-    }
-    if (item.type === "youtube") {
-      const style = [
-        `position:absolute`,
-        `left:${item.x - offX}px`, `top:${item.y - offY}px`,
-        `width:${item.w}px`, `height:${item.h}px`,
-        `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
-        `z-index:${z}`,
-      ].join(";");
-      // Prawdziwy odtwarzacz YouTube (ładuje się z sieci przy oglądaniu).
-      return `    <div style="${style}"><iframe src="https://www.youtube.com/embed/${item.videoId}" `
-           + `style="width:100%;height:100%;border:0" allowfullscreen `
-           + `allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe></div>`;
-    }
-    return "";
+    return `    <article class="media-card">
+      <div class="media-frame"><iframe src="https://www.youtube.com/embed/${item.videoId}" style="width:100%;height:100%;border:0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe></div>${cap}
+    </article>`;
   }).join("\n");
 
-  // 5) Złóż kompletny dokument.
-  //    Kompozycja (.stage) ma rozmiar obszaru zajętego przez elementy. Skalujemy
-  //    ją do SZEROKOŚCI okna (responsywnie), a w PIONIE strona przewija się
-  //    normalnie — jak każda strona WWW. Wrapper rezerwuje przeskalowaną
-  //    wysokość, dzięki czemu pojawia się zwykły pasek przewijania.
+  const freeItems = state.items.filter(isCanvasItem);
+  let freeLayerHtml = "";
+  let freeLayerScript = "";
+  if (freeItems.length) {
+    const PAD = 24;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    freeItems.forEach(it => {
+      const el = canvas.querySelector(`.item[data-id="${it.id}"]`);
+      const w = it.w || (el ? el.offsetWidth : 0);
+      let h = it.h;
+      if (!h) h = el ? el.offsetHeight : (it.fontSize || 80);
+      const cx = (it.x || 0) + w / 2, cy = (it.y || 0) + h / 2;
+      const rad = (it.rot || 0) * Math.PI / 180;
+      const cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
+      const bw = w * cos + h * sin, bh = w * sin + h * cos;
+      minX = Math.min(minX, cx - bw / 2); maxX = Math.max(maxX, cx + bw / 2);
+      minY = Math.min(minY, cy - bh / 2); maxY = Math.max(maxY, cy + bh / 2);
+    });
+    const offX = minX - PAD, offY = minY - PAD;
+    const stageW = Math.max(1, Math.ceil(maxX - minX + PAD * 2));
+    const stageH = Math.max(1, Math.ceil(maxY - minY + PAD * 2));
+    freeLayerHtml = freeItems.map((item, index) => {
+      const z = index + 1;
+      if (item.type === "text") {
+        const style = [
+          `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
+          `transform:rotate(${item.rot}deg)`, `transform-origin:center center`, `z-index:${z}`,
+          `font-family:'${item.fontFamily}', sans-serif`, `font-size:${item.fontSize}px`,
+          `font-weight:${item.bold ? 700 : 400}`, `color:${item.color}`,
+          `line-height:1.25`, `white-space:pre`,
+        ].join(";");
+        return `        <div style="${style}">${escapeHtml(item.text)}</div>`;
+      }
+      if (item.type === "sticker") {
+        if (item.src) {
+          const src = stickerExports.get(item.id)
+            || (item.src.startsWith("data:") ? item.src : (stickerSrcCache[item.src] || item.src));
+          const style = [
+            `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
+            `width:${item.w}px`, `height:${item.h}px`,
+            `transform:rotate(${item.rot}deg)`, `transform-origin:center center`, `z-index:${z}`,
+          ].join(";");
+          return `        <img src="${src}" style="${style}" alt="">`;
+        }
+        const style = [
+          `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
+          `transform:rotate(${item.rot}deg)`, `transform-origin:center center`, `z-index:${z}`,
+          `font-size:${item.fontSize}px`, `line-height:1`,
+        ].join(";");
+        return `        <div style="${style}">${escapeHtml(item.char)}</div>`;
+      }
+      return "";
+    }).join("\n");
+    freeLayerScript =
+`    (function () {
+      var W = ${stageW}, H = ${stageH};
+      var wrap = document.getElementById('free-wrap'), s = document.getElementById('free-stage');
+      if (!wrap || !s) return;
+      function fit() {
+        var k = wrap.clientWidth / W;
+        s.style.transform = 'scale(' + k + ')';
+        wrap.style.height = (H * k) + 'px';
+      }
+      addEventListener('resize', fit); fit();
+    })();`;
+  }
+
   const pageTitle = escapeHtml((profile.name || profile.nick || "My page").trim() || "My page");
   const editHref = profile.nick
     ? "../../canvas-editor.html?project=" + encodeURIComponent("people/" + profile.nick + "/project.json")
     : "../../canvas-editor.html";
+  const nickLabel = escapeHtml("@" + (profile.nick || profile.name || "yourname").replace(/^@+/, ""));
+  const avatarInitial = escapeHtml(((profile.name || profile.nick || "?").trim().charAt(0) || "?").toUpperCase());
+  const avatarBlock = profile.avatar
+    ? `<img src="avatar.jpg" alt="">`
+    : `<span>${avatarInitial}</span>`;
+  let freeLayerBlock = "";
+  if (freeLayerHtml) {
+    freeLayerBlock = `\n  <div id="free-wrap" class="free-wrap">\n    <div id="free-stage" class="free-stage" style="width:${stageW}px;height:${stageH}px">\n${freeLayerHtml}\n    </div>\n  </div>`;
+  }
 
   const doc =
 `<!DOCTYPE html>
@@ -1894,7 +2104,13 @@ async function exportPage() {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${pageTitle}</title>
 <style>
-${fontFaces}    * { margin: 0; box-sizing: border-box; }
+${fontFaces}    @font-face {
+      font-family: "NaN Serf A Display";
+      src: url("../../assets/fonts/NaNSerfADisplay-Light.ttf") format("truetype");
+      font-weight: 300;
+      font-display: swap;
+    }
+    * { margin: 0; box-sizing: border-box; }
     body {
       background: ${state.bg};
       font-family: system-ui, -apple-system, sans-serif;
@@ -1940,14 +2156,40 @@ ${fontFaces}    * { margin: 0; box-sizing: border-box; }
       font-weight: 600;
     }
     .site-nav .nav-pill:hover { opacity: 0.9; }
-    /* Like the editor: max 900px wide, centered — not full monitor width. */
-    #wrap { position: relative; margin: 0 auto; overflow: hidden; max-width: 900px; width: 100%; }
-    .stage {
-      position: relative;
-      width: ${stageW}px;
-      height: ${stageH}px;
-      transform-origin: top left;
+    .page { max-width: 900px; margin: 0 auto; padding: 0 24px 128px; }
+    .profile-header {
+      display: flex; align-items: center; gap: 24px;
+      padding: 48px 0 32px;
     }
+    .profile-avatar {
+      width: 96px; height: 96px; border-radius: 50%;
+      overflow: hidden; flex-shrink: 0;
+      background: rgba(255,255,255,0.05);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 36px; font-weight: 800;
+    }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .profile-nick {
+      font-family: "NaN Serf A Display", "Times New Roman", serif;
+      font-weight: 300; font-size: clamp(40px, 8vw, 82px);
+      line-height: 1.12; color: #fff; opacity: 0.2; margin: 0;
+    }
+    .media-grid { display: flex; flex-direction: column; gap: 64px; }
+    .media-card { display: flex; flex-direction: column; gap: 20px; }
+    .media-frame {
+      width: 100%; height: min(500px, 70vw); border-radius: 16px;
+      overflow: hidden; background: #1a1a1a; position: relative;
+    }
+    .media-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .media-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+    .media-caption {
+      font-size: 14px; line-height: 20px; color: #fff; opacity: 0.8; margin: 0;
+    }
+    .free-wrap {
+      position: relative; margin: 64px auto 0; overflow: hidden;
+      max-width: 900px; width: 100%;
+    }
+    .free-stage { position: relative; transform-origin: top left; }
 </style>
 </head>
 <body>
@@ -1960,24 +2202,18 @@ ${fontFaces}    * { margin: 0; box-sizing: border-box; }
       <a class="nav-pill" href="${editHref}">Edit page</a>
     </div>
   </nav>
-  <div id="wrap">
-    <div class="stage" id="stage">
-${elementsHtml}
-    </div>
-  </div>
+  <main class="page">
+    <header class="profile-header">
+      <div class="profile-avatar">${avatarBlock}</div>
+      <h1 class="profile-nick">${nickLabel}</h1>
+    </header>
+    <div class="media-grid">
+${mediaHtml}
+    </div>${freeLayerBlock}
+  </main>
   ${profile.nick ? `<script>try{localStorage.setItem("dumpboard_nick",${JSON.stringify(profile.nick)})}catch(e){}<\/script>` : ""}
   <script>
-    /* Scale composition to #wrap width (max 900px, like the editor canvas). */
-    (function () {
-      var W = ${stageW}, H = ${stageH};
-      var wrap = document.getElementById('wrap'), s = document.getElementById('stage');
-      function fit() {
-        var k = wrap.clientWidth / W;
-        s.style.transform = 'scale(' + k + ')';
-        wrap.style.height = (H * k) + 'px';
-      }
-      addEventListener('resize', fit); fit();
-    })();
+${freeLayerScript}
   <\/script>
 </body>
 </html>`;
@@ -2082,6 +2318,7 @@ function renderAvatarPreview() {
     avatarPreview.textContent = base ? base.charAt(0).toUpperCase() : "🙂";
     avatarRemoveBtn.style.display = "none";
   }
+  renderHeaderAvatar();
 }
 document.getElementById("profile-btn").addEventListener("click", () => {
   profileNameIn.value = profile.name || "";
@@ -2128,16 +2365,10 @@ function confirmWelcome() {
 document.getElementById("welcome-start").addEventListener("click", confirmWelcome);
 welcomeNickIn.addEventListener("keydown", e => { if (e.key === "Enter") confirmWelcome(); });
 
-/* Strefy dodawania → te same akcje co w pasku u góry */
-dropzones.querySelectorAll(".dropzone").forEach(zone => {
-  zone.addEventListener("click", () => {
-    const action = zone.dataset.action;
-    if (action === "image") fileInput.click();
-    else if (action === "youtube") document.getElementById("add-youtube").click();
-  });
-});
-
-/* Klik w @nick → edycja profilu */
+/* Profile header → edit profile */
+if (headerAvatar) {
+  headerAvatar.addEventListener("click", () => document.getElementById("profile-btn").click());
+}
 pageNick.style.cursor = "pointer";
 pageNick.title = "Edit profile";
 pageNick.addEventListener("click", () => document.getElementById("profile-btn").click());
@@ -2171,13 +2402,12 @@ function loadProject(data) {
   state.items.forEach(i => {
     if (i.type === "image" || i.type === "youtube") i.feed = true;
   });
+  normalizeLegacyMedia();
   profile.nick = normalizeNick((data.profile && data.profile.nick) || (data.profile && data.profile.name) || "");
   profile.name = (data.profile && data.profile.name) || profile.nick || "";
   profile.avatar = (data.profile && data.profile.avatar) || null;
   if (profile.nick) saveNickLocal(profile.nick);
   state.items.forEach(i => { if (i.type === "sticker" && i.src) cacheStickerSrc(i.src); });
-  if (!state.items.length) seedDemoSticker();
-  // licznik id ponad najwyższe wczytane, by uniknąć kolizji
   uid = state.items.reduce((m, i) => Math.max(m, i.id || 0), 0) + 1;
   selectedId = null;
   // pobierz użyte fonty do cache, żeby eksport znów działał offline
@@ -2232,12 +2462,20 @@ projectInput.addEventListener("change", e => {
 const ytModal = document.getElementById("yt-modal");
 const ytUrl   = document.getElementById("yt-url");
 const ytError = document.getElementById("yt-error");
-function closeYt() { ytModal.classList.remove("show"); }
-document.getElementById("add-youtube").addEventListener("click", () => {
+function openYtModal() {
   ytUrl.value = ""; ytError.style.display = "none";
   ytModal.classList.add("show");
   ytUrl.focus();
-});
+}
+function closeYt() { ytModal.classList.remove("show"); }
+
+if (mediaGrid) {
+  mediaGrid.addEventListener("click", e => {
+    if (e.target.closest("#grid-add-image")) { fileInput.click(); return; }
+    if (e.target.closest("#grid-add-youtube")) { openYtModal(); }
+  });
+}
+document.addEventListener("mousedown", deselectMediaOutside);
 function confirmYt() {
   const id = parseYouTubeId(ytUrl.value);
   if (!id) { ytError.style.display = "block"; return; }
@@ -2265,7 +2503,6 @@ window.addEventListener("beforeunload", e => {
 updateUndoButtons();
 (async function initEditor() {
   if (await tryLoadProjectFromUrl()) return;
-  seedDemoSticker();
   render();
   if (!profile.nick) openWelcome();
 })();
