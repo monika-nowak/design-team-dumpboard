@@ -718,15 +718,25 @@ function toast(msg, ms = 2200) {
   clearTimeout(toast._t);
   toast._t = setTimeout(() => toastEl.classList.remove("show"), ms);
 }
-/* Środek widocznego płótna — domyślne miejsce wstawiania nowych elementów */
+/* Środek aktualnie widocznego obszaru — w układzie współrzędnych płótna.
+   Strona przewija się oknem, więc liczymy pozycję płótna względem viewportu
+   (getBoundingClientRect), a nie z nieistniejącego scrolla #page-scroll. */
 function canvasCenter() {
   const w = canvas.clientWidth || 900;
-  const scrollTop = pageScroll ? pageScroll.scrollTop : 0;
-  const viewH = window.innerHeight - 120;
-  return {
-    x: w / 2,
-    y: scrollTop + Math.max(280, viewH * 0.45),
-  };
+  const rect = canvas.getBoundingClientRect();
+  // środek widocznej części okna, przeliczony na współrzędne wewnątrz płótna
+  let y = (window.innerHeight / 2) - rect.top;
+  // nigdy ponad płótnem; gdy płótno jest jeszcze pod strefami dodawania → blisko góry
+  y = Math.max(140, y);
+  return { x: w / 2, y };
+}
+
+/* Po dodaniu elementu upewniamy się, że jest widoczny (przewijamy do niego). */
+function scrollItemIntoView(id) {
+  requestAnimationFrame(() => {
+    const el = canvas.querySelector(`.item[data-id="${id}"]`);
+    if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+  });
 }
 
 function updatePageNick() {
@@ -830,6 +840,7 @@ function addStickerFromLib(entry) {
   state.items.push(item);
   selectedId = item.id;
   render();
+  scrollItemIntoView(item.id);
 }
 
 function swapSticker(item, entry) {
@@ -892,6 +903,7 @@ function addText() {
   selectedId = item.id;
   ensureFontCached("Inter");
   render();
+  scrollItemIntoView(item.id);
 }
 
 function addSticker(emoji) {
@@ -923,6 +935,7 @@ function addYouTube(videoId) {
   state.items.push(item);
   selectedId = item.id;
   render();
+  scrollItemIntoView(item.id);
 }
 
 /* Wczytuje plik graficzny, zmniejsza do `max` (dłuższy bok) i zwraca dataURL
@@ -993,6 +1006,7 @@ function handleImageFile(file) {
       state.items.push(item);
       selectedId = item.id;
       render();
+      scrollItemIntoView(item.id);
       if (downscaled) toast("Zdjęcie zmniejszono do 1600px, by plik nie urósł nadmiernie.");
     };
     img.src = reader.result;
