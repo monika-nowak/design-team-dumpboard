@@ -23,6 +23,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Build people.json at deploy time — bot commits don't re-trigger this workflow,
+      # so we must not rely on the committed people.json from the checkout alone.
+      - name: Build people.json from people/ folders
+        run: |
+          mkdir -p people
+          {
+            echo '{'
+            echo '  "people": ['
+            first=true
+            for dir in people/*/; do
+              [ -d "$dir" ] || continue
+              nick="${dir#people/}"
+              nick="${nick%/}"
+              [ -f "people/$nick/index.html" ] || [ -f "people/$nick/feed.json" ] || continue
+              if [ "$first" = true ]; then first=false; else echo ','; fi
+              printf '    { "nick": "%s", "folder": "people/%s" }' "$nick" "$nick"
+            done
+            echo ''
+            echo '  ]'
+            echo '}'
+          } > people.json
+          echo "── people.json for deploy ──"
+          cat people.json
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
