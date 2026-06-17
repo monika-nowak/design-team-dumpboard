@@ -365,6 +365,8 @@
   /* ── Media grid (Figma MainContent 64px + MainContainer 128px) ───── */
   .page-main {
     padding: 0 var(--page-pad);
+    /* Tło strony użytkownika — tylko ten blok, nie profil ani toolbar */
+    min-height: 40vh;
   }
 
   #media-grid {
@@ -1195,6 +1197,7 @@ const canvas    = document.getElementById("canvas");
 const canvasWrap = document.getElementById("canvas-wrap");
 const mediaGrid = document.getElementById("media-grid");
 const pageScroll = document.getElementById("page-scroll");
+const pageMain   = document.querySelector(".page-main");
 const pageNick  = document.getElementById("page-nick");
 const headerAvatar = document.getElementById("header-avatar");
 const toolbarCtx = document.getElementById("toolbar-context");
