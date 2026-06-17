@@ -38,6 +38,7 @@
 
   :root {
     --bg: #0e0e0e;
+    --user-page-bg: #0e0e0e;
     --ink: #ffffff;
     --muted: rgba(255, 255, 255, 0.6);
     --pill: rgba(255, 255, 255, 0.1);
@@ -46,7 +47,7 @@
     --line: rgba(255, 255, 255, 0.2);
     --page-pad: 64px;
     --content-pad: 128px;
-    --tools-pad: 192px;
+    --tools-pad: 64px;
     --site-nav-h: 64px; /* aktualizowane w JS — wysokość #site-nav */
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   }
@@ -142,14 +143,48 @@
     top: var(--site-nav-h);
     z-index: 9000;
     background: var(--bg);
-    max-width: 1440px;
-    margin: 0 auto;
+    width: 100%;
   }
 
-  /* ── Wiersz narzędzi (Figma: Background / Sticker / Text) ─────────── */
+  /* ── Wiersz narzędzi (Figma 16:858 — py 16, tools od x=64) ──────── */
   #editor-tools {
-    padding: 24px var(--tools-pad);
+    padding: 16px var(--tools-pad);
+    background: var(--bg);
   }
+
+  /* Pas koloru + treść — pełna szerokość okna (nie wąski box w środku) */
+  .page-main-lead,
+  .page-main {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    background: var(--user-page-bg);
+  }
+
+  .page-main-lead {
+    height: 64px;
+  }
+
+  .page-main {
+    min-height: 50vh;
+    padding-bottom: 64px;
+  }
+
+  /* Treść w kolumnie 1440 — paddingi tylko na zawartości, nie na tle */
+  .page-main-inner {
+    position: relative;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 var(--page-pad);
+  }
+
+  #media-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+    width: 100%;
+    padding: 0 var(--content-pad) var(--content-pad);
+  }
+
   .tool-group {
     display: flex;
     align-items: center;
@@ -300,22 +335,27 @@
 
   #hidden-tools { display: none; }
 
-  /* ── Strona edytora (scroll) ─────────────────────────────────────── */
-  #page-scroll {
-    position: relative;
+  /* ── Jedna kolumna edytora (Figma: 1440, padding 64) ───────────── */
+  .editor-column {
     max-width: 1440px;
     margin: 0 auto;
-    padding: 0 0 64px;
+    width: 100%;
   }
 
-  /* ── Profile header (Figma: avatar 96px + @nick, py 24) ─────────── */
+  #page-scroll {
+    position: relative;
+    width: 100%;
+  }
+
+  /* ── Profile header (Figma 16:903 — na stronie publicznej; w edytorze nad toolbarem) */
   #profile-header {
     display: flex;
     align-items: center;
     gap: 24px;
     padding: 24px var(--page-pad);
-    max-width: 1440px;
-    margin: 0 auto;
+    background: var(--bg);
+    position: relative;
+    z-index: 3;
   }
   .profile-avatar-btn {
     appearance: none;
@@ -361,21 +401,6 @@
   #page-nick.is-placeholder { opacity: 0.2; }
   #page-nick.is-placeholder:hover { opacity: 0.35; }
   #page-nick:not(.is-placeholder):hover { opacity: 0.75; }
-
-  /* ── Media grid (Figma MainContent 64px + MainContainer 128px) ───── */
-  .page-main {
-    padding: 0 var(--page-pad);
-    /* Tło strony użytkownika — tylko ten blok, nie profil ani toolbar */
-    min-height: 40vh;
-  }
-
-  #media-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 64px;
-    width: 100%;
-    padding: 0 var(--content-pad) 128px;
-  }
 
   .media-card {
     display: flex;
@@ -952,9 +977,11 @@
     #site-nav { padding: 16px var(--page-pad); }
     #profile-header { padding: 24px var(--page-pad); }
     #editor-tools { padding: 16px var(--tools-pad); }
+    .page-main { padding-bottom: 24px; }
+    .page-main-lead { height: 24px; }
+    #media-grid { gap: 48px; padding-bottom: 64px; }
     .nav-link-btn { display: none; }
     .nav-btn span { display: none; }
-    #media-grid { gap: 48px; padding-bottom: 64px; }
     .media-add { min-height: 320px; height: auto; aspect-ratio: 16 / 10; }
     .media-add-option--image img { width: 100px; height: 100px; }
     .media-add-option--youtube img { width: 88px; height: 88px; }
@@ -1012,6 +1039,7 @@
   </div>
 
   <!-- ═══════════════ STRONA EDYTORA ═══════════════ -->
+  <div class="editor-column">
   <div id="page-scroll">
     <div id="profile-header">
       <button type="button" id="header-avatar" class="profile-avatar-btn" title="Edit profile"></button>
@@ -1057,16 +1085,20 @@
         </div>
       </div>
     </div>
+    <div class="page-main-lead" aria-hidden="true"></div>
     </div>
+  </div>
+  </div>
 
-    <div class="page-main">
+  <section class="page-main" aria-label="Page content">
+    <div class="page-main-inner">
       <div id="media-grid" aria-label="Media"></div>
 
       <div id="canvas-wrap" class="is-empty">
         <div id="canvas"></div>
       </div>
     </div>
-  </div>
+  </section>
 
   <div id="toast"></div>
 
@@ -1223,6 +1255,7 @@ const canvasWrap = document.getElementById("canvas-wrap");
 const mediaGrid = document.getElementById("media-grid");
 const pageScroll = document.getElementById("page-scroll");
 const pageMain   = document.querySelector(".page-main");
+const pageMainInner = document.querySelector(".page-main-inner");
 const pageNick  = document.getElementById("page-nick");
 const headerAvatar = document.getElementById("header-avatar");
 const toolbarCtx = document.getElementById("toolbar-context");
@@ -1301,8 +1334,9 @@ function toast(msg, ms = 2200) {
 }
 /* Punkt dodawania — środek widocznego obszaru (poniżej przyklejonego paska), współrzędne #canvas */
 function viewportDropPoint() {
-  if (!pageScroll || !canvas) return { x: 450, y: 400 };
-  const rect = pageScroll.getBoundingClientRect();
+  const area = pageMainInner || pageMain || pageScroll;
+  if (!area || !canvas) return { x: 450, y: 400 };
+  const rect = area.getBoundingClientRect();
   const stickyBar = document.getElementById("editor-sticky-bar");
   const toolBottom = stickyBar
     ? stickyBar.getBoundingClientRect().bottom
@@ -1312,7 +1346,7 @@ function viewportDropPoint() {
   let x = midX - rect.left;
   let y = midY - rect.top;
   const maxX = canvas.clientWidth || rect.width;
-  const maxY = Math.max(canvas.clientHeight, pageScroll.offsetHeight) - 40;
+  const maxY = Math.max(canvas.clientHeight, (pageMain || pageScroll)?.offsetHeight || 0) - 40;
   x = Math.max(40, Math.min(x, maxX - 40));
   y = Math.max(40, Math.min(y, maxY));
   return { x, y };
@@ -1368,8 +1402,9 @@ function normalizeLegacyMedia() {
 }
 
 function applyPageBg() {
-  if (pageMain) pageMain.style.background = state.bg;
-  if (pageScroll) pageScroll.style.background = "";
+  document.documentElement.style.setProperty("--user-page-bg", state.bg);
+  if (pageScroll) pageScroll.style.removeProperty("background");
+  document.body.style.removeProperty("background");
 }
 
 function syncCanvasHeight() {
@@ -1384,7 +1419,7 @@ function syncCanvasHeight() {
     const bottom = (it.y || 0) + h + 80;
     if (bottom > maxY) maxY = bottom;
   });
-  const pageH = pageScroll ? pageScroll.offsetHeight : 800;
+  const pageH = pageMain ? pageMain.offsetHeight : (pageScroll ? pageScroll.offsetHeight : 800);
   canvas.style.minHeight = Math.max(maxY, pageH) + "px";
   if (canvasWrap) canvasWrap.classList.toggle("is-empty", !state.items.some(isCanvasItem));
 }
@@ -2900,9 +2935,9 @@ ${fontFaces}    @font-face {
     .profile-nick {
       font-family: "NaN Serf A Display", "Times New Roman", serif;
       font-weight: 300; font-size: clamp(40px, 8vw, 82px);
-      line-height: 1.12; color: #fff; opacity: 0.2; margin: 0;
+      line-height: 1.12; color: #fff; margin: 0;
     }
-    .media-grid { display: flex; flex-direction: column; gap: 64px; padding: 0 128px; }
+    .media-grid { display: flex; flex-direction: column; gap: 64px; padding: 64px 128px 128px; }
     .media-card { display: flex; flex-direction: column; gap: 20px; }
     .media-frame {
       width: fit-content; max-width: 100%; margin: 0 auto;
