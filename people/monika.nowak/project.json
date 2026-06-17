@@ -17,19 +17,6 @@
       "added": "2026-06-17"
     },
     {
-      "id": 3,
-      "type": "youtube",
-      "x": 91,
-      "y": 468.1640625,
-      "w": 480,
-      "h": 270,
-      "rot": 0,
-      "videoId": "gBTbX1ORMuQ",
-      "feed": true,
-      "caption": "",
-      "added": "2026-06-17"
-    },
-    {
       "id": 1,
       "type": "sticker",
       "demo": true,
@@ -42,11 +29,24 @@
       "rot": -6
     },
     {
+      "id": 3,
+      "type": "youtube",
+      "x": 357,
+      "y": 510.1640625,
+      "w": 480,
+      "h": 270,
+      "rot": 0,
+      "videoId": "gBTbX1ORMuQ",
+      "feed": true,
+      "caption": "",
+      "added": "2026-06-17"
+    },
+    {
       "id": 4,
       "type": "text",
-      "x": 331,
-      "y": 780.1640625,
-      "rot": 0,
+      "x": 316,
+      "y": 755.1640625,
+      "rot": 25,
       "text": "Your text",
       "fontFamily": "Inter",
       "fontSize": 40,
@@ -57,8 +57,8 @@
       "id": 5,
       "type": "sticker",
       "stickerId": "e35",
-      "x": 500,
-      "y": 907.1640625,
+      "x": 292,
+      "y": 902.1640625,
       "rot": 0,
       "char": "🌸",
       "fontSize": 80
