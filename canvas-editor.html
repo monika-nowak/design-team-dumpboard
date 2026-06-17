@@ -180,13 +180,22 @@
     word-break: break-word;
   }
 
+  /* Tablica: strefy dodawania i płótno nałożone na siebie (ten sam obszar),
+     żeby naklejka demo była widoczna od razu, a nie pod placeholderami. */
+  #board {
+    position: relative;
+    display: grid;
+    margin-bottom: 64px;
+  }
+  #board > #dropzones,
+  #board > #canvas { grid-area: 1 / 1; }
+
   /* Strefy dodawania (puste) — Figma: dashed, 900×500, radius 24 */
   #dropzones {
     display: flex;
     flex-direction: column;
     gap: 64px;
     align-items: center;
-    margin-bottom: 64px;
   }
   #dropzones.hidden { display: none; }
 
@@ -222,7 +231,14 @@
     min-height: 400px;
     margin: 0 auto;
     background: transparent;
+    z-index: 2;
   }
+  /* Pusta tablica: płótno przepuszcza kliknięcia do placeholderów pod spodem,
+     ale elementy (np. naklejka demo) pozostają klikalne i przeciągalne. */
+  #canvas { pointer-events: none; }
+  #canvas .item { pointer-events: auto; }
+  /* Gdy jest już treść — placeholdery znikają, płótno przejmuje interakcje. */
+  #board.has-content > #canvas { pointer-events: auto; }
 
   #hint { display: none !important; }
 
@@ -508,19 +524,23 @@
   <div id="page-scroll">
     <h1 id="page-nick">@…</h1>
 
-    <div id="dropzones">
-      <button type="button" class="dropzone" data-action="image">
-        <img src="assets/landing/plus.svg" class="dz-icon" alt="">
-        <span>Add a picture</span>
-      </button>
-      <button type="button" class="dropzone" data-action="youtube">
-        <img src="assets/landing/plus.svg" class="dz-icon" alt="">
-        <span>Add a youtube link</span>
-      </button>
-    </div>
+    <!-- Strefy dodawania i płótno leżą w tym samym miejscu (nakładka),
+         dzięki czemu naklejka demo jest widoczna od razu na pustej tablicy. -->
+    <div id="board">
+      <div id="dropzones">
+        <button type="button" class="dropzone" data-action="image">
+          <img src="assets/landing/plus.svg" class="dz-icon" alt="">
+          <span>Add a picture</span>
+        </button>
+        <button type="button" class="dropzone" data-action="youtube">
+          <img src="assets/landing/plus.svg" class="dz-icon" alt="">
+          <span>Add a youtube link</span>
+        </button>
+      </div>
 
-    <div id="canvas">
-      <div id="hint"></div>
+      <div id="canvas">
+        <div id="hint"></div>
+      </div>
     </div>
   </div>
 
@@ -743,6 +763,8 @@ function updateDropzones() {
   /* Demo-naklejka nie liczy się jako „treść" — strefy zostają do pierwszego dodatku */
   const hasContent = state.items.some(i => !i.demo);
   dropzones.classList.toggle("hidden", hasContent);
+  const board = document.getElementById("board");
+  if (board) board.classList.toggle("has-content", hasContent);
 }
 
 function applyPageBg() {
@@ -767,7 +789,8 @@ function seedDemoSticker() {
   state.items.push({
     id: uid++, type: "sticker", demo: true,
     stickerId: alf.id, src: alf.src, w: alf.w, h: alf.h,
-    x: 420, y: 80, rot: 0,
+    // róg pustej tablicy, nad wyśrodkowanym napisem placeholdera — lekko przekrzywiona
+    x: 520, y: 36, rot: -6,
   });
   cacheStickerSrc(alf.src);
 }
