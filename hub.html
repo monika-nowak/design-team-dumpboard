@@ -202,6 +202,11 @@
    ════════════════════════════════════════════════════════════════════ */
 const PEOPLE_FILE = "people.json";
 
+/** Omija cache CDN GitHub Pages przy plikach JSON (people.json, feed.json). */
+function jsonUrl(path) {
+  return path + (path.includes("?") ? "&" : "?") + "_=" + Date.now();
+}
+
 let allPins = [];
 
 const feedEl     = document.getElementById("feed");
@@ -220,7 +225,7 @@ function handleFor(pin) {
 async function loadAll() {
   let people = [];
   try {
-    const res = await fetch(PEOPLE_FILE, { cache: "no-cache" });
+    const res = await fetch(jsonUrl(PEOPLE_FILE), { cache: "no-store" });
     if (res.ok) {
       const data = await res.json();
       people = Array.isArray(data.people) ? data.people : [];
@@ -236,7 +241,7 @@ async function loadAll() {
     const nick = person.nick || folder;
 
     try {
-      const res = await fetch(folder + "/feed.json", { cache: "no-cache" });
+      const res = await fetch(jsonUrl(folder + "/feed.json"), { cache: "no-store" });
       if (!res.ok) continue;
       const feed = await res.json();
       const items = Array.isArray(feed.items) ? feed.items : [];
@@ -244,7 +249,7 @@ async function loadAll() {
 
       let prof = {};
       try {
-        const pr = await fetch(folder + "/profile.json", { cache: "no-cache" });
+        const pr = await fetch(jsonUrl(folder + "/profile.json"), { cache: "no-store" });
         if (pr.ok) prof = await pr.json();
       } catch (e) { /* brak profilu */ }
 
