@@ -1871,17 +1871,63 @@ async function exportPage() {
   //    ją do SZEROKOŚCI okna (responsywnie), a w PIONIE strona przewija się
   //    normalnie — jak każda strona WWW. Wrapper rezerwuje przeskalowaną
   //    wysokość, dzięki czemu pojawia się zwykły pasek przewijania.
+  const pageTitle = escapeHtml((profile.name || profile.nick || "My page").trim() || "My page");
+
   const doc =
 `<!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moja strona</title>
+<title>${pageTitle}</title>
 <style>
 ${fontFaces}    * { margin: 0; box-sizing: border-box; }
-    body { background: ${state.bg}; }
-    /* Jak w edytorze: max 900px szerokości, wyśrodkowane — nie rozciągamy na cały monitor. */
+    body {
+      background: ${state.bg};
+      font-family: system-ui, -apple-system, sans-serif;
+      padding-top: 56px;
+    }
+    .site-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 20px;
+      background: rgba(14, 14, 14, 0.94);
+      backdrop-filter: blur(8px);
+    }
+    .site-nav .logo {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .site-nav .logo img { display: block; width: 28px; height: 28px; }
+    .site-nav .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .site-nav a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .site-nav a:hover { opacity: 0.85; }
+    .site-nav .nav-pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #fff;
+      color: #0e0e0e;
+      font-weight: 600;
+    }
+    .site-nav .nav-pill:hover { opacity: 0.9; }
+    /* Like the editor: max 900px wide, centered — not full monitor width. */
     #wrap { position: relative; margin: 0 auto; overflow: hidden; max-width: 900px; width: 100%; }
     .stage {
       position: relative;
@@ -1892,13 +1938,22 @@ ${fontFaces}    * { margin: 0; box-sizing: border-box; }
 </style>
 </head>
 <body>
+  <nav class="site-nav" aria-label="Site">
+    <a class="logo" href="../../index.html" title="Back to feed">
+      <img src="../../assets/landing/logo.svg" alt="Dumpboard">
+    </a>
+    <div class="nav-links">
+      <a href="../../index.html">Feed</a>
+      <a class="nav-pill" href="../../canvas-editor.html">Edit page</a>
+    </div>
+  </nav>
   <div id="wrap">
     <div class="stage" id="stage">
 ${elementsHtml}
     </div>
   </div>
   <script>
-    /* Skaluje kompozycję do szerokości #wrap (max 900px jak płótno w edytorze). */
+    /* Scale composition to #wrap width (max 900px, like the editor canvas). */
     (function () {
       var W = ${stageW}, H = ${stageH};
       var wrap = document.getElementById('wrap'), s = document.getElementById('stage');
