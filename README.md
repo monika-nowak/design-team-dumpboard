@@ -1,45 +1,19 @@
 # Dumpboard
 
-Wewnętrzne ćwiczenie dla zespołu designerów: każdy buduje swoją edytowalną stronę i publikuje ją w tym repo. Wspólny feed zbiera wrzutki zespołu w jednym miejscu.
-
 **Live:** https://monika-nowak.github.io/design-team-dumpboard/
 
-## Szybki start (dla designerów)
+## Publish your page (step by step)
 
-1. **Stwórz stronę** — otwórz [canvas-editor.html](canvas-editor.html), ułóż treść na płótnie.
-2. **Pobierz ZIP** — przycisk „Download my page" w edytorze.
-3. **Wgraj na GitHub** — w folderze `people/` utwórz podfolder swoim nickiem (np. `people/monika.nowak/`) i wrzuć całą zawartość ZIP-a. **Nie wgrywaj do korzenia repo.**
-4. **Gotowe** — po minucie Twoja strona i wrzutki pojawią się na [feedzie](index.html).
+1. Open **canvas-editor.html** in your browser.
+2. Build your page on the canvas.
+3. Click **Download my page** — you get a ZIP file.
+4. On GitHub, open the **`people/`** folder in this repo.
+5. Create a new folder with your nick, for example **`people/your.name/`**.
+6. Upload **everything inside the ZIP** into that folder.
+7. Wait about a minute — your page shows up on the [team feed](index.html).
 
-Szczegóły publikacji są też w edytorze (modal „Jak opublikować").
+**Important:** upload only inside `people/your-nick/`. Do not upload files to the root of the repo.
 
-## Struktura repo
+## Edit later
 
-| Plik / folder | Po co |
-|---|---|
-| `index.html` | Router wejścia (pierwsza wizyta → `start.html`, kolejne → `hub.html`) |
-| `start.html` | Intro / landing (tylko przy pierwszym wejściu) |
-| `hub.html` | Feed zespołu |
-| `canvas-editor.html` | Edytor — pobieraj i otwieraj lokalnie (`file://` też działa) |
-| `people.json` | Lista osób — **nie edytuj ręcznie**, generuje się automatycznie |
-| `people/twoj-nick/` | Twój folder ze stroną (`index.html`, `feed.json`, …) |
-| `assets/` | Fonty, logo, naklejki — zasoby wspólne |
-
-## Co trafia do feedu?
-
-Automatycznie: każde **zdjęcie** i każdy **film YouTube** z Twojej strony. Tekst i naklejki zostają tylko na Twojej stronie.
-
-## Lokalne testowanie
-
-Hub wymaga serwera HTTP (nie działa z `file://`):
-
-```bash
-node .claude/server.js
-```
-
-Potem otwórz http://localhost:8753/index.html
-
-## Dla maintainerów
-
-- **GitHub Pages** — workflow `.github/workflows/deploy-pages.yml` (deploy przy każdym pushu na `main`).
-- **people.json** — workflow `.github/workflows/generate-people.yml` skanuje `people/<nick>/` (foldery z `index.html` lub `feed.json`) i aktualizuje listę.
+Open **canvas-editor.html**, **Shift+click the logo**, choose your `project.json`, edit, download again, and replace the files in your folder on GitHub.

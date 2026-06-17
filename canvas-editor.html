@@ -1,29 +1,26 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blank Canvas — edytor</title>
+<title>Blank Canvas — editor</title>
 
 <!--
   ╔══════════════════════════════════════════════════════════════════════╗
-  ║  BLANK CANVAS — jednoplikowy edytor WYSIWYG dla designerów             ║
-  ║                                                                        ║
-  ║  Otwórz ten plik lokalnie (file://), urządź płótno po swojemu,         ║
-  ║  a potem kliknij „Pobierz moją stronę" — wygeneruje czysty index.html  ║
-  ║  bez paska narzędzi i bez kodu edytora, gotowy na GitHub Pages.        ║
-  ║                                                                        ║
-  ║  Bez zależności, bez build-stepu, bez backendu. Cały stan w pamięci.   ║
-  ║  Jedyne połączenie sieciowe: ładowanie fontów z Google Fonts.          ║
+  ║  BLANK CANVAS — single-file WYSIWYG editor for designers             ║
+  ║                                                                      ║
+  ║  Open locally (file://), arrange the canvas, then click              ║
+  ║  “Download my page” — exports a clean index.html for GitHub Pages.   ║
+  ║  No dependencies, no build step, no backend. State lives in memory.   ║
+  ║  Only network use: Google Fonts while editing.                       ║
   ╚══════════════════════════════════════════════════════════════════════╝
 -->
 
 <!--
-  Fonty na czas EDYCJI ładujemy lekkim linkiem z Google (same pliki .woff2
-  ściągają się dopiero, gdy font zostanie faktycznie użyty na ekranie).
-  Przy eksporcie wszywamy do pliku tylko realnie użyte fonty jako base64.
-  Prosimy o pojedynczą wagę (400) każdego fontu — gwarantuje to poprawne
-  zapytanie do API dla wszystkich rodzin (część fontów ma tylko jedną wagę).
+  Fonts during editing load via a lightweight Google link (.woff2 files
+  download only when a font is actually used on screen).
+  On export we embed only used fonts as base64.
+  We request weight 400 only — works reliably across all font families.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -460,8 +457,8 @@
           <img src="assets/landing/plus.svg" class="pill-icon" alt="">
           <span class="label">Text</span>
         </button>
-        <label class="bg-picker" title="Kolor tła strony">
-          <span class="bg-picker-label">Tło</span>
+        <label class="bg-picker" title="Page background color">
+          <span class="bg-picker-label">BG</span>
           <input type="color" id="bg-color" class="mini-swatch" value="#0e0e0e">
         </label>
       </div>
@@ -471,23 +468,23 @@
       <div id="toolbar-context">
         <div class="tb-group" id="insp-text" style="display:none">
           <select id="font-select" title="Font"></select>
-          <input type="number" id="font-size" class="num" min="8" max="400" step="1" title="Rozmiar">
-          <button class="btn icon" id="bold-toggle" title="Pogrubienie" style="font-weight:800">B</button>
-          <label>Kolor</label>
-          <input type="color" id="text-color" class="mini-swatch" value="#ffffff" title="Kolor tekstu">
+          <input type="number" id="font-size" class="num" min="8" max="400" step="1" title="Size">
+          <button class="btn icon" id="bold-toggle" title="Bold" style="font-weight:800">B</button>
+          <label>Color</label>
+          <input type="color" id="text-color" class="mini-swatch" value="#ffffff" title="Text color">
         </div>
 
         <div class="tb-group" id="insp-image" style="display:none">
-          <label>Opis do feedu</label>
+          <label>Feed caption</label>
           <input type="text" id="feed-caption" class="cap" maxlength="120"
-                 placeholder="Opcjonalnie">
+                 placeholder="Optional">
         </div>
 
         <div class="tb-group" id="insp-sticker" style="display:none">
-          <button type="button" class="btn" id="sticker-swap-btn">Zmień naklejkę</button>
+          <button type="button" class="btn" id="sticker-swap-btn">Change sticker</button>
         </div>
 
-        <button type="button" class="btn btn--danger" id="del-selected">Usuń</button>
+        <button type="button" class="btn btn--danger" id="del-selected">Delete</button>
       </div>
 
       <div class="toolbar-spacer"></div>
@@ -539,81 +536,80 @@
 
   <div id="toast"></div>
 
-  <!-- Modal: jak opublikować swoją stronę na hubie -->
+  <!-- Modal: how to publish -->
   <div class="modal-overlay" id="how-modal">
     <div class="modal">
-      <h2>Jak opublikować swoją stronę?</h2>
-      <p class="lead">Gotową stronę wgrywasz do swojego folderu w repo na GitHubie.
-         Bez logowania — autorstwo bierze się z nazwy folderu.</p>
+      <h2>How to publish your page</h2>
+      <p class="lead">Upload your finished page to your folder in this GitHub repo.
+         No login on the site — your folder name is your identity.</p>
       <ol>
-        <li>Kliknij <strong>„Pobierz moją stronę"</strong> — dostaniesz ZIP. Rozpakuj go:
-            w środku jest <code>index.html</code> (Twoja strona), <code>project.json</code>
-            (do późniejszej edycji) oraz — jeśli ich użyjesz — <code>profile.json</code>,
-            <code>avatar.jpg</code>, <code>feed.json</code> i <code>feed-images/</code>.</li>
-        <li>Na GitHubie w repo huba wejdź w folder <strong><code>people/</code></strong> i utwórz <strong>podfolder ze swoim nickiem</strong>, np. <code>people/ania/</code>.</li>
-        <li><strong>Wgraj</strong> do niego całą zawartość ZIP-a (nie do korzenia repo!).</li>
+        <li>Click <strong>Download my page</strong> — you get a ZIP. Inside:
+            <code>index.html</code> (your page), <code>project.json</code>
+            (for editing later), and — if you used them — <code>profile.json</code>,
+            <code>avatar.jpg</code>, <code>feed.json</code>, and <code>feed-images/</code>.</li>
+        <li>On GitHub, open the <strong><code>people/</code></strong> folder and create a <strong>subfolder with your nick</strong>, e.g. <code>people/ania/</code>.</li>
+        <li><strong>Upload</strong> everything from the ZIP into that folder (not the repo root!).</li>
       </ol>
-      <p class="lead" style="margin: 4px 0 12px">To wszystko — lista osób uzupełni się sama,
-         a Ty pojawisz się we wspólnym feedzie. 🎉</p>
-      <p class="lead" style="margin: 0 0 18px">Chcesz coś zmienić później? Otwórz edytor,
-         kliknij <strong>📂 Otwórz</strong> i wskaż swój <code>project.json</code> —
-         edytuj i pobierz ponownie.</p>
-      <p class="lead" style="margin: 0 0 18px">Wskazówka: ustaw też swoją nazwę i avatar
-         przyciskiem <strong>👤 Profil</strong> — pojawią się przy Twoich wrzutkach.</p>
-      <button class="btn primary" id="how-close">OK, rozumiem</button>
+      <p class="lead" style="margin: 4px 0 12px">That's it — the people list updates automatically
+         and you appear on the team feed. 🎉</p>
+      <p class="lead" style="margin: 0 0 18px">Want to change something later? Open the editor,
+         load your <code>project.json</code>, edit, and download again.</p>
+      <p class="lead" style="margin: 0 0 18px">Tip: set your display name and avatar in
+         <strong>Profile</strong> — they show up next to your feed posts.</p>
+      <button class="btn primary" id="how-close">Got it</button>
     </div>
   </div>
 
-  <!-- Modal: pierwszy krok — nick (przed budową strony) -->
+  <!-- Modal: nick (before you start) -->
   <div class="modal-overlay" id="welcome-modal">
     <div class="modal">
-      <h2>Zacznijmy od Ciebie</h2>
-      <p class="lead">Jak masz na imię lub jak Cię podpisać? Ten nick pojawi się przy Twoich wrzutkach
-         i posłuży jako nazwa pobranego pliku.</p>
-      <label class="profile-label" for="welcome-nick">Twój nick</label>
+      <h2>Let's start with you</h2>
+      <p class="lead">What should we call you? This nick appears on your feed posts
+         and is used as the download file name.</p>
+      <label class="profile-label" for="welcome-nick">Your nick</label>
       <input type="text" id="welcome-nick" class="profile-input" maxlength="40"
-             placeholder="np. monika.nowak" autocomplete="username">
-      <p class="field-hint">Bez spacji — folder na GitHubie: <code>people/twoj-nick/</code> (np. <code>people/monika.nowak/</code>).</p>
-      <p class="field-error" id="welcome-error">Podaj nick (min. 2 znaki: litery, cyfry, kropka, myślnik).</p>
-      <button class="btn primary" id="welcome-start" style="margin-top:18px">Zaczynam tworzyć</button>
+             placeholder="e.g. monika.nowak" autocomplete="username">
+      <p class="field-hint">No spaces — your GitHub folder: <code>people/your-nick/</code> (e.g. <code>people/monika.nowak/</code>).</p>
+      <p class="field-error" id="welcome-error">Enter a nick (min. 2 chars: letters, numbers, dot, hyphen).</p>
+      <button class="btn primary" id="welcome-start" style="margin-top:18px">Start creating</button>
     </div>
   </div>
 
-  <!-- Modal: profil designera (nazwa + avatar) -->
+  <!-- Modal: profile (name + avatar) -->
   <div class="modal-overlay" id="profile-modal">
     <div class="modal">
-      <h2>Twój profil</h2>
-      <p class="lead">Nazwa i avatar pojawią się przy Twoich wrzutkach na hubie.
-         Oba są opcjonalne — bez nich użyjemy nazwy Twojego folderu i kółka z inicjałem.</p>
+      <h2>Your profile</h2>
+      <p class="lead">Name and avatar appear next to your posts on the hub.
+         Both are optional — otherwise we use your folder name and an initial.</p>
       <div class="profile-row">
         <div class="avatar-preview" id="avatar-preview"></div>
         <div class="profile-actions">
-          <button class="btn" id="avatar-upload-btn">Wgraj avatar</button>
-          <button class="btn" id="avatar-remove-btn" style="display:none">Usuń</button>
+          <button class="btn" id="avatar-upload-btn">Upload avatar</button>
+          <button class="btn" id="avatar-remove-btn" style="display:none">Remove</button>
         </div>
       </div>
-      <label class="profile-label" for="profile-name">Wyświetlana nazwa (nick lub imię i nazwisko)</label>
-      <input type="text" id="profile-name" class="profile-input" maxlength="60" placeholder="np. monika.nowak">
-      <button class="btn primary" id="profile-close" style="margin-top:18px">Zapisz</button>
+      <label class="profile-label" for="profile-name">Display name</label>
+      <input type="text" id="profile-name" class="profile-input" maxlength="60" placeholder="e.g. monika.nowak">
+      <button class="btn primary" id="profile-close" style="margin-top:18px">Save</button>
       <input type="file" id="avatar-input" class="hidden-input" accept="image/*">
     </div>
   </div>
 
-  <!-- Modal: dodanie filmu z YouTube -->
+  <!-- Modal: add YouTube video -->
   <div class="modal-overlay" id="yt-modal">
     <div class="modal">
-      <h2>Dodaj film z YouTube</h2>
-      <p class="lead">Wklej link do filmu (np. <code>youtu.be/…</code> lub
-         <code>youtube.com/watch?v=…</code>). Na płótnie pojawi się odtwarzacz, który
-         przesuwasz i skalujesz jak zdjęcie. Uwaga: na opublikowanej stronie film
-         ładuje się z YouTube, więc ten element wymaga internetu.</p>
+      <h2>Add a YouTube video</h2>
+      <p class="lead">Paste a video link (e.g. <code>youtu.be/…</code> or
+         <code>youtube.com/watch?v=…</code>). A player appears on the canvas — move and
+         scale it like an image. Note: on your published page the video loads from YouTube,
+         so it needs internet.</p>
       <input type="text" id="yt-url" class="profile-input"
              placeholder="https://www.youtube.com/watch?v=...">
       <p id="yt-error" style="color:#ff5470;font-size:13px;margin:8px 0 0;display:none">
-        Nie rozpoznano linku YouTube — sprawdź adres.</p>
+        Could not recognize a YouTube link — check the URL.</p>
       <div style="margin-top:18px;display:flex;gap:8px">
-        <button class="btn primary" id="yt-add">Dodaj film</button>
-        <button class="btn" id="yt-cancel">Anuluj</button>
+        <button class="btn primary" id="yt-add">Add video</button>
+        <button class="btn" id="yt-cancel">Cancel</button>
       </div>
     </div>
   </div>
@@ -624,11 +620,11 @@
    inspektora oraz przy eksporcie (do wszywania @font-face base64).
    ════════════════════════════════════════════════════════════════════ */
 const FONT_GROUPS = [
-  { label: "Bezszeryfowe / groteski", fonts: ["Inter","Work Sans","DM Sans","Manrope","Space Grotesk","Archivo","Sora","Outfit"] },
-  { label: "Szeryfowe / z charakterem", fonts: ["Playfair Display","Lora","Fraunces","DM Serif Display","Libre Baskerville","Cormorant Garamond","Bitter"] },
-  { label: "Monospace / techniczne", fonts: ["Space Mono","JetBrains Mono","IBM Plex Mono","DM Mono"] },
-  { label: "Wyraziste / display", fonts: ["Bebas Neue","Anton","Syne","Unbounded","Bricolage Grotesque"] },
-  { label: "Odręczne / ekspresyjne", fonts: ["Caveat","Shadows Into Light","Permanent Marker","Pacifico","Gloria Hallelujah","Patrick Hand"] },
+  { label: "Sans / grotesk", fonts: ["Inter","Work Sans","DM Sans","Manrope","Space Grotesk","Archivo","Sora","Outfit"] },
+  { label: "Serif / character", fonts: ["Playfair Display","Lora","Fraunces","DM Serif Display","Libre Baskerville","Cormorant Garamond","Bitter"] },
+  { label: "Monospace", fonts: ["Space Mono","JetBrains Mono","IBM Plex Mono","DM Mono"] },
+  { label: "Display", fonts: ["Bebas Neue","Anton","Syne","Unbounded","Bricolage Grotesque"] },
+  { label: "Handwritten", fonts: ["Caveat","Shadows Into Light","Permanent Marker","Pacifico","Gloria Hallelujah","Patrick Hand"] },
 ];
 
 /* Biblioteka naklejek — obrazki + emoji (picker przy dodawaniu i zamianie) */
@@ -704,7 +700,7 @@ function sanitizeBaseName(name) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 40) || "obraz";
+    .slice(0, 40) || "image";
 }
 /** Nick z inputu: bez @, lowercase, do folderu i nazwy ZIP-a */
 function normalizeNick(raw) {
@@ -716,7 +712,7 @@ function isValidNick(nick) {
 function exportZipBaseName() {
   if (profile.nick) return sanitizeBaseName(profile.nick);
   if (profile.name && profile.name.trim()) return sanitizeBaseName(profile.name.trim());
-  return "dumpboard-eksport";
+  return "dumpboard-export";
 }
 function toast(msg, ms = 2200) {
   toastEl.textContent = msg;
@@ -1019,7 +1015,7 @@ function handleImageFile(file) {
       selectedId = item.id;
       render();
       scrollItemIntoView(item.id);
-      if (downscaled) toast("Zdjęcie zmniejszono do 1600px, by plik nie urósł nadmiernie.");
+      if (downscaled) toast("Image resized to 1600px to keep the file smaller.");
     };
     img.src = reader.result;
   };
@@ -1107,7 +1103,7 @@ function render() {
       ["tl", "tr", "bl", "br"].forEach(corner => {
         const ch = document.createElement("div");
         ch.className = "corner-handle " + corner;
-        ch.title = "Przeciągnij = rozmiar";
+        ch.title = "Drag to resize";
         ch.addEventListener("mousedown", e => {
           e.stopPropagation();
           startCornerResize(e, item, corner);
@@ -1117,7 +1113,7 @@ function render() {
 
       const rotate = document.createElement("div");
       rotate.className = "rotate-handle";
-      rotate.title = "Przeciągnij = obrót (Shift = skok co 15°)";
+      rotate.title = "Drag to rotate (Shift = 15° steps)";
       rotate.addEventListener("mousedown", e => startRotate(e, item));
       el.appendChild(rotate);
     }
@@ -1731,7 +1727,7 @@ function downloadBlob(blob, filename) {
    ════════════════════════════════════════════════════════════════════ */
 async function exportPage() {
   if (!state.items.some(i => !i.demo)) {
-    toast("Najpierw dodaj coś na płótno (poza przykładową naklejką).");
+    toast("Add something to the canvas first (besides the sample sticker).");
     return;
   }
 
@@ -1742,7 +1738,7 @@ async function exportPage() {
 
   // 2) Upewnij się, że mamy je w cache (gdyby user nie zmieniał fontu po
   //    pierwszym dodaniu, mogą jeszcze nie być pobrane).
-  if (usedFonts.length) toast("Przygotowuję fonty…", 1500);
+  if (usedFonts.length) toast("Preparing fonts…", 1500);
   await Promise.all(usedFonts.map(ensureFontCached));
 
   await Promise.all(
@@ -1772,8 +1768,8 @@ async function exportPage() {
     }
   });
   if (missing.length) {
-    toast("Uwaga: nie udało się wszyć fontów: " + missing.join(", ") +
-          " (brak internetu przy wyborze fontu). Reszta OK.", 5000);
+    toast("Note: could not embed fonts: " + missing.join(", ") +
+          " (no internet when the font was selected). Rest is OK.", 5000);
   }
 
   // 3b) Oblicz prostokąt obejmujący WSZYSTKIE elementy (z uwzględnieniem
@@ -1958,7 +1954,7 @@ ${elementsHtml}
                            caption: it.caption || "", added: it.added || "" });
         return;
       }
-      const base = it.baseName || "obraz";
+      const base = it.baseName || "image";
       let name = base, n = 2;
       while (usedNames.has(name)) name = base + "-" + (n++);
       usedNames.add(name);
@@ -1975,17 +1971,17 @@ ${elementsHtml}
   downloadBlob(buildZip(files), zipName);
 
   // Czytelna informacja, co powstało.
-  const inside = ["index.html (Twoja strona)", "project.json (do ponownej edycji)"];
+  const inside = ["index.html (your page)", "project.json (for editing later)"];
   if (profileSet) inside.push("profile.json" + (profile.avatar ? " + avatar.jpg" : ""));
   if (feedItems.length) {
     const parts = [];
-    if (feedImageCount) parts.push(feedImageCount + " obraz.");
-    if (feedVideoCount) parts.push(feedVideoCount + " film.");
-    inside.push("feed.json (" + parts.join(" + ") + " do feedu)");
+    if (feedImageCount) parts.push(feedImageCount + " image(s)");
+    if (feedVideoCount) parts.push(feedVideoCount + " video(s)");
+    inside.push("feed.json (" + parts.join(" + ") + " for the feed)");
   }
-  toast("Pobrano " + zipName + " — w środku: " + inside.join(", ")
-      + (missing.length ? " · uwaga: część fontów pominięta" : "")
-      + ". Wgraj CAŁOŚĆ do people/twoj-nick/ w repo (nie do korzenia!).", 9000);
+  toast("Downloaded " + zipName + " — inside: " + inside.join(", ")
+      + (missing.length ? " · note: some fonts skipped" : "")
+      + ". Upload everything to people/your-nick/ in the repo (not the root!).", 9000);
 }
 document.getElementById("export").addEventListener("click", () => {
   if (!profile.nick) { openWelcome(); return; }
@@ -2056,7 +2052,7 @@ function confirmWelcome() {
   welcomeModal.classList.remove("show");
   updatePageNick();
   renderAvatarPreview();
-  toast("Witaj, @" + nick + " — możesz zacząć tworzyć!", 2800);
+  toast("Welcome, @" + nick + " — start creating!", 2800);
 }
 
 document.getElementById("welcome-start").addEventListener("click", confirmWelcome);
@@ -2095,7 +2091,7 @@ const projectInput = document.getElementById("project-input");
 
 function loadProject(data) {
   if (!data || !Array.isArray(data.items)) {
-    toast("To nie wygląda na plik projektu Dumpboard (project.json).", 4000);
+    toast("This does not look like a Dumpboard project file (project.json).", 4000);
     return;
   }
   past = []; future = []; updateUndoButtons();   // świeża historia
@@ -2117,12 +2113,12 @@ function loadProject(data) {
   [...new Set(state.items.filter(i => i.type === "text").map(i => i.fontFamily))]
     .forEach(ensureFontCached);
   render();
-  toast("Wczytano projekt — możesz edytować dalej i ponownie pobrać.", 5000);
+  toast("Project loaded — you can keep editing and download again.", 5000);
 }
 
 document.getElementById("open-project-btn").addEventListener("click", () => {
   if (state.items.length &&
-      !confirm("Otwarcie projektu zastąpi obecne płótno. Niezapisane zmiany przepadną. Kontynuować?")) {
+      !confirm("Opening a project will replace the current canvas. Unsaved changes will be lost. Continue?")) {
     return;
   }
   projectInput.click();
@@ -2133,7 +2129,7 @@ projectInput.addEventListener("change", e => {
     const r = new FileReader();
     r.onload = () => {
       try { loadProject(JSON.parse(r.result)); }
-      catch (err) { toast("Nie udało się odczytać pliku projektu.", 4000); }
+      catch (err) { toast("Could not read the project file.", 4000); }
     };
     r.readAsText(f);
   }

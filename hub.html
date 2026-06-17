@@ -9,7 +9,7 @@
   ╔══════════════════════════════════════════════════════════════════════╗
   ║  DUMPBOARD — HUB (feed)                                              ║
   ║  Design: Figma „Main page - feed” (node 2:76).                        ║
-  ║  Czyta people.json → people/<nick>/feed.json. Masonry, ciemny motyw.   ║
+  ║  Reads people.json → people/<nick>/feed.json. Masonry, dark theme.     ║
   ╚══════════════════════════════════════════════════════════════════════╝
 -->
 
@@ -198,11 +198,11 @@
 
 <script>
 /* ════════════════════════════════════════════════════════════════════
-   DANE — people.json → <folder>/feed.json (+ opcjonalnie profile.json)
+   DATA — people.json → folder/feed.json (+ optional profile.json)
    ════════════════════════════════════════════════════════════════════ */
 const PEOPLE_FILE = "people.json";
 
-/** Omija cache CDN GitHub Pages przy plikach JSON (people.json, feed.json). */
+/** Bypass GitHub Pages CDN cache for JSON files (people.json, feed.json). */
 function jsonUrl(path) {
   return path + (path.includes("?") ? "&" : "?") + "_=" + Date.now();
 }
@@ -231,7 +231,7 @@ async function loadAll() {
       people = Array.isArray(data.people) ? data.people : [];
     }
   } catch (e) {
-    console.warn("Nie udało się wczytać", PEOPLE_FILE, e);
+    console.warn("Could not load", PEOPLE_FILE, e);
   }
 
   const pins = [];
@@ -275,7 +275,7 @@ async function loadAll() {
         }
       }
     } catch (e) {
-      console.warn("Pomijam osobę:", folder, e);
+      console.warn("Skipping person:", folder, e);
     }
   }
 

@@ -1,15 +1,15 @@
-# Tu wgrywajcie swoje strony
+# Upload your page here
 
-Każda osoba tworzy **własny podfolder** swoim nickiem, np.:
+Each person creates their own subfolder, for example:
 
 ```
 people/
-  monika.nowak/
+  your.name/
     index.html
     project.json
     feed.json
     feed-images/
-    profile.json   (opcjonalnie)
+    profile.json   (optional)
 ```
 
-**Nie wgrywajcie nic do korzenia repo** — tylko do `people/twoj-nick/`.
+**Do not upload anything to the root of the repo** — only to `people/your-nick/`.

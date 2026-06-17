@@ -1,5 +1,5 @@
-# Fonty landing page
+# Landing page fonts
 
 **NaN Serf A Display Light** — `NaNSerfADisplay-Light.ttf`
 
-Podpięty w `index.html` przez `@font-face`.
+Loaded in `start.html` via `@font-face`.

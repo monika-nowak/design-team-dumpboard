@@ -1,7 +1,7 @@
-name: Generuj people.json
+name: Generate people.json
 
-# Skanuje wyłącznie people/<nick>/ — uczestnicy nie mieszają z kodem huba.
-# people.json: { "nick", "folder": "people/<nick>" }
+# Scans only people/<nick>/ — keeps participant uploads separate from hub code.
+# people.json entries: { "nick", "folder": "people/<nick>" }
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Zbuduj people.json z folderów w people/
+      - name: Build people.json from people/ folders
         run: |
           mkdir -p people
           {
@@ -28,7 +28,6 @@ jobs:
               [ -d "$dir" ] || continue
               nick="${dir#people/}"
               nick="${nick%/}"
-              # pomiń README i inne pliki w people/ (tylko podfoldery z treścią)
               [ -f "people/$nick/index.html" ] || [ -f "people/$nick/feed.json" ] || continue
               if [ "$first" = true ]; then first=false; else echo ','; fi
               printf '    { "nick": "%s", "folder": "people/%s" }' "$nick" "$nick"
@@ -38,17 +37,17 @@ jobs:
             echo '}'
           } > people.json
 
-          echo "── Wygenerowany people.json ──"
+          echo "── Generated people.json ──"
           cat people.json
 
-      - name: Zapisz zmiany (jeśli są)
+      - name: Commit changes (if any)
         run: |
           if git diff --quiet -- people.json; then
-            echo "people.json bez zmian — nic do zapisania."
+            echo "people.json unchanged — nothing to commit."
           else
             git config user.name  "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add people.json
-            git commit -m "auto: aktualizacja people.json"
+            git commit -m "auto: update people.json"
             git push
           fi
