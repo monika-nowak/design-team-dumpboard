@@ -340,12 +340,6 @@
   #toolbar-context .btn--danger { border-color: rgba(255,84,112,0.5); color: #ff9aad; }
   .tb-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .insp-sep { width:1px; height:24px; background:var(--line); }
-  #toolbar-context .feed-toggle {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: 13px; color: #fff; font-weight: 600; cursor: pointer;
-    white-space: nowrap;
-  }
-  #toolbar-context .feed-toggle input { width: 16px; height: 16px; cursor: pointer; margin: 0; }
   #toolbar-context .cap {
     height: 34px; border: 1px solid var(--line); border-radius: 8px;
     padding: 0 10px; font: inherit; font-size: 13px; width: 210px;
@@ -484,11 +478,9 @@
         </div>
 
         <div class="tb-group" id="insp-image" style="display:none">
-          <label class="feed-toggle">
-            <input type="checkbox" id="feed-check"> Pokaż w feedzie
-          </label>
+          <label>Opis do feedu</label>
           <input type="text" id="feed-caption" class="cap" maxlength="120"
-                 placeholder="Opis (opcjonalnie)" style="display:none">
+                 placeholder="Opcjonalnie">
         </div>
 
         <div class="tb-group" id="insp-sticker" style="display:none">
@@ -691,7 +683,6 @@ const fileInput  = document.getElementById("file-input");
 const stickerPop   = document.getElementById("sticker-pop");
 const toastEl    = document.getElementById("toast");
 const inspImage  = document.getElementById("insp-image");
-const feedCheck  = document.getElementById("feed-check");
 const inspSticker = document.getElementById("insp-sticker");
 const feedCaption = document.getElementById("feed-caption");
 
@@ -948,8 +939,8 @@ function addYouTube(videoId) {
     id: uid++, type: "youtube",
     x: c.x - w / 2, y: c.y - h / 2, w, h,
     rot: 0, videoId,
-    // pola dla integracji z feedem zespołu (jak przy zdjęciach):
-    feed: false,
+    // zdjęcia i filmy trafiają do feedu zespołu automatycznie
+    feed: true,
     caption: "",
     added: new Date().toISOString().slice(0, 10),
   };
@@ -1018,8 +1009,8 @@ function handleImageFile(file) {
         x: c.x - dispW / 2, y: c.y - dispH / 2,
         w: Math.round(dispW), h: Math.round(dispH),
         rot: 0, src: dataUrl,
-        // pola dla integracji z feedem zespołu:
-        feed: false,                                  // domyślnie NIE w feedzie
+        // zdjęcia trafiają do feedu zespołu automatycznie
+        feed: true,
         caption: "",                                  // krótki opis (opcjonalny)
         baseName: sanitizeBaseName(file.name),        // baza nazwy pliku obrazka
         added: new Date().toISOString().slice(0, 10), // data dodania (YYYY-MM-DD)
@@ -1168,9 +1159,7 @@ function syncInspector() {
   }
   if (item.type === "image" || item.type === "youtube") {
     inspImage.style.display = "flex";
-    feedCheck.checked = !!item.feed;
     feedCaption.value = item.caption || "";
-    feedCaption.style.display = item.feed ? "block" : "none";
   } else {
     inspImage.style.display = "none";
   }
@@ -1565,18 +1554,10 @@ boldToggle.addEventListener("click", () => {
   render();
 });
 
-// Inspektor: przełącznik „Pokaż w feedzie zespołu" (zdjęcia i filmy)
+// Opis do feedu (zdjęcia i filmy trafiają tam automatycznie)
 function isFeedable(item) {
   return item && (item.type === "image" || item.type === "youtube");
 }
-feedCheck.addEventListener("change", () => {
-  const item = selectedItem();
-  if (!isFeedable(item)) return;
-  pushUndo();
-  item.feed = feedCheck.checked;
-  feedCaption.style.display = item.feed ? "block" : "none";
-  if (item.feed) feedCaption.focus();
-});
 
 // Inspektor: opis do feedu (zapis na bieżąco, jeden wpis historii na zmianę)
 feedCaption.addEventListener("input", () => {
@@ -1743,8 +1724,7 @@ function downloadBlob(blob, filename) {
    • z wszytymi @font-face (base64) TYLKO dla użytych fontów,
    • zdjęcia już są base64 w stanie → plik samowystarczalny / offline.
 
-   Jeśli jakieś zdjęcia oznaczono „do feedu", zamiast samej strony powstaje
-   ZIP zawierający dodatkowo:
+   Jeśli na płótnie są zdjęcia lub filmy YouTube, ZIP zawiera dodatkowo:
    • feed.json — lekki spis tych zdjęć (plik, opis, data; bez autora),
    • feed-images/*.jpg — te zdjęcia jako osobne pliki, żeby hub mógł je
      wyświetlać lekko, bez przeciągania ciężkiego base64 ze strony.
@@ -1846,9 +1826,9 @@ async function exportPage() {
         `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
         `z-index:${z}`,
       ].join(";");
-      // Zdjęcia zgłoszone do wspólnego feedu niosą znaczniki dla huba.
-      const feedAttr = item.feed ? ` data-feed="true"` : "";
-      const capAttr  = (item.feed && item.caption)
+      // Zdjęcia w feedzie zespołu (wszystkie obrazki trafiają do feed.json)
+      const feedAttr = ` data-feed="true"`;
+      const capAttr  = item.caption
         ? ` data-caption="${escapeAttr(item.caption)}"` : "";
       return `    <img src="${item.src}"${feedAttr}${capAttr} style="${style}" alt="">`;
     }
@@ -1939,7 +1919,7 @@ ${elementsHtml}
 </html>`;
 
   // 6) Zbierz elementy do feedu (zdjęcia ORAZ filmy) i sprawdź profil.
-  const feedItems = state.items.filter(i => (i.type === "image" || i.type === "youtube") && i.feed);
+  const feedItems = state.items.filter(i => i.type === "image" || i.type === "youtube");
   const feedImageCount = feedItems.filter(i => i.type === "image").length;
   const feedVideoCount = feedItems.filter(i => i.type === "youtube").length;
   const profileSet = !!((profile.nick || (profile.name && profile.name.trim())) || profile.avatar);
@@ -2122,6 +2102,10 @@ function loadProject(data) {
   past = []; future = []; updateUndoButtons();   // świeża historia
   state.bg = data.bg || "#0e0e0e";
   state.items = data.items;
+  // zdjęcia i filmy zawsze trafiają do feedu (stare projekty też)
+  state.items.forEach(i => {
+    if (i.type === "image" || i.type === "youtube") i.feed = true;
+  });
   profile.nick = normalizeNick((data.profile && data.profile.nick) || (data.profile && data.profile.name) || "");
   profile.name = (data.profile && data.profile.name) || profile.nick || "";
   profile.avatar = (data.profile && data.profile.avatar) || null;
