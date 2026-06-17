@@ -147,14 +147,93 @@
     font-size: 13px;
     color: var(--muted);
     font-weight: 600;
-    cursor: pointer;
     user-select: none;
   }
-  .bg-picker .mini-swatch {
+  .mini-swatch {
     width: 30px; height: 30px; border-radius: 8px; padding: 0;
-    border: 1px solid var(--line); cursor: pointer; overflow: hidden;
-    background: none;
+    border: 1px solid var(--line); cursor: pointer;
+    flex-shrink: 0;
+    appearance: none;
+    background: #0e0e0e;
   }
+  .mini-swatch:hover { border-color: rgba(255, 255, 255, 0.35); }
+
+  /* Custom color picker — dark popover (zamiast natywnego input[type=color]) */
+  #color-pop {
+    position: fixed;
+    z-index: 11000;
+    display: none;
+    width: 272px;
+    padding: 12px;
+    background: #1a1a1a;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+  }
+  #color-pop.show { display: block; }
+  .color-pop-sb-wrap {
+    position: relative;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .color-pop-hue-wrap {
+    position: relative;
+    margin-bottom: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .color-pop-sb,
+  .color-pop-hue {
+    display: block;
+    width: 100%;
+    height: auto;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .color-pop-cursor {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .color-pop-cursor--hue {
+    width: 12px;
+    height: 12px;
+    top: 50%;
+  }
+  .color-pop-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .color-pop-preview {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .color-pop-hex {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 0 10px;
+    text-transform: uppercase;
+    outline: none;
+  }
+  .color-pop-hex:focus { border-color: #6f93ff; }
 
   #hidden-tools { display: none; }
 
@@ -599,10 +678,10 @@
           <img src="assets/landing/plus.svg" class="pill-icon" alt="">
           <span class="label">Text</span>
         </button>
-        <label class="bg-picker" title="Page background color">
+        <div class="bg-picker" title="Page background color">
           <span class="bg-picker-label">BG</span>
-          <input type="color" id="bg-color" class="mini-swatch" value="#0e0e0e">
-        </label>
+          <button type="button" class="mini-swatch" id="bg-swatch" title="Page background color" aria-label="Page background color"></button>
+        </div>
       </div>
 
       <div class="toolbar-sep" id="ctx-sep" hidden></div>
@@ -613,7 +692,7 @@
           <input type="number" id="font-size" class="num" min="8" max="400" step="1" title="Size">
           <button class="btn icon" id="bold-toggle" title="Bold" style="font-weight:800">B</button>
           <label>Color</label>
-          <input type="color" id="text-color" class="mini-swatch" value="#ffffff" title="Text color">
+          <button type="button" class="mini-swatch" id="text-swatch" title="Text color" aria-label="Text color"></button>
         </div>
 
         <div class="tb-group" id="insp-sticker" style="display:none">
@@ -648,6 +727,22 @@
 
   <!-- Paleta naklejek (obrazki + emoji) -->
   <div id="sticker-pop"></div>
+
+  <!-- Własny picker koloru (ciemny motyw) -->
+  <div id="color-pop" role="dialog" aria-label="Color picker">
+    <div class="color-pop-sb-wrap">
+      <canvas class="color-pop-sb" width="248" height="152" aria-hidden="true"></canvas>
+      <div class="color-pop-cursor color-pop-cursor--sb" aria-hidden="true"></div>
+    </div>
+    <div class="color-pop-hue-wrap">
+      <canvas class="color-pop-hue" width="248" height="14" aria-hidden="true"></canvas>
+      <div class="color-pop-cursor color-pop-cursor--hue" aria-hidden="true"></div>
+    </div>
+    <div class="color-pop-row">
+      <span class="color-pop-preview" aria-hidden="true"></span>
+      <input type="text" class="color-pop-hex" maxlength="7" spellcheck="false" aria-label="Hex color">
+    </div>
+  </div>
 
   <!-- ═══════════════ STRONA EDYTORA ═══════════════ -->
   <div id="page-scroll">
@@ -802,9 +897,10 @@ const ctxSep     = document.getElementById("ctx-sep");
 const inspText   = document.getElementById("insp-text");
 const fontSelect = document.getElementById("font-select");
 const fontSizeIn = document.getElementById("font-size");
-const textColor  = document.getElementById("text-color");
+const textSwatch = document.getElementById("text-swatch");
 const boldToggle = document.getElementById("bold-toggle");
-const bgColor    = document.getElementById("bg-color");
+const bgSwatch   = document.getElementById("bg-swatch");
+const colorPop   = document.getElementById("color-pop");
 const fileInput  = document.getElementById("file-input");
 const stickerPop   = document.getElementById("sticker-pop");
 const toastEl    = document.getElementById("toast");
@@ -1279,7 +1375,7 @@ function handleImageFile(file) {
    z-index = pozycja w tablicy items (warstwowość: kliknięty → na wierzch).
    ════════════════════════════════════════════════════════════════════ */
 function render() {
-  if (bgColor) bgColor.value = state.bg;
+  updateSwatch(bgSwatch, state.bg);
   applyPageBg();
 
   [...canvas.querySelectorAll(".item, .guide")].forEach(el => el.remove());
@@ -1406,7 +1502,7 @@ function syncInspector() {
     inspText.style.display = "flex";
     fontSelect.value = item.fontFamily;
     fontSizeIn.value = item.fontSize;
-    textColor.value = item.color;
+    textSwatch && updateSwatch(textSwatch, item.color);
     boldToggle.style.background = item.bold ? "#fff" : "transparent";
     boldToggle.style.color = item.bold ? "#0e0e0e" : "#fff";
   } else {
@@ -1736,6 +1832,10 @@ document.getElementById("sticker-swap-btn").addEventListener("click", e => {
 });
 
 document.addEventListener("mousedown", e => {
+  if (colorPop.classList.contains("show") && !colorPop.contains(e.target)
+      && !e.target.closest(".mini-swatch")) {
+    closeColorPicker();
+  }
   if (!stickerPop.contains(e.target) && e.target.id !== "add-sticker"
       && !e.target.closest("#add-sticker") && e.target.id !== "sticker-swap-btn"
       && !e.target.closest("#sticker-swap-btn")) {
@@ -1744,12 +1844,260 @@ document.addEventListener("mousedown", e => {
   }
 });
 
-// Kolor tła strony
-bgColor.addEventListener("mousedown", () => { pushUndo(); });
-bgColor.addEventListener("input", e => {
-  state.bg = e.target.value;
-  applyPageBg();
+/* ── Custom color picker (dark theme) ─────────────────────────────── */
+const cpSbCanvas = colorPop.querySelector(".color-pop-sb");
+const cpHueCanvas = colorPop.querySelector(".color-pop-hue");
+const cpSbCursor = colorPop.querySelector(".color-pop-cursor--sb");
+const cpHueCursor = colorPop.querySelector(".color-pop-cursor--hue");
+const cpPreview = colorPop.querySelector(".color-pop-preview");
+const cpHexInput = colorPop.querySelector(".color-pop-hex");
+
+let cpH = 0, cpS = 0, cpV = 0;
+let cpAnchor = null;
+let cpOnInput = null;
+let cpOnCommit = null;
+
+function updateSwatch(el, hex) {
+  if (el) el.style.background = hex || "#000";
+}
+
+function parseHexColor(raw) {
+  let h = String(raw || "").trim();
+  if (!h) return null;
+  if (!h.startsWith("#")) h = "#" + h;
+  if (/^#[0-9a-fA-F]{3}$/.test(h)) {
+    h = "#" + h[1] + h[1] + h[2] + h[2] + h[3] + h[3];
+  }
+  if (!/^#[0-9a-fA-F]{6}$/.test(h)) return null;
+  return h.toLowerCase();
+}
+
+function hexToRgb(hex) {
+  const h = hex.replace(/^#/, "");
+  return [
+    parseInt(h.slice(0, 2), 16),
+    parseInt(h.slice(2, 4), 16),
+    parseInt(h.slice(4, 6), 16),
+  ];
+}
+
+function rgbToHex(r, g, b) {
+  return "#" + [r, g, b].map(v =>
+    Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")
+  ).join("");
+}
+
+function rgbToHsv(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  let hue = 0;
+  const sat = max === 0 ? 0 : d / max;
+  const val = max;
+  if (d) {
+    if (max === r) hue = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) hue = ((b - r) / d + 2) / 6;
+    else hue = ((r - g) / d + 4) / 6;
+  }
+  return [hue * 360, sat, val];
+}
+
+function hsvToRgb(h, s, v) {
+  h = (((h % 360) + 360) % 360) / 360;
+  const i = Math.floor(h * 6);
+  const f = h * 6 - i;
+  const p = v * (1 - s);
+  const q = v * (1 - f * s);
+  const t = v * (1 - (1 - f) * s);
+  let r, g, b;
+  switch (i % 6) {
+    case 0: r = v; g = t; b = p; break;
+    case 1: r = q; g = v; b = p; break;
+    case 2: r = p; g = v; b = t; break;
+    case 3: r = p; g = q; b = v; break;
+    case 4: r = t; g = p; b = v; break;
+    default: r = v; g = p; b = q;
+  }
+  return [r * 255, g * 255, b * 255];
+}
+
+function currentCpHex() {
+  const [r, g, b] = hsvToRgb(cpH, cpS, cpV);
+  return rgbToHex(r, g, b);
+}
+
+function setCpFromHex(hex) {
+  const parsed = parseHexColor(hex);
+  if (!parsed) return;
+  const [r, g, b] = hexToRgb(parsed);
+  [cpH, cpS, cpV] = rgbToHsv(r, g, b);
+}
+
+function paintCpSbCanvas() {
+  const ctx = cpSbCanvas.getContext("2d");
+  const w = cpSbCanvas.width;
+  const h = cpSbCanvas.height;
+  const [hr, hg, hb] = hsvToRgb(cpH, 1, 1);
+  const gradX = ctx.createLinearGradient(0, 0, w, 0);
+  gradX.addColorStop(0, "#fff");
+  gradX.addColorStop(1, `rgb(${hr | 0},${hg | 0},${hb | 0})`);
+  ctx.fillStyle = gradX;
+  ctx.fillRect(0, 0, w, h);
+  const gradY = ctx.createLinearGradient(0, 0, 0, h);
+  gradY.addColorStop(0, "rgba(0,0,0,0)");
+  gradY.addColorStop(1, "#000");
+  ctx.fillStyle = gradY;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function paintCpHueCanvas() {
+  const ctx = cpHueCanvas.getContext("2d");
+  const w = cpHueCanvas.width;
+  const grad = ctx.createLinearGradient(0, 0, w, 0);
+  for (let i = 0; i <= 6; i++) grad.addColorStop(i / 6, `hsl(${i * 60}, 100%, 50%)`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, cpHueCanvas.height);
+}
+
+function updateCpUi() {
+  paintCpSbCanvas();
+  const hex = currentCpHex();
+  cpPreview.style.background = hex;
+  cpHexInput.value = hex;
+  cpSbCursor.style.left = (cpS * 100) + "%";
+  cpSbCursor.style.top = ((1 - cpV) * 100) + "%";
+  cpHueCursor.style.left = (cpH / 360 * 100) + "%";
+}
+
+function emitCpInput() {
+  updateCpUi();
+  if (cpOnInput) cpOnInput(currentCpHex());
+}
+
+function positionColorPop(anchor) {
+  const r = anchor.getBoundingClientRect();
+  const pw = colorPop.offsetWidth || 272;
+  const ph = colorPop.offsetHeight || 240;
+  let left = Math.min(Math.max(12, r.left), window.innerWidth - pw - 12);
+  let top = r.bottom + 8;
+  if (top + ph > window.innerHeight - 12) top = Math.max(12, r.top - ph - 8);
+  colorPop.style.left = left + "px";
+  colorPop.style.top = top + "px";
+}
+
+function openColorPicker({ anchor, value, onInput, onCommit }) {
+  if (colorPop.classList.contains("show") && cpAnchor === anchor) {
+    closeColorPicker();
+    return;
+  }
+  cpAnchor = anchor;
+  cpOnInput = onInput;
+  cpOnCommit = onCommit;
+  setCpFromHex(value || "#ffffff");
+  updateCpUi();
+  colorPop.classList.add("show");
+  positionColorPop(anchor);
+}
+
+function closeColorPicker() {
+  if (!colorPop.classList.contains("show")) return;
+  colorPop.classList.remove("show");
+  if (cpOnCommit) cpOnCommit(currentCpHex());
+  cpAnchor = null;
+  cpOnInput = null;
+  cpOnCommit = null;
+}
+
+function bindCpCanvasDrag(canvas, onPick) {
+  canvas.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    canvas.setPointerCapture(e.pointerId);
+    const pick = ev => {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+      const y = Math.max(0, Math.min(1, (ev.clientY - rect.top) / rect.height));
+      onPick(x, y);
+    };
+    pick(e);
+    const onMove = ev => pick(ev);
+    const onUp = () => {
+      canvas.releasePointerCapture(e.pointerId);
+      canvas.removeEventListener("pointermove", onMove);
+      canvas.removeEventListener("pointerup", onUp);
+      if (cpOnCommit) cpOnCommit(currentCpHex());
+    };
+    canvas.addEventListener("pointermove", onMove);
+    canvas.addEventListener("pointerup", onUp);
+  });
+}
+
+paintCpHueCanvas();
+bindCpCanvasDrag(cpSbCanvas, (x, y) => {
+  cpS = x;
+  cpV = 1 - y;
+  emitCpInput();
 });
+bindCpCanvasDrag(cpHueCanvas, (x) => {
+  cpH = x * 360;
+  emitCpInput();
+});
+
+cpHexInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const parsed = parseHexColor(cpHexInput.value);
+    if (parsed) {
+      setCpFromHex(parsed);
+      emitCpInput();
+      if (cpOnCommit) cpOnCommit(currentCpHex());
+    }
+    cpHexInput.blur();
+  }
+});
+cpHexInput.addEventListener("change", () => {
+  const parsed = parseHexColor(cpHexInput.value);
+  if (!parsed) {
+    cpHexInput.value = currentCpHex();
+    return;
+  }
+  setCpFromHex(parsed);
+  emitCpInput();
+  if (cpOnCommit) cpOnCommit(currentCpHex());
+});
+
+bgSwatch.addEventListener("click", e => {
+  let didUndo = false;
+  openColorPicker({
+    anchor: e.currentTarget,
+    value: state.bg,
+    onInput(hex) {
+      if (!didUndo) { pushUndo(); didUndo = true; }
+      state.bg = hex;
+      updateSwatch(bgSwatch, hex);
+      applyPageBg();
+    },
+    onCommit() {},
+  });
+});
+
+textSwatch.addEventListener("click", e => {
+  const item = selectedItem();
+  if (!item || item.type !== "text") return;
+  openColorPicker({
+    anchor: e.currentTarget,
+    value: item.color,
+    onInput(hex) {
+      item.color = hex;
+      updateSwatch(textSwatch, hex);
+      const body = canvas.querySelector(`.item[data-id="${item.id}"] .text-body`);
+      if (body) body.style.color = hex;
+    },
+    onCommit() { pushUndo(); },
+  });
+});
+
+// Kolor tła strony — obsługiwany przez własny picker (bgSwatch)
 
 // Undo / redo (przyciski)
 document.getElementById("undo").addEventListener("click", undo);
@@ -1787,16 +2135,7 @@ fontSizeIn.addEventListener("change", e => {
   render();
 });
 
-// Inspektor: kolor tekstu
-textColor.addEventListener("input", e => {
-  const item = selectedItem();
-  if (!item || item.type !== "text") return;
-  item.color = e.target.value;
-  const body = canvas.querySelector(`.item[data-id="${item.id}"] .text-body`);
-  if (body) body.style.color = item.color;
-});
-textColor.addEventListener("change", () => { pushUndo(); });  // jeden wpis historii
-
+// Inspektor: kolor tekstu — własny picker (textSwatch)
 // Inspektor: pogrubienie
 boldToggle.addEventListener("click", () => {
   const item = selectedItem();
