@@ -625,16 +625,6 @@
 
   .tool-btn:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
 
-  /* Kreska między głównymi narzędziami a kontekstem (Figma 8:493 — Line 2) */
-  .tools-divider {
-    display: none;
-    width: 1px;
-    height: 48px;
-    background: rgba(255, 255, 255, 0.2);
-    flex-shrink: 0;
-  }
-  .tools-divider.show { display: block; }
-
   /* ── Kontekst zaznaczenia — w tym samym rzędzie co główne narzędzia ─ */
   #toolbar-context {
     display: none;
@@ -1026,8 +1016,6 @@
           <span>Text</span>
         </button>
 
-        <div class="tools-divider" id="tools-divider" aria-hidden="true"></div>
-
         <div id="toolbar-context">
           <div class="tb-group" id="insp-text" style="display:none">
             <label class="ctx-select-wrap" title="Font">
@@ -1213,7 +1201,6 @@ const pageScroll = document.getElementById("page-scroll");
 const pageNick  = document.getElementById("page-nick");
 const headerAvatar = document.getElementById("header-avatar");
 const toolbarCtx = document.getElementById("toolbar-context");
-const toolsDivider = document.getElementById("tools-divider");
 const inspText   = document.getElementById("insp-text");
 const fontSelect = document.getElementById("font-select");
 const fontSizeIn = document.getElementById("font-size");
@@ -1838,13 +1825,11 @@ function syncInspector() {
   const item = selectedItem();
   if (!item) {
     toolbarCtx.classList.remove("show");
-    toolsDivider && toolsDivider.classList.remove("show");
     inspText.style.display = "none";
     inspSticker.style.display = "none";
     return;
   }
   toolbarCtx.classList.add("show");
-  toolsDivider && toolsDivider.classList.add("show");
 
   if (isMediaItem(item)) {
     inspText.style.display = "none";
