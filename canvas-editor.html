@@ -239,6 +239,7 @@
 
   /* ── Strona edytora (scroll) ─────────────────────────────────────── */
   #page-scroll {
+    position: relative;
     max-width: 1440px;
     margin: 0 auto;
     padding: 0 var(--page-pad) 64px;
@@ -450,18 +451,19 @@
     flex-shrink: 0;
   }
 
-  /* ── Free canvas (text + stickers only, below grid) ──────────────── */
+  /* ── Free canvas (text + stickers) — overlay na całej stronie edytora ─ */
   #canvas-wrap {
-    max-width: var(--content-w);
-    margin: 0 auto 64px;
-    padding: 0 var(--page-pad);
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
   }
   #canvas-wrap.is-empty { display: none; }
 
   #canvas {
     position: relative;
     width: 100%;
-    min-height: 120px;
+    min-height: 100%;
     background: transparent;
   }
 
@@ -469,6 +471,7 @@
     position: absolute;
     cursor: grab;
     transform-origin: center center;
+    pointer-events: auto;
   }
   .item.dragging { cursor: grabbing; }
   .item img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; border-radius: 16px; }
@@ -965,17 +968,21 @@ function toast(msg, ms = 2200) {
   clearTimeout(toast._t);
   toast._t = setTimeout(() => toastEl.classList.remove("show"), ms);
 }
-/* Środek aktualnie widocznego obszaru — w układzie współrzędnych płótna.
-   Strona przewija się oknem, więc liczymy pozycję płótna względem viewportu
-   (getBoundingClientRect), a nie z nieistniejącego scrolla #page-scroll. */
-function canvasCenter() {
-  const w = canvas.clientWidth || 900;
-  const rect = canvas.getBoundingClientRect();
-  // środek widocznej części okna, przeliczony na współrzędne wewnątrz płótna
-  let y = (window.innerHeight / 2) - rect.top;
-  // nigdy ponad płótnem; gdy płótno jest jeszcze pod strefami dodawania → blisko góry
-  y = Math.max(140, y);
-  return { x: w / 2, y };
+/* Punkt dodawania — środek widocznego obszaru (poniżej toolbara), współrzędne #canvas */
+function viewportDropPoint() {
+  if (!pageScroll || !canvas) return { x: 450, y: 400 };
+  const rect = pageScroll.getBoundingClientRect();
+  const toolbar = document.getElementById("toolbar");
+  const toolBottom = toolbar ? toolbar.getBoundingClientRect().bottom : 0;
+  const midX = window.innerWidth / 2;
+  const midY = toolBottom + (window.innerHeight - toolBottom) / 2;
+  let x = midX - rect.left;
+  let y = midY - rect.top;
+  const maxX = canvas.clientWidth || rect.width;
+  const maxY = Math.max(canvas.clientHeight, pageScroll.offsetHeight) - 40;
+  x = Math.max(40, Math.min(x, maxX - 40));
+  y = Math.max(40, Math.min(y, maxY));
+  return { x, y };
 }
 
 /* Po dodaniu elementu upewniamy się, że jest widoczny (przewijamy do niego). */
@@ -1030,7 +1037,8 @@ function syncCanvasHeight() {
     const bottom = (it.y || 0) + h + 80;
     if (bottom > maxY) maxY = bottom;
   });
-  canvas.style.minHeight = maxY + "px";
+  const pageH = pageScroll ? pageScroll.offsetHeight : 800;
+  canvas.style.minHeight = Math.max(maxY, pageH) + "px";
   if (canvasWrap) canvasWrap.classList.toggle("is-empty", !state.items.some(isCanvasItem));
 }
 
@@ -1121,12 +1129,14 @@ function commitMediaCaption(item) {
   render();
 }
 
-function deselectMediaOutside(e) {
-  if (!selectedId) return;
-  const item = selectedItem();
-  if (!item || !isMediaItem(item)) return;
-  if (e.target.closest(".media-card") || e.target.closest(".media-add")) return;
+function deselectOutside(e) {
+  if (selectedId === null) return;
   if (e.target.closest("#toolbar")) return;
+  if (e.target.closest("#sticker-pop")) return;
+  if (e.target.closest("#color-pop")) return;
+  if (e.target.closest(".modal-overlay.show")) return;
+  if (e.target.closest(".item")) return;
+  if (e.target.closest(".media-card") || e.target.closest(".media-add")) return;
   selectedId = null;
   render();
 }
@@ -1202,13 +1212,12 @@ function applyStickerEntry(item, entry) {
 
 function addStickerFromLib(entry) {
   pushUndo();
-  const c = canvasCenter();
+  const c = viewportDropPoint();
   const item = { id: uid++, type: "sticker", stickerId: entry.id, x: c.x - 60, y: c.y - 60, rot: 0 };
   applyStickerEntry(item, entry);
   state.items.push(item);
   selectedId = item.id;
   render();
-  scrollItemIntoView(item.id);
 }
 
 function swapSticker(item, entry) {
@@ -1259,7 +1268,7 @@ function updateUndoButtons() {
    ════════════════════════════════════════════════════════════════════ */
 function addText() {
   pushUndo();
-  const c = canvasCenter();
+  const c = viewportDropPoint();
   const item = {
     id: uid++, type: "text",
     // bez sztywnej szerokości — pole dopasowuje się do treści (patrz render/eksport)
@@ -1272,7 +1281,6 @@ function addText() {
   selectedId = item.id;
   ensureFontCached("Inter");
   render();
-  scrollItemIntoView(item.id);
 }
 
 function addSticker(emoji) {
@@ -2836,7 +2844,7 @@ if (mediaGrid) {
     if (e.target.closest("#grid-add-youtube")) { openYtModal(); }
   });
 }
-document.addEventListener("mousedown", deselectMediaOutside);
+document.addEventListener("mousedown", deselectOutside);
 function confirmYt() {
   const id = parseYouTubeId(ytUrl.value);
   if (!id) { ytError.style.display = "block"; return; }
