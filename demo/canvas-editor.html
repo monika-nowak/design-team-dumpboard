@@ -247,8 +247,9 @@
     pointer-events: none; user-select: none; object-fit: contain;
     border-radius: 0;
   }
-  .item.sticker.selected { outline: none; box-shadow: none; border-radius: 0; }
-  .item.sticker.selected .sticker-frame {
+  /* Jednolite zaznaczenie dla WSZYSTKICH elementów (projekt z naklejki):
+     niebieska ramka + 4 białe uchwyty w rogach (skalowanie) + uchwyt obrotu u góry. */
+  .sel-frame {
     position: absolute; inset: 0;
     border: 1px solid #6f93ff; pointer-events: none;
   }
@@ -260,6 +261,17 @@
   .corner-handle.tr { right: -2px; top: -2px; cursor: nesw-resize; }
   .corner-handle.bl { left: -2px; bottom: -2px; cursor: nesw-resize; }
   .corner-handle.br { right: -2px; bottom: -2px; cursor: nwse-resize; }
+  .rotate-handle {
+    position: absolute; left: 50%; top: -26px; transform: translateX(-50%);
+    width: 11px; height: 11px; border-radius: 50%;
+    background: #fff; border: 1px solid #6f93ff; box-sizing: border-box;
+    cursor: grab; z-index: 9;
+  }
+  .rotate-handle::after {
+    content: ""; position: absolute; left: 50%; top: 100%;
+    width: 1px; height: 15px; background: #6f93ff;
+    transform: translateX(-50%);
+  }
   .item .yt-body {
     width: 100%; height: 100%;
     background: #000 center / cover no-repeat;
@@ -274,25 +286,7 @@
     font-size: 18px; padding-left: 3px;
   }
 
-  .item.selected { outline: 2px solid #fff; outline-offset: 2px; border-radius: 16px; }
-  .handle {
-    position: absolute;
-    width: 16px; height: 16px;
-    background: #0e0e0e;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    z-index: 5;
-  }
-  .handle.resize { right: -9px; bottom: -9px; cursor: nwse-resize; }
-  .handle.rotate {
-    left: 50%; top: -34px; transform: translateX(-50%);
-    cursor: grab; background: #fff;
-  }
-  .handle.rotate::after {
-    content: ""; position: absolute; left: 50%; top: 100%;
-    width: 2px; height: 18px; background: #fff;
-    transform: translateX(-50%);
-  }
+  .item.selected { outline: none; box-shadow: none; }
 
   .guide {
     position: absolute; background: #ff3d8b; z-index: 9999; pointer-events: none;
@@ -1083,35 +1077,31 @@ function render() {
       el.appendChild(yt);
     }
 
-    // Uchwyty — naklejki mają własny UI (Figma); reszta elementów jak dotąd.
+    // Jednolite zaznaczenie dla każdego typu elementu:
+    // niebieska ramka + 4 uchwyty skalowania w rogach + uchwyt obrotu u góry.
     if (item.id === selectedId) {
-      if (item.type === "sticker") {
-        const frame = document.createElement("div");
-        frame.className = "sticker-frame";
-        el.appendChild(frame);
+      const frame = document.createElement("div");
+      frame.className = "sel-frame";
+      // obrazki i YouTube mają zaokrąglone rogi → ramka też
+      if (item.type === "image" || item.type === "youtube") frame.style.borderRadius = "16px";
+      el.appendChild(frame);
 
-        ["tl", "tr", "bl", "br"].forEach(corner => {
-          const ch = document.createElement("div");
-          ch.className = "corner-handle " + corner;
-          ch.title = "Przeciągnij = rozmiar · Shift = obrót";
-          ch.addEventListener("mousedown", e => {
-            e.stopPropagation();
-            if (e.shiftKey) startRotate(e, item, true);
-            else startStickerResize(e, item, corner);
-          });
-          el.appendChild(ch);
+      ["tl", "tr", "bl", "br"].forEach(corner => {
+        const ch = document.createElement("div");
+        ch.className = "corner-handle " + corner;
+        ch.title = "Przeciągnij = rozmiar";
+        ch.addEventListener("mousedown", e => {
+          e.stopPropagation();
+          startCornerResize(e, item, corner);
         });
-      } else {
-      const resize = document.createElement("div");
-      resize.className = "handle resize";
-      resize.addEventListener("mousedown", e => startResize(e, item));
+        el.appendChild(ch);
+      });
 
       const rotate = document.createElement("div");
-      rotate.className = "handle rotate";
+      rotate.className = "rotate-handle";
+      rotate.title = "Przeciągnij = obrót (Shift = skok co 15°)";
       rotate.addEventListener("mousedown", e => startRotate(e, item));
-
-      el.append(resize, rotate);
-      }
+      el.appendChild(rotate);
     }
 
     canvas.appendChild(el);
@@ -1269,73 +1259,36 @@ function startDrag(e, item) {
   window.addEventListener("mouseup", onUp);
 }
 
-/* ── Skalowanie za uchwyt w rogu ──────────────────────────────────────
-   Tekst i naklejka: skalujemy rozmiar fontu.
-   Zdjęcie: skalujemy szerokość/wysokość z zachowaniem proporcji. */
-function startResize(e, item) {
-  e.stopPropagation();
-  pushUndo();
-  const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
-  const startX = e.clientX, startY = e.clientY;
-  const startW = el.offsetWidth, startH = el.offsetHeight;
-  const startFont = item.fontSize;
-
-  function onMove(ev) {
-    const dx = ev.clientX - startX;
-    const dy = ev.clientY - startY;
-    if (item.type === "image" || item.type === "youtube") {
-      const ratio = startH / startW;
-      let nw = Math.max(20, startW + dx);
-      item.w = Math.round(nw);
-      item.h = Math.round(nw * ratio);
-      el.style.width = item.w + "px";
-      el.style.height = item.h + "px";
-    } else if (item.type === "sticker") {
-      const delta = (dx + dy) / 2;
-      const factor = (startW + delta) / startW;
-      item.fontSize = Math.max(8, Math.round(startFont * factor));
-      const body = el.querySelector(".sticker-body");
-      if (body) body.style.fontSize = item.fontSize + "px";
-      fontSizeIn.value = item.fontSize;
-    } else {
-      const delta = (dx + dy) / 2;
-      const factor = (startW + delta) / startW;
-      item.fontSize = Math.max(8, Math.round(startFont * factor));
-      el.querySelector(".text-body").style.fontSize = item.fontSize + "px";
-      fontSizeIn.value = item.fontSize;
-    }
-  }
-  function onUp() {
-    window.removeEventListener("mousemove", onMove);
-    window.removeEventListener("mouseup", onUp);
-  }
-  window.addEventListener("mousemove", onMove);
-  window.addEventListener("mouseup", onUp);
-}
-
-/* Skalowanie naklejki za rogi (Figma: 4 uchwyty, proporcje zachowane dla obrazków) */
-function startStickerResize(e, item, corner) {
+/* ── Skalowanie za uchwyt w rogu (wspólne dla wszystkich typów) ────────
+   Obrazki / YouTube / naklejki-obrazki: zmiana szerokości i wysokości
+   z zachowaniem proporcji (przeciwległy róg zostaje w miejscu).
+   Tekst / naklejki-emoji: skalujemy rozmiar fontu. */
+function startCornerResize(e, item, corner) {
   e.stopPropagation();
   pushUndo();
   const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
   const startX = e.clientX, startY = e.clientY;
   const origX = item.x, origY = item.y;
-  const isImage = !!item.src;
-  const startW = isImage ? item.w : el.offsetWidth;
-  const startH = isImage ? item.h : el.offsetHeight;
+  // elementy z własnym pudełkiem (w/h): obrazek, youtube, naklejka-obrazek
+  const hasBox = item.type === "image" || item.type === "youtube"
+              || (item.type === "sticker" && !!item.src);
+  const startW = hasBox ? item.w : el.offsetWidth;
+  const startH = hasBox ? item.h : el.offsetHeight;
   const ratio = startH / startW;
   const startFont = item.fontSize || 80;
 
   function onMove(ev) {
     let dx = ev.clientX - startX;
     let dy = ev.clientY - startY;
+    // znak ruchu zależnie od chwytanego rogu (żeby każdy róg powiększał „na zewnątrz")
     if (corner === "tl") { dx = -dx; dy = -dy; }
     else if (corner === "tr") { dy = -dy; }
     else if (corner === "bl") { dx = -dx; }
 
-    if (isImage) {
+    if (hasBox) {
       let nw = Math.max(24, startW + dx);
       let nh = Math.round(nw * ratio);
+      // przy ciągnięciu za górny/lewy róg przesuwamy element, by przeciwległy róg stał w miejscu
       if (corner === "tl" || corner === "bl") item.x = origX + (startW - nw);
       if (corner === "tl" || corner === "tr") item.y = origY + (startH - nh);
       item.w = Math.round(nw);
@@ -1348,8 +1301,9 @@ function startStickerResize(e, item, corner) {
       const delta = (dx + dy) / 2;
       const factor = (startW + delta) / startW;
       item.fontSize = Math.max(8, Math.round(startFont * factor));
-      const body = el.querySelector(".sticker-body");
+      const body = el.querySelector(".text-body, .sticker-body");
       if (body) body.style.fontSize = item.fontSize + "px";
+      if (item.type === "text") fontSizeIn.value = item.fontSize;
     }
   }
   function onUp() {
@@ -1360,18 +1314,18 @@ function startStickerResize(e, item, corner) {
   window.addEventListener("mouseup", onUp);
 }
 
-/* ── Obrót za uchwyt nad elementem ── */
-function startRotate(e, item, fromCorner) {
+/* ── Obrót za uchwyt nad elementem (wspólny dla wszystkich typów) ──────
+   Uchwyt jest u góry, więc dodajemy 90°, by 0° = brak obrotu. */
+function startRotate(e, item) {
   e.stopPropagation();
   pushUndo();
   const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
   const rect = el.getBoundingClientRect();
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
-  const offset = fromCorner ? 0 : 90;
 
   function onMove(ev) {
-    const angle = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI + offset;
+    const angle = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI + 90;
     let a = Math.round(angle);
     if (ev.shiftKey) a = Math.round(a / 15) * 15;   // Shift = skok co 15°
     item.rot = a;
@@ -1422,7 +1376,7 @@ canvas.addEventListener("mousedown", e => {
   // klik w pustą część płótna → odznacz
   if (!el) { if (selectedId !== null) deselect(); return; }
   // ignoruj kliknięcia w uchwyty i przyciski naklejki
-  if (e.target.classList.contains("handle") || e.target.classList.contains("corner-handle")) return;
+  if (e.target.classList.contains("corner-handle") || e.target.classList.contains("rotate-handle")) return;
 
   const id = Number(el.dataset.id);
   const item = state.items.find(i => i.id === id);
