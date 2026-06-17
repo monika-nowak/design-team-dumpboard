@@ -713,6 +713,11 @@ function normalizeNick(raw) {
 function isValidNick(nick) {
   return /^[a-z0-9][a-z0-9._-]*[a-z0-9]$/.test(nick) || /^[a-z0-9]$/.test(nick);
 }
+function saveNickLocal(nick) {
+  const n = normalizeNick(nick);
+  if (!isValidNick(n)) return;
+  try { localStorage.setItem("dumpboard_nick", n); } catch (e) {}
+}
 function exportZipBaseName() {
   if (profile.nick) return sanitizeBaseName(profile.nick);
   if (profile.name && profile.name.trim()) return sanitizeBaseName(profile.name.trim());
@@ -1730,6 +1735,7 @@ function downloadBlob(blob, filename) {
      wyświetlać lekko, bez przeciągania ciężkiego base64 ze strony.
    ════════════════════════════════════════════════════════════════════ */
 async function exportPage() {
+  if (profile.nick) saveNickLocal(profile.nick);
   if (!state.items.some(i => !i.demo)) {
     toast("Add something to the canvas first (besides the sample sticker).");
     return;
@@ -1959,6 +1965,7 @@ ${fontFaces}    * { margin: 0; box-sizing: border-box; }
 ${elementsHtml}
     </div>
   </div>
+  ${profile.nick ? `<script>try{localStorage.setItem("dumpboard_nick",${JSON.stringify(profile.nick)})}catch(e){}<\/script>` : ""}
   <script>
     /* Scale composition to #wrap width (max 900px, like the editor canvas). */
     (function () {
@@ -2110,6 +2117,7 @@ function confirmWelcome() {
   }
   profile.nick = nick;
   if (!profile.name.trim()) profile.name = nick;
+  saveNickLocal(nick);
   profileNameIn.value = profile.name;
   welcomeModal.classList.remove("show");
   updatePageNick();
@@ -2166,6 +2174,7 @@ function loadProject(data) {
   profile.nick = normalizeNick((data.profile && data.profile.nick) || (data.profile && data.profile.name) || "");
   profile.name = (data.profile && data.profile.name) || profile.nick || "";
   profile.avatar = (data.profile && data.profile.avatar) || null;
+  if (profile.nick) saveNickLocal(profile.nick);
   state.items.forEach(i => { if (i.type === "sticker" && i.src) cacheStickerSrc(i.src); });
   if (!state.items.length) seedDemoSticker();
   // licznik id ponad najwyższe wczytane, by uniknąć kolizji

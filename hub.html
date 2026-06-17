@@ -176,7 +176,7 @@
     <a class="logo" href="index.html" aria-label="Dumpboard">
       <img src="assets/landing/logo.svg" alt="">
     </a>
-    <a class="create-btn" href="canvas-editor.html">Create your dump</a>
+    <a class="create-btn" id="header-cta" href="canvas-editor.html">Create your dump</a>
   </header>
 
   <p class="counter hidden" id="counter">
@@ -208,6 +208,7 @@ function jsonUrl(path) {
 }
 
 let allPins = [];
+let knownPeople = [];
 
 const feedEl     = document.getElementById("feed");
 const loadingEl  = document.getElementById("loading");
@@ -222,6 +223,32 @@ function handleFor(pin) {
   return "@" + h;
 }
 
+/** Remember nick in this browser — hub uses it for the header button. */
+function saveNickLocal(nick) {
+  const n = String(nick || "").trim().replace(/^@+/, "").toLowerCase();
+  if (!n) return;
+  try { localStorage.setItem("dumpboard_nick", n); } catch (e) {}
+}
+
+function getStoredNick() {
+  try { return (localStorage.getItem("dumpboard_nick") || "").toLowerCase(); } catch (e) { return ""; }
+}
+
+/** “Create your dump” → “My dump” when this browser knows a published page. */
+function updateHeaderCta(people) {
+  const btn = document.getElementById("header-cta");
+  if (!btn) return;
+  const nick = getStoredNick();
+  const person = people.find(p => (p.nick || "").toLowerCase() === nick);
+  if (person && person.folder) {
+    btn.textContent = "My dump";
+    btn.href = person.folder.replace(/\/+$/, "") + "/index.html";
+  } else {
+    btn.textContent = "Create your dump";
+    btn.href = "canvas-editor.html";
+  }
+}
+
 async function loadAll() {
   let people = [];
   try {
@@ -233,6 +260,9 @@ async function loadAll() {
   } catch (e) {
     console.warn("Could not load", PEOPLE_FILE, e);
   }
+
+  knownPeople = people;
+  updateHeaderCta(people);
 
   const pins = [];
   for (const person of people) {
@@ -358,6 +388,10 @@ function makePin(pin) {
   handle.href = pin.page;
   handle.textContent = handleFor(pin);
   handle.title = "View page";
+  handle.addEventListener("click", () => {
+    saveNickLocal(pin.nick);
+    updateHeaderCta(knownPeople);
+  });
   art.appendChild(handle);
 
   return art;
