@@ -136,7 +136,6 @@
   }
   .nav-link-btn:hover { color: #fff; }
 
-  /* legacy alias — nie używane */
   /* ── Przyklejony pasek narzędzi (pod nav — widoczny przy scrollu w dół) ─ */
   #editor-sticky-bar {
     position: sticky;
@@ -162,7 +161,7 @@
     appearance: none;
     border: none;
     background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.8);
+    color: #fff;
     height: 48px;
     border-radius: 8px;
     padding: 12px 16px;
@@ -619,40 +618,110 @@
   .guide.v { width: 1px; top: 0; bottom: 0; }
   .guide.h { height: 1px; left: 0; right: 0; }
 
-  /* ── Kontekst zaznaczenia (pod wierszem narzędzi) ────────────────── */
+  .tool-btn:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
+
+  /* Kreska między głównymi narzędziami a kontekstem (Figma 8:493 — Line 2) */
+  .tools-divider {
+    display: none;
+    width: 1px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+  }
+  .tools-divider.show { display: block; }
+
+  /* ── Kontekst zaznaczenia — w tym samym rzędzie co główne narzędzia ─ */
   #toolbar-context {
     display: none;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
-    padding: 0 var(--tools-pad) 24px;
   }
   #toolbar-context.show { display: flex; }
-  #toolbar-context select, #toolbar-context .num {
-    height: 34px; border: 1px solid var(--line); border-radius: 8px;
-    padding: 0 8px; font: inherit; font-size: 13px;
-    background: rgba(255,255,255,0.08); color: #fff; cursor: pointer;
-  }
-  #toolbar-context select { max-width: 190px; }
-  #toolbar-context .num { width: 64px; cursor: text; }
-  #toolbar-context label { font-size: 12px; color: var(--muted); font-weight: 600; }
-  #toolbar-context .mini-swatch {
-    width: 30px; height: 30px; border-radius: 8px; padding: 0;
-    border: 1px solid var(--line); cursor: pointer; overflow: hidden;
-  }
-  #toolbar-context .btn {
-    appearance: none; border: 1px solid var(--line); background: var(--pill);
-    color: #fff; height: 34px; padding: 0 12px; border-radius: 8px;
-    font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+
+  .tb-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  /* Pigułki kontekstu — jaśniejsze tło niż główne narzędzia (5% vs 10%) */
+  .ctx-btn,
+  .ctx-input,
+  #toolbar-context select {
+    appearance: none;
+    border: none;
+    height: 48px;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    cursor: pointer;
     white-space: nowrap;
   }
-  #toolbar-context .btn--danger { border-color: rgba(255,84,112,0.5); color: #ff9aad; }
-  .tb-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .insp-sep { width:1px; height:24px; background:var(--line); }
+  .ctx-input { width: 72px; cursor: text; font-weight: 400; }
+  .ctx-btn:hover,
+  #toolbar-context select:hover { background: rgba(255, 255, 255, 0.08); }
+  .ctx-btn.is-on { background: #fff; color: #0e0e0e; }
+  #bold-toggle { font-weight: 800; }
+  .ctx-btn--danger { color: #ff9aad; }
+  .ctx-btn--danger:hover { background: rgba(255, 84, 112, 0.12); }
+
+  .ctx-select-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  #toolbar-context select {
+    min-width: 140px;
+    max-width: 200px;
+    padding-right: 40px;
+    font-weight: 400;
+    cursor: pointer;
+  }
+  .ctx-caret {
+    position: absolute;
+    right: 14px;
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+    opacity: 0.9;
+  }
+
+  .ctx-swatch-btn {
+    appearance: none;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .ctx-swatch-btn:hover { background: rgba(255, 255, 255, 0.08); }
+  .ctx-swatch-btn .mini-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+  }
+
   #toolbar-context .cap {
-    height: 34px; border: 1px solid var(--line); border-radius: 8px;
-    padding: 0 10px; font: inherit; font-size: 13px; width: 210px;
-    background: rgba(255,255,255,0.08); color: #fff;
+    height: 48px;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font: inherit;
+    font-size: 16px;
+    width: 210px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
   }
 
   #sticker-pop {
@@ -748,7 +817,6 @@
     #site-nav { padding: 16px var(--page-pad); }
     #profile-header { padding: 24px var(--page-pad); }
     #editor-tools { padding: 16px var(--tools-pad); }
-    #toolbar-context { padding: 0 var(--tools-pad) 16px; }
     .nav-link-btn { display: none; }
     .nav-btn span { display: none; }
     #media-grid { gap: 48px; padding-bottom: 64px; }
@@ -832,23 +900,29 @@
           <img src="assets/icons/tool-text.svg" class="tool-icon" alt="">
           <span>Text</span>
         </button>
-      </div>
-    </div>
 
-    <div id="toolbar-context">
-      <div class="tb-group" id="insp-text" style="display:none">
-        <select id="font-select" title="Font"></select>
-        <input type="number" id="font-size" class="num" min="8" max="400" step="1" title="Size">
-        <button class="btn icon" id="bold-toggle" title="Bold" style="font-weight:800">B</button>
-        <label>Color</label>
-        <button type="button" class="mini-swatch" id="text-swatch" title="Text color" aria-label="Text color"></button>
-      </div>
+        <div class="tools-divider" id="tools-divider" aria-hidden="true"></div>
 
-      <div class="tb-group" id="insp-sticker" style="display:none">
-        <button type="button" class="btn" id="sticker-swap-btn">Change sticker</button>
-      </div>
+        <div id="toolbar-context">
+          <div class="tb-group" id="insp-text" style="display:none">
+            <label class="ctx-select-wrap" title="Font">
+              <select id="font-select"></select>
+              <svg class="ctx-caret" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.5L10 13.5L16 7.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </label>
+            <input type="number" id="font-size" class="ctx-input" min="8" max="400" step="1" title="Size">
+            <button type="button" class="ctx-btn" id="bold-toggle" title="Bold">B</button>
+            <button type="button" class="ctx-swatch-btn" id="text-swatch" title="Text color" aria-label="Text color">
+              <span class="mini-swatch" aria-hidden="true"></span>
+            </button>
+          </div>
 
-      <button type="button" class="btn btn--danger" id="del-selected">Delete</button>
+          <div class="tb-group" id="insp-sticker" style="display:none">
+            <button type="button" class="ctx-btn" id="sticker-swap-btn">Change sticker</button>
+          </div>
+
+          <button type="button" class="ctx-btn ctx-btn--danger" id="del-selected">Delete</button>
+        </div>
+      </div>
     </div>
     </div>
 
@@ -996,10 +1070,12 @@ const pageScroll = document.getElementById("page-scroll");
 const pageNick  = document.getElementById("page-nick");
 const headerAvatar = document.getElementById("header-avatar");
 const toolbarCtx = document.getElementById("toolbar-context");
+const toolsDivider = document.getElementById("tools-divider");
 const inspText   = document.getElementById("insp-text");
 const fontSelect = document.getElementById("font-select");
 const fontSizeIn = document.getElementById("font-size");
 const textSwatch = document.getElementById("text-swatch");
+const textSwatchFill = textSwatch ? textSwatch.querySelector(".mini-swatch") : null;
 const boldToggle = document.getElementById("bold-toggle");
 const bgSwatch   = document.getElementById("bg-swatch");
 const bgTool     = document.getElementById("bg-tool");
@@ -1619,25 +1695,26 @@ function syncInspector() {
   const item = selectedItem();
   if (!item) {
     toolbarCtx.classList.remove("show");
-    inspText.style.display = "none";
-    inspSticker.style.display = "none";
-    return;
-  }
-  if (isMediaItem(item)) {
-    toolbarCtx.classList.add("show");
+    toolsDivider && toolsDivider.classList.remove("show");
     inspText.style.display = "none";
     inspSticker.style.display = "none";
     return;
   }
   toolbarCtx.classList.add("show");
+  toolsDivider && toolsDivider.classList.add("show");
+
+  if (isMediaItem(item)) {
+    inspText.style.display = "none";
+    inspSticker.style.display = "none";
+    return;
+  }
 
   if (item.type === "text") {
     inspText.style.display = "flex";
     fontSelect.value = item.fontFamily;
     fontSizeIn.value = item.fontSize;
-    textSwatch && updateSwatch(textSwatch, item.color);
-    boldToggle.style.background = item.bold ? "#fff" : "transparent";
-    boldToggle.style.color = item.bold ? "#0e0e0e" : "#fff";
+    textSwatchFill && updateSwatch(textSwatchFill, item.color);
+    boldToggle.classList.toggle("is-on", !!item.bold);
   } else {
     inspText.style.display = "none";
   }
@@ -2227,7 +2304,7 @@ textSwatch.addEventListener("click", e => {
     value: item.color,
     onInput(hex) {
       item.color = hex;
-      updateSwatch(textSwatch, hex);
+      updateSwatch(textSwatchFill, hex);
       const body = canvas.querySelector(`.item[data-id="${item.id}"] .text-body`);
       if (body) body.style.color = hex;
     },
