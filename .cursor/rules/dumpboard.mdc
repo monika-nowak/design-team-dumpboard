@@ -13,8 +13,8 @@ pinterestowy feed.
 ## Pliki (deliverables)
 
 - `canvas-editor.html` — jednoplikowy edytor WYSIWYG (Canva-like). To go pobierają designerzy.
-- `index.html` — strona główna z feedem (GitHub Pages).
-- `start.html` — intro / landing (opcjonalny pierwszy ekran).
+- `index.html` — strona główna z feedem (GitHub Pages). Przy pierwszej wizycie przekierowuje na `start.html` (localStorage `dumpboard_intro_seen`).
+- `start.html` — intro / landing (tylko pierwsze wejście; przycisk „Let's start" ustawia flagę i prowadzi na hub).
 - `hub.html` — przekierowanie do `index.html` (stare linki).
 - `people.json` — lista osób `{ "nick", "folder" }` (auto-generowana przez Actions, patrz niżej).
 - `.github/workflows/generate-people.yml` — skanuje foldery i nadpisuje `people.json` przy każdym pushu.

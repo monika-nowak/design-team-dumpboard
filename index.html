@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dumpboard</title>
+<script>
+/* Pierwsza wizyta → landing (start.html). Kolejne → zostajemy na hubie. */
+(function () {
+  try {
+    if (!localStorage.getItem("dumpboard_intro_seen")) location.replace("start.html");
+  } catch (e) {}
+})();
+</script>
 
 <!--
   ╔══════════════════════════════════════════════════════════════════════╗

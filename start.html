@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dumpboard</title>
+<script>
+/* Kto już widział intro — od razu na hub; landing tylko przy pierwszej wizycie. */
+(function () {
+  try {
+    if (localStorage.getItem("dumpboard_intro_seen")) location.replace("index.html");
+  } catch (e) {}
+})();
+</script>
 
 <!--
   ╔══════════════════════════════════════════════════════════════════════╗
@@ -276,6 +284,16 @@ if (reduceMotion) {
   window.addEventListener("resize", onScroll, { passive: true });
   update();
 }
+
+/* Po „Let's start" zapisujemy, że intro było — kolejne wejścia idą prosto na hub. */
+function goToHub() {
+  try { localStorage.setItem("dumpboard_intro_seen", "1"); } catch (e) {}
+  location.replace("index.html");
+}
+cta.addEventListener("click", e => {
+  e.preventDefault();
+  goToHub();
+});
 </script>
 
 </body>

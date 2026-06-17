@@ -17,8 +17,8 @@ Szczegóły publikacji są też w edytorze (modal „Jak opublikować").
 
 | Plik / folder | Po co |
 |---|---|
-| `index.html` | Feed zespołu (strona główna na GitHub Pages) |
-| `start.html` | Intro / landing przed feedem |
+| `index.html` | Feed zespołu (strona główna — przy pierwszej wizycie przekierowuje na intro) |
+| `start.html` | Intro / landing (tylko przy pierwszym wejściu) |
 | `canvas-editor.html` | Edytor — pobieraj i otwieraj lokalnie (`file://` też działa) |
 | `people.json` | Lista osób — **nie edytuj ręcznie**, generuje się automatycznie |
 | `twoj-nick/` | Twój folder ze stroną (`index.html`, `feed.json`, …) |
