@@ -308,7 +308,9 @@
     font-weight: 800;
     cursor: pointer;
     padding: 0;
+    transition: background 0.15s, opacity 0.15s;
   }
+  .profile-avatar-btn:hover { background: rgba(255, 255, 255, 0.1); }
   .profile-avatar-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
   #page-nick {
@@ -318,11 +320,21 @@
     line-height: 1.12;
     letter-spacing: -0.01em;
     color: #fff;
-    opacity: 0.2;
+    opacity: 1;
     margin: 0;
     word-break: break-word;
     cursor: pointer;
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: 0;
+    font-style: normal;
+    transition: opacity 0.15s;
   }
+  /* Placeholder — tylko gdy nick nie jest ustawiony (Figma: opacity 20%) */
+  #page-nick.is-placeholder { opacity: 0.2; }
+  #page-nick.is-placeholder:hover { opacity: 0.35; }
+  #page-nick:not(.is-placeholder):hover { opacity: 0.75; }
 
   /* ── Media grid (Figma MainContent 64px + MainContainer 128px) ───── */
   .page-main {
@@ -700,7 +712,15 @@
   .modal .field-hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; line-height: 1.4; }
   .modal .field-error { font-size: 13px; color: #ff5470; margin: 8px 0 0; display: none; }
 
-  .hidden-input { display: none; }
+  .hidden-input {
+    position: fixed;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+  }
 
   @media (max-width: 900px) {
     :root { --page-pad: 24px; --content-pad: 24px; --tools-pad: 24px; }
@@ -710,8 +730,6 @@
     #toolbar-context { padding: 0 var(--tools-pad) 16px; }
     .nav-link-btn { display: none; }
     .nav-download span { display: none; }
-    .tool-btn span { display: none; }
-    .tool-btn--bg span { display: none; }
     #media-grid { gap: 48px; padding-bottom: 64px; }
     .media-add { min-height: 320px; height: auto; aspect-ratio: 16 / 10; }
     .media-add-option--image img { width: 100px; height: 100px; }
@@ -728,7 +746,6 @@
       <img src="assets/landing/logo.svg" alt="">
     </a>
     <div class="site-nav-actions">
-      <button type="button" class="nav-link-btn" id="open-project-btn" title="Open a saved project">Open</button>
       <button type="button" class="nav-download" id="export">
         <img src="assets/icons/tool-download.svg" alt="">
         <span>Download</span>
@@ -745,7 +762,7 @@
   </div>
 
   <input type="file" id="file-input" class="hidden-input" accept="image/*">
-  <input type="file" id="project-input" class="hidden-input" accept=".json,application/json">
+  <input type="file" id="project-input" class="hidden-input" accept=".json,application/json,text/json">
 
   <!-- Paleta naklejek (obrazki + emoji) -->
   <div id="sticker-pop"></div>
@@ -770,7 +787,7 @@
   <div id="page-scroll">
     <div id="profile-header">
       <button type="button" id="header-avatar" class="profile-avatar-btn" title="Edit profile"></button>
-      <h1 id="page-nick">@…</h1>
+      <button type="button" id="page-nick" class="is-placeholder">@yourname</button>
     </div>
 
     <div id="editor-tools">
@@ -788,6 +805,10 @@
         <button type="button" class="tool-btn" id="add-text">
           <img src="assets/icons/tool-text.svg" class="tool-icon" alt="">
           <span>Text</span>
+        </button>
+        <button type="button" class="tool-btn" id="open-project-btn" title="Load project.json from a previous download">
+          <img src="assets/icons/tool-open.svg" class="tool-icon" alt="">
+          <span>Open project</span>
         </button>
       </div>
     </div>
@@ -1056,8 +1077,17 @@ function scrollItemIntoView(id) {
 }
 
 function updatePageNick() {
-  const n = profile.nick ? ("@" + profile.nick.replace(/^@/, "")) : "@…";
-  pageNick.textContent = n;
+  if (!pageNick) return;
+  const hasNick = !!(profile.nick && profile.nick.trim());
+  if (hasNick) {
+    pageNick.textContent = "@" + profile.nick.replace(/^@+/, "");
+    pageNick.classList.remove("is-placeholder");
+    pageNick.title = "Edit profile";
+  } else {
+    pageNick.textContent = "@yourname";
+    pageNick.classList.add("is-placeholder");
+    pageNick.title = "Set your nick";
+  }
 }
 
 function renderHeaderAvatar() {
@@ -2815,15 +2845,19 @@ welcomeNickIn.addEventListener("keydown", e => { if (e.key === "Enter") confirmW
 
 /* Profile header → edit profile */
 if (headerAvatar) {
-  headerAvatar.addEventListener("click", () => document.getElementById("profile-btn").click());
+  headerAvatar.addEventListener("click", () => {
+    if (!profile.nick || !profile.nick.trim()) openWelcome();
+    else document.getElementById("profile-btn").click();
+  });
 }
-pageNick.style.cursor = "pointer";
-pageNick.title = "Edit profile";
-pageNick.addEventListener("click", () => document.getElementById("profile-btn").click());
+pageNick.addEventListener("click", () => {
+  if (!profile.nick || !profile.nick.trim()) openWelcome();
+  else document.getElementById("profile-btn").click();
+});
 
-/* Logo: Shift+click still opens project.json from disk (fallback). */
+/* Logo: Shift+click opens project.json picker (power-user shortcut). */
 document.querySelector(".logo-link").addEventListener("click", e => {
-  if (e.shiftKey) { e.preventDefault(); document.getElementById("open-project-btn").click(); }
+  if (e.shiftKey) { e.preventDefault(); openProjectPicker(); }
 });
 document.getElementById("avatar-upload-btn").addEventListener("click", () => avatarInput.click());
 avatarInput.addEventListener("change", async e => {
@@ -2886,13 +2920,16 @@ async function tryLoadProjectFromUrl() {
   }
 }
 
-document.getElementById("open-project-btn").addEventListener("click", () => {
-  if (state.items.length &&
-      !confirm("Opening a project will replace the current canvas. Unsaved changes will be lost. Continue?")) {
+function openProjectPicker() {
+  const hasWork = state.items.length > 0 || !!profile.avatar;
+  if (hasWork && !confirm("Load a saved project? Your current work on the canvas will be replaced.")) {
     return;
   }
+  projectInput.value = "";
   projectInput.click();
-});
+}
+
+document.getElementById("open-project-btn").addEventListener("click", openProjectPicker);
 projectInput.addEventListener("change", e => {
   const f = e.target.files[0];
   if (f) {
