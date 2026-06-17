@@ -833,7 +833,9 @@ async function resolveStickerSrc(item) {
 
 function applyStickerEntry(item, entry) {
   item.stickerId = entry.id;
-  item.demo = false;
+  // Nie ruszamy item.demo — zamiana przykładowej naklejki (Alf) nadal nie liczy się
+  // jako „prawdziwa treść"; placeholdery znikają dopiero po dodaniu obrazka/tekstu/filmu
+  // lub nowej naklejki z paska narzędzi.
   if (entry.kind === "image") {
     item.src = entry.src;
     item.w = entry.w;
