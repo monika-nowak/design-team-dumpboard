@@ -388,9 +388,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #fff;
   }
   .media-caption-save[hidden] { display: none; }
-  .media-caption-save img { display: block; width: 20px; height: 20px; }
+  .media-caption-save svg { display: block; width: 20px; height: 20px; }
 
   /* Add-media placeholder — always visible at end of grid */
   .media-add {
@@ -909,7 +910,7 @@ const inspSticker = document.getElementById("insp-sticker");
 /* Ikony placeholdera — assety z Figmy (mix-blend-lighten na ciemnym tle) */
 const ASSET_ADD_IMAGE = "assets/icons/media-add-image.png";
 const ASSET_ADD_YOUTUBE = "assets/icons/media-add-youtube.png";
-const ASSET_CAPTION_CHECK = "assets/icons/caption-check.png";
+const ICON_CHECK = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.125 11.25L7.5 15.625L17.5 5.625" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/></svg>`;
 
 function isMediaItem(item) {
   return item && (item.type === "image" || item.type === "youtube");
@@ -1086,7 +1087,7 @@ function renderMediaGrid() {
       save.className = "media-caption-save";
       save.title = "Save caption";
       save.hidden = !input.value.trim();
-      save.innerHTML = `<img src="${ASSET_CAPTION_CHECK}" alt="" aria-hidden="true">`;
+      save.innerHTML = ICON_CHECK;
       save.addEventListener("click", e => {
         e.stopPropagation();
         commitMediaCaption(item);
