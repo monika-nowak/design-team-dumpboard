@@ -477,9 +477,11 @@
   .item img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; border-radius: 16px; }
   .item .text-body {
     outline: none;
-    /* pre = bez automatycznego zawijania; ramka rośnie z tekstem,
-       nowa linia tylko po wciśnięciu Enter */
-    white-space: pre;
+    width: 100%;
+    /* pre-wrap = Enter daje nową linię + zawijanie przy zwężaniu ramki */
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
     line-height: 1.25;
     cursor: inherit;
   }
@@ -1033,7 +1035,11 @@ function syncCanvasHeight() {
   let maxY = 120;
   state.items.filter(isCanvasItem).forEach(it => {
     let h = it.h;
-    if (!h) h = it.fontSize || (it.src ? 200 : 80);
+    if (!h) {
+      const el = canvas.querySelector(`.item[data-id="${it.id}"]`);
+      if (el) h = el.offsetHeight;
+      else h = it.type === "text" ? (it.fontSize || 40) * 1.5 : (it.fontSize || (it.src ? 200 : 80));
+    }
     const bottom = (it.y || 0) + h + 80;
     if (bottom > maxY) maxY = bottom;
   });
@@ -1273,6 +1279,7 @@ function addText() {
     id: uid++, type: "text",
     // bez sztywnej szerokości — pole dopasowuje się do treści (patrz render/eksport)
     x: c.x - 80, y: c.y - 30,
+    w: 320,
     rot: 0,
     text: "Your text",
     fontFamily: "Inter", fontSize: 40, color: "#ffffff", bold: false,
@@ -1404,7 +1411,6 @@ function render() {
     el.style.transform = `rotate(${item.rot}deg)`;
 
     if (item.type === "text") {
-      // brak el.style.width → element absolutny dopasowuje szerokość do treści
       const body = document.createElement("div");
       body.className = "text-body";
       body.style.fontFamily = `'${item.fontFamily}', sans-serif`;
@@ -1413,6 +1419,14 @@ function render() {
       body.style.fontWeight = item.bold ? "700" : "400";
       body.textContent = item.text;
       el.appendChild(body);
+      if (!item.w) {
+        el.style.visibility = "hidden";
+        canvas.appendChild(el);
+        item.w = Math.ceil(Math.min(720, Math.max(160, el.offsetWidth || 320)));
+        canvas.removeChild(el);
+        el.style.visibility = "";
+      }
+      el.style.width = item.w + "px";
     } else if (item.type === "image") {
       el.style.width = item.w + "px";
       el.style.height = item.h + "px";
@@ -1461,7 +1475,7 @@ function render() {
       ["tl", "tr", "bl", "br"].forEach(corner => {
         const ch = document.createElement("div");
         ch.className = "corner-handle " + corner;
-        ch.title = "Drag to resize";
+        ch.title = item.type === "text" ? "Drag to change width" : "Drag to resize";
         ch.addEventListener("mousedown", e => {
           e.stopPropagation();
           startCornerResize(e, item, corner);
@@ -1480,6 +1494,7 @@ function render() {
   });
 
   syncInspector();
+  syncCanvasHeight();
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -1633,20 +1648,22 @@ function startDrag(e, item) {
   window.addEventListener("mouseup", onUp);
 }
 
-/* ── Skalowanie za uchwyt w rogu (wspólne dla wszystkich typów) ────────
-   Obrazki / YouTube / naklejki-obrazki: zmiana szerokości i wysokości
-   z zachowaniem proporcji (przeciwległy róg zostaje w miejscu).
-   Tekst / naklejki-emoji: skalujemy rozmiar fontu. */
+/* ── Skalowanie za uchwyt w rogu ───────────────────────────────────────
+   Obrazki / YouTube / naklejki-obrazki: w/h z proporcjami.
+   Tekst: zmiana szerokości ramki (zawijanie wierszy, font bez zmian).
+   Naklejki-emoji: skalujemy rozmiar fontu. */
 function startCornerResize(e, item, corner) {
   e.stopPropagation();
   pushUndo();
   const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
   const startX = e.clientX, startY = e.clientY;
   const origX = item.x, origY = item.y;
-  // elementy z własnym pudełkiem (w/h): obrazek, youtube, naklejka-obrazek
   const hasBox = item.type === "image" || item.type === "youtube"
               || (item.type === "sticker" && !!item.src);
-  const startW = hasBox ? item.w : el.offsetWidth;
+  const isText = item.type === "text";
+  const startW = hasBox ? item.w
+    : isText ? (item.w || el.offsetWidth)
+    : el.offsetWidth;
   const startH = hasBox ? item.h : el.offsetHeight;
   const ratio = startH / startW;
   const startFont = item.fontSize || 80;
@@ -1654,7 +1671,6 @@ function startCornerResize(e, item, corner) {
   function onMove(ev) {
     let dx = ev.clientX - startX;
     let dy = ev.clientY - startY;
-    // znak ruchu zależnie od chwytanego rogu (żeby każdy róg powiększał „na zewnątrz")
     if (corner === "tl") { dx = -dx; dy = -dy; }
     else if (corner === "tr") { dy = -dy; }
     else if (corner === "bl") { dx = -dx; }
@@ -1662,7 +1678,6 @@ function startCornerResize(e, item, corner) {
     if (hasBox) {
       let nw = Math.max(24, startW + dx);
       let nh = Math.round(nw * ratio);
-      // przy ciągnięciu za górny/lewy róg przesuwamy element, by przeciwległy róg stał w miejscu
       if (corner === "tl" || corner === "bl") item.x = origX + (startW - nw);
       if (corner === "tl" || corner === "tr") item.y = origY + (startH - nh);
       item.w = Math.round(nw);
@@ -1671,13 +1686,18 @@ function startCornerResize(e, item, corner) {
       el.style.height = item.h + "px";
       el.style.left = item.x + "px";
       el.style.top = item.y + "px";
+    } else if (isText) {
+      const nw = Math.max(48, Math.round(startW + dx));
+      if (corner === "tl" || corner === "bl") item.x = origX + (startW - nw);
+      item.w = nw;
+      el.style.width = item.w + "px";
+      el.style.left = item.x + "px";
     } else {
       const delta = (dx + dy) / 2;
       const factor = (startW + delta) / startW;
       item.fontSize = Math.max(8, Math.round(startFont * factor));
-      const body = el.querySelector(".text-body, .sticker-body");
+      const body = el.querySelector(".sticker-body");
       if (body) body.style.fontSize = item.fontSize + "px";
-      if (item.type === "text") fontSizeIn.value = item.fontSize;
     }
   }
   function onUp() {
@@ -2394,7 +2414,7 @@ async function exportPage() {
       const el = canvas.querySelector(`.item[data-id="${it.id}"]`);
       const w = it.w || (el ? el.offsetWidth : 0);
       let h = it.h;
-      if (!h) h = el ? el.offsetHeight : (it.fontSize || 80);
+      if (!h) h = el ? el.offsetHeight : (it.type === "text" ? it.fontSize * 1.25 : (it.fontSize || 80));
       const cx = (it.x || 0) + w / 2, cy = (it.y || 0) + h / 2;
       const rad = (it.rot || 0) * Math.PI / 180;
       const cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
@@ -2410,10 +2430,11 @@ async function exportPage() {
       if (item.type === "text") {
         const style = [
           `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
+          `width:${item.w}px`,
           `transform:rotate(${item.rot}deg)`, `transform-origin:center center`, `z-index:${z}`,
           `font-family:'${item.fontFamily}', sans-serif`, `font-size:${item.fontSize}px`,
           `font-weight:${item.bold ? 700 : 400}`, `color:${item.color}`,
-          `line-height:1.25`, `white-space:pre`,
+          `line-height:1.25`, `white-space:pre-wrap`, `word-break:break-word`,
         ].join(";");
         return `        <div style="${style}">${escapeHtml(item.text)}</div>`;
       }
