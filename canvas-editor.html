@@ -1013,7 +1013,8 @@ function saveNickLocal(nick) {
   try { localStorage.setItem("dumpboard_nick", n); } catch (e) {}
 }
 function exportZipBaseName() {
-  if (profile.nick) return sanitizeBaseName(profile.nick);
+  // Nick jest już zwalidowany — używamy go wprost (np. monika.nowak.zip)
+  if (profile.nick) return normalizeNick(profile.nick);
   if (profile.name && profile.name.trim()) return sanitizeBaseName(profile.name.trim());
   return "dumpboard-export";
 }
