@@ -1,0 +1,2204 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blank Canvas — edytor</title>
+
+<!--
+  ╔══════════════════════════════════════════════════════════════════════╗
+  ║  BLANK CANVAS — jednoplikowy edytor WYSIWYG dla designerów             ║
+  ║                                                                        ║
+  ║  Otwórz ten plik lokalnie (file://), urządź płótno po swojemu,         ║
+  ║  a potem kliknij „Pobierz moją stronę" — wygeneruje czysty index.html  ║
+  ║  bez paska narzędzi i bez kodu edytora, gotowy na GitHub Pages.        ║
+  ║                                                                        ║
+  ║  Bez zależności, bez build-stepu, bez backendu. Cały stan w pamięci.   ║
+  ║  Jedyne połączenie sieciowe: ładowanie fontów z Google Fonts.          ║
+  ╚══════════════════════════════════════════════════════════════════════╝
+-->
+
+<!--
+  Fonty na czas EDYCJI ładujemy lekkim linkiem z Google (same pliki .woff2
+  ściągają się dopiero, gdy font zostanie faktycznie użyty na ekranie).
+  Przy eksporcie wszywamy do pliku tylko realnie użyte fonty jako base64.
+  Prosimy o pojedynczą wagę (400) każdego fontu — gwarantuje to poprawne
+  zapytanie do API dla wszystkich rodzin (część fontów ma tylko jedną wagę).
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link id="editor-fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans&family=DM+Sans&family=Manrope&family=Space+Grotesk&family=Archivo&family=Sora&family=Outfit&family=Playfair+Display&family=Lora&family=Fraunces&family=DM+Serif+Display&family=Libre+Baskerville&family=Cormorant+Garamond&family=Bitter&family=Space+Mono&family=JetBrains+Mono&family=IBM+Plex+Mono&family=DM+Mono&family=Bebas+Neue&family=Anton&family=Syne&family=Unbounded&family=Bricolage+Grotesque&family=Caveat&family=Shadows+Into+Light&family=Permanent+Marker&family=Pacifico&family=Gloria+Hallelujah&family=Patrick+Hand&display=swap">
+
+<style>
+  @font-face {
+    font-family: "NaN Serf A Display";
+    src: url("assets/fonts/NaNSerfADisplay-Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    --bg: #0e0e0e;
+    --ink: #ffffff;
+    --muted: rgba(255, 255, 255, 0.6);
+    --pill: rgba(255, 255, 255, 0.1);
+    --accent: #ffffff;
+    --accent-handle: #ffffff;
+    --line: rgba(255, 255, 255, 0.2);
+    --bar-h: 62px;
+    --page-pad: 64px;
+    --content-w: 900px;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { overflow-x: hidden; }
+
+  /* ── Nagłówek — logo + dodawanie + kontekst zaznaczenia + eksport ── */
+  #toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 14px var(--page-pad);
+    max-width: 1440px;
+    margin: 0 auto;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .logo-link {
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+  .logo-link img { display: block; width: 100%; height: 100%; }
+
+  .toolbar-main {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .toolbar-add {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .toolbar-spacer { flex: 1; min-width: 12px; }
+  .toolbar-sep {
+    width: 1px;
+    height: 28px;
+    background: var(--line);
+    flex-shrink: 0;
+  }
+  .toolbar-sep[hidden] { display: none; }
+
+  .toolbar-actions {
+    display: contents;
+  }
+
+  .pill-btn {
+    appearance: none;
+    border: none;
+    background: var(--pill);
+    color: #fff;
+    height: 44px;
+    padding: 12px 16px;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .pill-btn:hover { background: rgba(255, 255, 255, 0.16); }
+  .pill-btn--primary {
+    background: #fff;
+    color: #0e0e0e;
+  }
+  .pill-btn--primary:hover { background: rgba(255, 255, 255, 0.88); }
+  .pill-btn:disabled { opacity: 0.35; cursor: default; }
+  .pill-icon { width: 20px; height: 20px; flex-shrink: 0; display: block; }
+
+  .bg-picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+  }
+  .bg-picker .mini-swatch {
+    width: 30px; height: 30px; border-radius: 8px; padding: 0;
+    border: 1px solid var(--line); cursor: pointer; overflow: hidden;
+    background: none;
+  }
+
+  #hidden-tools { display: none; }
+
+  /* ── Strona edytora (scroll) ─────────────────────────────────────── */
+  #page-scroll {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 var(--page-pad) 64px;
+  }
+
+  #page-nick {
+    font-family: "NaN Serf A Display", "Times New Roman", serif;
+    font-weight: 300;
+    font-size: clamp(40px, 5.694vw, 82px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    color: #fff;
+    max-width: 1100px;
+    margin: 0 0 24px;
+    word-break: break-word;
+  }
+
+  /* Strefy dodawania (puste) — Figma: dashed, 900×500, radius 24 */
+  #dropzones {
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+    align-items: center;
+    margin-bottom: 64px;
+  }
+  #dropzones.hidden { display: none; }
+
+  .dropzone {
+    appearance: none;
+    border: 1px dashed var(--line);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    width: min(var(--content-w), 100%);
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    cursor: pointer;
+    color: #fff;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .dropzone:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+  .dropzone .dz-icon { width: 20px; height: 20px; opacity: 0.9; }
+
+  /* ── Płótno (elementy absolutne wewnątrz) ───────────────────────── */
+  #canvas {
+    position: relative;
+    width: min(var(--content-w), 100%);
+    min-height: 400px;
+    margin: 0 auto;
+    background: transparent;
+  }
+
+  #hint { display: none !important; }
+
+  .item {
+    position: absolute;
+    cursor: grab;
+    transform-origin: center center;
+  }
+  .item.dragging { cursor: grabbing; }
+  .item img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; border-radius: 16px; }
+  .item .text-body {
+    outline: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.25;
+    cursor: inherit;
+  }
+  .item.editing { cursor: text; }
+  .item .sticker-body { line-height: 1; user-select: none; }
+  .item.sticker img.sticker-img {
+    display: block; width: 100%; height: 100%;
+    pointer-events: none; user-select: none; object-fit: contain;
+    border-radius: 0;
+  }
+  .item.sticker.selected { outline: none; box-shadow: none; border-radius: 0; }
+  .item.sticker.selected .sticker-frame {
+    position: absolute; inset: 0;
+    border: 1px solid #6f93ff; pointer-events: none;
+  }
+  .corner-handle {
+    position: absolute; width: 4px; height: 4px;
+    background: #fff; border: 1px solid #6f93ff; box-sizing: border-box; z-index: 8;
+  }
+  .corner-handle.tl { left: -2px; top: -2px; cursor: nwse-resize; }
+  .corner-handle.tr { right: -2px; top: -2px; cursor: nesw-resize; }
+  .corner-handle.bl { left: -2px; bottom: -2px; cursor: nesw-resize; }
+  .corner-handle.br { right: -2px; bottom: -2px; cursor: nwse-resize; }
+  .item .yt-body {
+    width: 100%; height: 100%;
+    background: #000 center / cover no-repeat;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .item .yt-play {
+    width: 56px; height: 40px; border-radius: 10px;
+    background: rgba(255, 0, 0, 0.88); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; padding-left: 3px;
+  }
+
+  .item.selected { outline: 2px solid #fff; outline-offset: 2px; border-radius: 16px; }
+  .handle {
+    position: absolute;
+    width: 16px; height: 16px;
+    background: #0e0e0e;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    z-index: 5;
+  }
+  .handle.resize { right: -9px; bottom: -9px; cursor: nwse-resize; }
+  .handle.rotate {
+    left: 50%; top: -34px; transform: translateX(-50%);
+    cursor: grab; background: #fff;
+  }
+  .handle.rotate::after {
+    content: ""; position: absolute; left: 50%; top: 100%;
+    width: 2px; height: 18px; background: #fff;
+    transform: translateX(-50%);
+  }
+
+  .guide {
+    position: absolute; background: #ff3d8b; z-index: 9999; pointer-events: none;
+  }
+  .guide.v { width: 1px; top: 0; bottom: 0; }
+  .guide.h { height: 1px; left: 0; right: 0; }
+
+  /* ── Kontekst zaznaczenia (wewnątrz paska u góry) ───────────────── */
+  #toolbar-context {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  #toolbar-context.show { display: flex; }
+  #toolbar-context select, #toolbar-context .num {
+    height: 34px; border: 1px solid var(--line); border-radius: 8px;
+    padding: 0 8px; font: inherit; font-size: 13px;
+    background: rgba(255,255,255,0.08); color: #fff; cursor: pointer;
+  }
+  #toolbar-context select { max-width: 190px; }
+  #toolbar-context .num { width: 64px; cursor: text; }
+  #toolbar-context label { font-size: 12px; color: var(--muted); font-weight: 600; }
+  #toolbar-context .mini-swatch {
+    width: 30px; height: 30px; border-radius: 8px; padding: 0;
+    border: 1px solid var(--line); cursor: pointer; overflow: hidden;
+  }
+  #toolbar-context .btn {
+    appearance: none; border: 1px solid var(--line); background: var(--pill);
+    color: #fff; height: 34px; padding: 0 12px; border-radius: 8px;
+    font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    white-space: nowrap;
+  }
+  #toolbar-context .btn--danger { border-color: rgba(255,84,112,0.5); color: #ff9aad; }
+  .tb-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .insp-sep { width:1px; height:24px; background:var(--line); }
+  #toolbar-context .feed-toggle {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: #fff; font-weight: 600; cursor: pointer;
+    white-space: nowrap;
+  }
+  #toolbar-context .feed-toggle input { width: 16px; height: 16px; cursor: pointer; margin: 0; }
+  #toolbar-context .cap {
+    height: 34px; border: 1px solid var(--line); border-radius: 8px;
+    padding: 0 10px; font: inherit; font-size: 13px; width: 210px;
+    background: rgba(255,255,255,0.08); color: #fff;
+  }
+
+  #sticker-pop {
+    position: fixed;
+    background: #1a1a1a; border: 1px solid var(--line); border-radius: 16px;
+    box-shadow: var(--shadow); padding: 12px; z-index: 11000;
+    display: none; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px;
+    width: min(360px, calc(100vw - 24px)); max-height: 280px;
+    overflow-x: hidden; overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.28) transparent;
+  }
+  #sticker-pop::-webkit-scrollbar { width: 5px; height: 0; }
+  #sticker-pop::-webkit-scrollbar-track { background: transparent; }
+  #sticker-pop::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.22); border-radius: 999px;
+  }
+  #sticker-pop::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.38); }
+  #sticker-pop.show { display: grid; }
+  #sticker-pop button {
+    border: 1px solid transparent; background: rgba(255,255,255,0.06);
+    border-radius: 10px; padding: 6px; cursor: pointer; aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; line-height: 1; min-width: 0;
+  }
+  #sticker-pop button:hover { border-color: #6f93ff; background: rgba(111,147,255,0.15); }
+  #sticker-pop button img { max-width: 100%; max-height: 36px; object-fit: contain; pointer-events: none; }
+
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #fff; color: #0e0e0e; padding: 10px 16px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; z-index: 12000; opacity: 0;
+    transition: opacity .25s; pointer-events: none; max-width: 80vw; text-align:center;
+  }
+  #toast.show { opacity: 1; }
+
+  /* Modale — ciemne tło overlay, jasna karta */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 13000;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #1a1a1a; color: #fff; border: 1px solid var(--line);
+    border-radius: 18px; box-shadow: var(--shadow);
+    max-width: 560px; width: 100%; padding: 28px; max-height: 90vh; overflow: auto;
+  }
+  .modal h2 { margin: 0 0 6px; font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
+  .modal .lead { color: var(--muted); margin: 0 0 18px; font-size: 14px; }
+  .modal ol { margin: 0; padding-left: 22px; }
+  .modal li { margin: 0 0 14px; line-height: 1.5; font-size: 14px; }
+  .modal code {
+    background: rgba(255,255,255,0.1); border-radius: 6px; padding: 2px 7px;
+    font-family: monospace; font-size: 13px;
+  }
+  .modal .btn {
+    appearance: none; border: 1px solid var(--line); background: var(--pill);
+    color: #fff; height: 40px; padding: 0 16px; border-radius: 999px;
+    font: inherit; font-weight: 600; font-size: 14px; cursor: pointer;
+  }
+  .modal .btn.primary { background: #fff; color: #0e0e0e; border-color: #fff; }
+
+  .profile-row { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+  .avatar-preview {
+    width: 72px; height: 72px; border-radius: 50%; flex: 0 0 auto; overflow: hidden;
+    background: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 28px; font-weight: 800;
+  }
+  .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .profile-label { display: block; font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .profile-input {
+    width: 100%; height: 40px; border: 1px solid var(--line); border-radius: 10px;
+    padding: 0 12px; font: inherit; font-size: 14px;
+    background: rgba(255,255,255,0.06); color: #fff;
+  }
+  .modal .field-hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; line-height: 1.4; }
+  .modal .field-error { font-size: 13px; color: #ff5470; margin: 8px 0 0; display: none; }
+
+  .hidden-input { display: none; }
+
+  @media (max-width: 720px) {
+    :root { --page-pad: 24px; }
+    #toolbar { padding: 12px var(--page-pad); }
+    .toolbar-add .pill-btn span.label { display: none; }
+    .dropzone { min-height: 320px; }
+    #toolbar-context .cap { width: min(210px, 40vw); }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════ PASEK NARZĘDZI (dodawanie + edycja zaznaczenia) ═══════════════ -->
+  <header id="toolbar">
+    <a class="logo-link" href="hub.html" aria-label="Dumpboard" title="Back to feed">
+      <img src="assets/landing/logo.svg" alt="">
+    </a>
+    <div class="toolbar-main">
+      <div class="toolbar-add">
+        <button type="button" class="pill-btn" id="add-image">
+          <img src="assets/landing/plus.svg" class="pill-icon" alt="">
+          <span class="label">Image</span>
+        </button>
+        <button type="button" class="pill-btn" id="add-youtube">
+          <img src="assets/landing/plus.svg" class="pill-icon" alt="">
+          <span class="label">YouTube</span>
+        </button>
+        <button type="button" class="pill-btn" id="add-sticker">
+          <img src="assets/landing/plus.svg" class="pill-icon" alt="">
+          <span class="label">Sticker</span>
+        </button>
+        <button type="button" class="pill-btn" id="add-text">
+          <img src="assets/landing/plus.svg" class="pill-icon" alt="">
+          <span class="label">Text</span>
+        </button>
+        <label class="bg-picker" title="Kolor tła strony">
+          <span class="bg-picker-label">Tło</span>
+          <input type="color" id="bg-color" class="mini-swatch" value="#0e0e0e">
+        </label>
+      </div>
+
+      <div class="toolbar-sep" id="ctx-sep" hidden></div>
+
+      <div id="toolbar-context">
+        <div class="tb-group" id="insp-text" style="display:none">
+          <select id="font-select" title="Font"></select>
+          <input type="number" id="font-size" class="num" min="8" max="400" step="1" title="Rozmiar">
+          <button class="btn icon" id="bold-toggle" title="Pogrubienie" style="font-weight:800">B</button>
+          <label>Kolor</label>
+          <input type="color" id="text-color" class="mini-swatch" value="#ffffff" title="Kolor tekstu">
+        </div>
+
+        <div class="tb-group" id="insp-image" style="display:none">
+          <label class="feed-toggle">
+            <input type="checkbox" id="feed-check"> Pokaż w feedzie
+          </label>
+          <input type="text" id="feed-caption" class="cap" maxlength="120"
+                 placeholder="Opis (opcjonalnie)" style="display:none">
+        </div>
+
+        <div class="tb-group" id="insp-sticker" style="display:none">
+          <button type="button" class="btn" id="sticker-swap-btn">Zmień naklejkę</button>
+        </div>
+
+        <button type="button" class="btn btn--danger" id="del-selected">Usuń</button>
+      </div>
+
+      <div class="toolbar-spacer"></div>
+
+      <button type="button" class="pill-btn pill-btn--primary" id="export">
+        <span class="label">Download my page</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Ukryte: undo, otwórz projekt, profil, tło (skróty klawiszowe / modale) -->
+  <div id="hidden-tools">
+    <button type="button" id="undo"></button>
+    <button type="button" id="redo"></button>
+    <button type="button" id="open-project-btn"></button>
+    <button type="button" id="profile-btn"></button>
+    <button type="button" id="help-btn"></button>
+  </div>
+
+  <input type="file" id="file-input" class="hidden-input" accept="image/*">
+  <input type="file" id="project-input" class="hidden-input" accept=".json,application/json">
+
+  <!-- Paleta naklejek (obrazki + emoji) -->
+  <div id="sticker-pop"></div>
+
+  <!-- ═══════════════ STRONA EDYTORA ═══════════════ -->
+  <div id="page-scroll">
+    <h1 id="page-nick">@…</h1>
+
+    <div id="dropzones">
+      <button type="button" class="dropzone" data-action="image">
+        <img src="assets/landing/plus.svg" class="dz-icon" alt="">
+        <span>Add a picture</span>
+      </button>
+      <button type="button" class="dropzone" data-action="youtube">
+        <img src="assets/landing/plus.svg" class="dz-icon" alt="">
+        <span>Add a youtube link</span>
+      </button>
+    </div>
+
+    <div id="canvas">
+      <div id="hint"></div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <!-- Modal: jak opublikować swoją stronę na hubie -->
+  <div class="modal-overlay" id="how-modal">
+    <div class="modal">
+      <h2>Jak opublikować swoją stronę?</h2>
+      <p class="lead">Gotową stronę wgrywasz do swojego folderu w repo na GitHubie.
+         Bez logowania — autorstwo bierze się z nazwy folderu.</p>
+      <ol>
+        <li>Kliknij <strong>„Pobierz moją stronę"</strong> — dostaniesz ZIP. Rozpakuj go:
+            w środku jest <code>index.html</code> (Twoja strona), <code>project.json</code>
+            (do późniejszej edycji) oraz — jeśli ich użyjesz — <code>profile.json</code>,
+            <code>avatar.jpg</code>, <code>feed.json</code> i <code>feed-images/</code>.</li>
+        <li>Na GitHubie w repo huba <strong>utwórz folder ze swoim nickiem</strong>, np. <code>ania/</code>.</li>
+        <li><strong>Wgraj</strong> do niego całą zawartość ZIP-a.</li>
+      </ol>
+      <p class="lead" style="margin: 4px 0 12px">To wszystko — lista osób uzupełni się sama,
+         a Ty pojawisz się we wspólnym feedzie. 🎉</p>
+      <p class="lead" style="margin: 0 0 18px">Chcesz coś zmienić później? Otwórz edytor,
+         kliknij <strong>📂 Otwórz</strong> i wskaż swój <code>project.json</code> —
+         edytuj i pobierz ponownie.</p>
+      <p class="lead" style="margin: 0 0 18px">Wskazówka: ustaw też swoją nazwę i avatar
+         przyciskiem <strong>👤 Profil</strong> — pojawią się przy Twoich wrzutkach.</p>
+      <button class="btn primary" id="how-close">OK, rozumiem</button>
+    </div>
+  </div>
+
+  <!-- Modal: pierwszy krok — nick (przed budową strony) -->
+  <div class="modal-overlay" id="welcome-modal">
+    <div class="modal">
+      <h2>Zacznijmy od Ciebie</h2>
+      <p class="lead">Jak masz na imię lub jak Cię podpisać? Ten nick pojawi się przy Twoich wrzutkach
+         i posłuży jako nazwa pobranego pliku.</p>
+      <label class="profile-label" for="welcome-nick">Twój nick</label>
+      <input type="text" id="welcome-nick" class="profile-input" maxlength="40"
+             placeholder="np. monika.nowak" autocomplete="username">
+      <p class="field-hint">Bez spacji — użyjesz go też jako nazwy folderu na GitHubie (np. <code>monika.nowak/</code>).</p>
+      <p class="field-error" id="welcome-error">Podaj nick (min. 2 znaki: litery, cyfry, kropka, myślnik).</p>
+      <button class="btn primary" id="welcome-start" style="margin-top:18px">Zaczynam tworzyć</button>
+    </div>
+  </div>
+
+  <!-- Modal: profil designera (nazwa + avatar) -->
+  <div class="modal-overlay" id="profile-modal">
+    <div class="modal">
+      <h2>Twój profil</h2>
+      <p class="lead">Nazwa i avatar pojawią się przy Twoich wrzutkach na hubie.
+         Oba są opcjonalne — bez nich użyjemy nazwy Twojego folderu i kółka z inicjałem.</p>
+      <div class="profile-row">
+        <div class="avatar-preview" id="avatar-preview"></div>
+        <div class="profile-actions">
+          <button class="btn" id="avatar-upload-btn">Wgraj avatar</button>
+          <button class="btn" id="avatar-remove-btn" style="display:none">Usuń</button>
+        </div>
+      </div>
+      <label class="profile-label" for="profile-name">Wyświetlana nazwa (nick lub imię i nazwisko)</label>
+      <input type="text" id="profile-name" class="profile-input" maxlength="60" placeholder="np. monika.nowak">
+      <button class="btn primary" id="profile-close" style="margin-top:18px">Zapisz</button>
+      <input type="file" id="avatar-input" class="hidden-input" accept="image/*">
+    </div>
+  </div>
+
+  <!-- Modal: dodanie filmu z YouTube -->
+  <div class="modal-overlay" id="yt-modal">
+    <div class="modal">
+      <h2>Dodaj film z YouTube</h2>
+      <p class="lead">Wklej link do filmu (np. <code>youtu.be/…</code> lub
+         <code>youtube.com/watch?v=…</code>). Na płótnie pojawi się odtwarzacz, który
+         przesuwasz i skalujesz jak zdjęcie. Uwaga: na opublikowanej stronie film
+         ładuje się z YouTube, więc ten element wymaga internetu.</p>
+      <input type="text" id="yt-url" class="profile-input"
+             placeholder="https://www.youtube.com/watch?v=...">
+      <p id="yt-error" style="color:#ff5470;font-size:13px;margin:8px 0 0;display:none">
+        Nie rozpoznano linku YouTube — sprawdź adres.</p>
+      <div style="margin-top:18px;display:flex;gap:8px">
+        <button class="btn primary" id="yt-add">Dodaj film</button>
+        <button class="btn" id="yt-cancel">Anuluj</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   LISTA FONTÓW (30 rodzin Google), pogrupowana — używana w dropdownie
+   inspektora oraz przy eksporcie (do wszywania @font-face base64).
+   ════════════════════════════════════════════════════════════════════ */
+const FONT_GROUPS = [
+  { label: "Bezszeryfowe / groteski", fonts: ["Inter","Work Sans","DM Sans","Manrope","Space Grotesk","Archivo","Sora","Outfit"] },
+  { label: "Szeryfowe / z charakterem", fonts: ["Playfair Display","Lora","Fraunces","DM Serif Display","Libre Baskerville","Cormorant Garamond","Bitter"] },
+  { label: "Monospace / techniczne", fonts: ["Space Mono","JetBrains Mono","IBM Plex Mono","DM Mono"] },
+  { label: "Wyraziste / display", fonts: ["Bebas Neue","Anton","Syne","Unbounded","Bricolage Grotesque"] },
+  { label: "Odręczne / ekspresyjne", fonts: ["Caveat","Shadows Into Light","Permanent Marker","Pacifico","Gloria Hallelujah","Patrick Hand"] },
+];
+
+/* Biblioteka naklejek — obrazki + emoji (picker przy dodawaniu i zamianie) */
+const EMOJIS = ["⭐","❤️","🔥","✨","👍","🎉","💡","✅","❓","💬","📌","🚀","🌟","😀","😎","🙌",
+                "👏","💪","🎨","📷","🏆","⚡","🌈","💯","➡️","⬅️","⬆️","⬇️","✔️","✏️","🔵","🟢",
+                "🍕","🍩","☕","🌸","🦋","🐱","🐶","🦄","🎵","🎬","📚","💻","🛸","👀","💜","🖤","🤍"];
+const STICKER_LIBRARY = [
+  { id: "alf", kind: "image", src: "assets/stickers/alf.png", w: 245, h: 200 },
+  ...EMOJIS.map((char, i) => ({ id: "e" + i, kind: "emoji", char })),
+];
+const stickerSrcCache = {};   // ścieżka → dataURL (do eksportu offline)
+let stickerSwapTarget = null; // id naklejki do zamiany (picker „↻")
+
+/* ════════════════════════════════════════════════════════════════════
+   STAN APLIKACJI — żyje wyłącznie w pamięci strony.
+   ════════════════════════════════════════════════════════════════════ */
+let state = {
+  bg: "#0e0e0e",
+  items: [],
+};
+let selectedId = null;
+let uid = 1;            // licznik identyfikatorów elementów
+
+/* Profil designera — metadane, NIE część płótna (poza undo/redo).
+   Eksportowane jako profile.json (+ avatar.jpg) dla huba.
+   Folder w repo nadal decyduje o tożsamości; profil tylko ją wyświetla. */
+const profile = { nick: "", name: "", avatar: null };
+
+/* Cache fontów do EKSPORTU: { "Inter": "<base64 woff2>" }.
+   Wypełniany w tle, gdy użytkownik wybierze font (mamy wtedy internet). */
+const fontCache = {};
+
+/* Stosy historii (undo/redo) — przechowują migawki JSON stanu. */
+let past = [];
+let future = [];
+
+/* ── Skróty do elementów DOM ── */
+const canvas    = document.getElementById("canvas");
+const pageScroll = document.getElementById("page-scroll");
+const pageNick  = document.getElementById("page-nick");
+const dropzones = document.getElementById("dropzones");
+const hintEl     = document.getElementById("hint");
+const toolbarCtx = document.getElementById("toolbar-context");
+const ctxSep     = document.getElementById("ctx-sep");
+const inspText   = document.getElementById("insp-text");
+const fontSelect = document.getElementById("font-select");
+const fontSizeIn = document.getElementById("font-size");
+const textColor  = document.getElementById("text-color");
+const boldToggle = document.getElementById("bold-toggle");
+const bgColor    = document.getElementById("bg-color");
+const fileInput  = document.getElementById("file-input");
+const stickerPop   = document.getElementById("sticker-pop");
+const toastEl    = document.getElementById("toast");
+const inspImage  = document.getElementById("insp-image");
+const feedCheck  = document.getElementById("feed-check");
+const inspSticker = document.getElementById("insp-sticker");
+const feedCaption = document.getElementById("feed-caption");
+
+/* ════════════════════════════════════════════════════════════════════
+   POMOCNICZE
+   ════════════════════════════════════════════════════════════════════ */
+function escapeHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+/* Jak escapeHtml, ale dodatkowo cudzysłowy — bezpieczne w atrybucie HTML. */
+function escapeAttr(s) {
+  return escapeHtml(s).replace(/"/g,"&quot;");
+}
+/* Oczyszcza nazwę pliku do bezpiecznej, bez polskich znaków i spacji.
+   Zwraca samą bazę (bez rozszerzenia) — rozszerzenie dokładamy przy eksporcie. */
+function sanitizeBaseName(name) {
+  return name.replace(/\.[^.]+$/, "")              // usuń rozszerzenie
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")  // zdejmij akcenty
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40) || "obraz";
+}
+/** Nick z inputu: bez @, lowercase, do folderu i nazwy ZIP-a */
+function normalizeNick(raw) {
+  return String(raw || "").trim().replace(/^@+/, "").toLowerCase();
+}
+function isValidNick(nick) {
+  return /^[a-z0-9][a-z0-9._-]*[a-z0-9]$/.test(nick) || /^[a-z0-9]$/.test(nick);
+}
+function exportZipBaseName() {
+  if (profile.nick) return sanitizeBaseName(profile.nick);
+  if (profile.name && profile.name.trim()) return sanitizeBaseName(profile.name.trim());
+  return "dumpboard-eksport";
+}
+function toast(msg, ms = 2200) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toastEl.classList.remove("show"), ms);
+}
+/* Środek widocznego płótna — domyślne miejsce wstawiania nowych elementów */
+function canvasCenter() {
+  const w = canvas.clientWidth || 900;
+  const scrollTop = pageScroll ? pageScroll.scrollTop : 0;
+  const viewH = window.innerHeight - 120;
+  return {
+    x: w / 2,
+    y: scrollTop + Math.max(280, viewH * 0.45),
+  };
+}
+
+function updatePageNick() {
+  const n = profile.nick ? ("@" + profile.nick.replace(/^@/, "")) : "@…";
+  pageNick.textContent = n;
+}
+
+function updateDropzones() {
+  if (!dropzones) return;
+  /* Demo-naklejka nie liczy się jako „treść" — strefy zostają do pierwszego dodatku */
+  const hasContent = state.items.some(i => !i.demo);
+  dropzones.classList.toggle("hidden", hasContent);
+}
+
+function applyPageBg() {
+  if (pageScroll) pageScroll.style.background = state.bg;
+}
+
+function syncCanvasHeight() {
+  let maxY = 400;
+  state.items.forEach(it => {
+    let h = it.h;
+    if (!h) h = it.fontSize || (it.src ? 200 : 80);
+    const bottom = (it.y || 0) + h + 80;
+    if (bottom > maxY) maxY = bottom;
+  });
+  canvas.style.minHeight = maxY + "px";
+}
+
+/** Naklejka Alf na starcie — pokazuje, jak działają naklejki (bez wpisu w undo). */
+function seedDemoSticker() {
+  if (state.items.some(i => i.demo)) return;
+  const alf = STICKER_LIBRARY[0];
+  state.items.push({
+    id: uid++, type: "sticker", demo: true,
+    stickerId: alf.id, src: alf.src, w: alf.w, h: alf.h,
+    x: 420, y: 80, rot: 0,
+  });
+  cacheStickerSrc(alf.src);
+}
+
+function stickerEntry(id) {
+  return STICKER_LIBRARY.find(s => s.id === id) || null;
+}
+
+async function cacheStickerSrc(path) {
+  if (!path || path.startsWith("data:") || stickerSrcCache[path]) return stickerSrcCache[path];
+  try {
+    const buf = await (await fetch(path)).arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    const mime = path.endsWith(".png") ? "image/png" : "image/jpeg";
+    stickerSrcCache[path] = "data:" + mime + ";base64," + btoa(bin);
+  } catch (err) {
+    console.warn("Nie udało się zbuforować naklejki:", path, err);
+  }
+  return stickerSrcCache[path];
+}
+
+async function resolveStickerSrc(item) {
+  if (item.src && item.src.startsWith("data:")) return item.src;
+  if (item.src && stickerSrcCache[item.src]) return stickerSrcCache[item.src];
+  if (item.src) await cacheStickerSrc(item.src);
+  if (item.src && stickerSrcCache[item.src]) return stickerSrcCache[item.src];
+  const el = canvas.querySelector(`.item[data-id="${item.id}"] img.sticker-img`);
+  if (el && el.complete && el.naturalWidth) {
+    const off = document.createElement("canvas");
+    off.width = el.naturalWidth;
+    off.height = el.naturalHeight;
+    off.getContext("2d").drawImage(el, 0, 0);
+    return off.toDataURL("image/png");
+  }
+  return item.src || "";
+}
+
+function applyStickerEntry(item, entry) {
+  item.stickerId = entry.id;
+  item.demo = false;
+  if (entry.kind === "image") {
+    item.src = entry.src;
+    item.w = entry.w;
+    item.h = entry.h;
+    delete item.char;
+    delete item.fontSize;
+    cacheStickerSrc(entry.src);
+  } else {
+    item.char = entry.char;
+    item.fontSize = item.fontSize || 80;
+    delete item.src;
+    delete item.w;
+    delete item.h;
+  }
+}
+
+function addStickerFromLib(entry) {
+  pushUndo();
+  const c = canvasCenter();
+  const item = { id: uid++, type: "sticker", stickerId: entry.id, x: c.x - 60, y: c.y - 60, rot: 0 };
+  applyStickerEntry(item, entry);
+  state.items.push(item);
+  selectedId = item.id;
+  render();
+}
+
+function swapSticker(item, entry) {
+  pushUndo();
+  applyStickerEntry(item, entry);
+  render();
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   HISTORIA (undo / redo)
+   pushUndo() wołamy NA POCZĄTKU każdej zmiany (przed mutacją stanu).
+   ════════════════════════════════════════════════════════════════════ */
+function snapshot() {
+  return JSON.stringify({ bg: state.bg, items: state.items });
+}
+function pushUndo() {
+  past.push(snapshot());
+  if (past.length > 100) past.shift();   // limit pamięci
+  future = [];                           // każda nowa zmiana kasuje "redo"
+  updateUndoButtons();
+}
+function loadSnapshot(json) {
+  const data = JSON.parse(json);
+  state.bg = data.bg;
+  state.items = data.items;
+  selectedId = null;
+  render();
+}
+function undo() {
+  if (!past.length) return;
+  future.push(snapshot());
+  loadSnapshot(past.pop());
+  updateUndoButtons();
+}
+function redo() {
+  if (!future.length) return;
+  past.push(snapshot());
+  loadSnapshot(future.pop());
+  updateUndoButtons();
+}
+function updateUndoButtons() {
+  document.getElementById("undo").disabled = past.length === 0;
+  document.getElementById("redo").disabled = future.length === 0;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   DODAWANIE ELEMENTÓW
+   ════════════════════════════════════════════════════════════════════ */
+function addText() {
+  pushUndo();
+  const c = canvasCenter();
+  const item = {
+    id: uid++, type: "text",
+    x: c.x - 140, y: c.y - 30, w: 280,
+    rot: 0,
+    text: "Your text",
+    fontFamily: "Inter", fontSize: 40, color: "#ffffff", bold: false,
+  };
+  state.items.push(item);
+  selectedId = item.id;
+  ensureFontCached("Inter");
+  render();
+}
+
+function addSticker(emoji) {
+  const entry = STICKER_LIBRARY.find(s => s.kind === "emoji" && s.char === emoji);
+  if (entry) addStickerFromLib(entry);
+}
+
+/* Wyłuskuje 11-znakowy identyfikator filmu z różnych form linku YouTube. */
+function parseYouTubeId(url) {
+  const m = String(url).match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+/* Dodaje element typu „youtube" (osadzony odtwarzacz). Domyślnie 16:9. */
+function addYouTube(videoId) {
+  pushUndo();
+  const w = 480, h = 270;                 // 16:9
+  const c = canvasCenter();
+  const item = {
+    id: uid++, type: "youtube",
+    x: c.x - w / 2, y: c.y - h / 2, w, h,
+    rot: 0, videoId,
+    // pola dla integracji z feedem zespołu (jak przy zdjęciach):
+    feed: false,
+    caption: "",
+    added: new Date().toISOString().slice(0, 10),
+  };
+  state.items.push(item);
+  selectedId = item.id;
+  render();
+}
+
+/* Wczytuje plik graficzny, zmniejsza do `max` (dłuższy bok) i zwraca dataURL
+   (JPEG). Promise. Używane do avatara; ten sam pomysł co przy zdjęciach. */
+function fileToDownscaledJpeg(file, max, quality) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (Math.max(width, height) > max) {
+          const k = max / Math.max(width, height);
+          width = Math.round(width * k);
+          height = Math.round(height * k);
+        }
+        const off = document.createElement("canvas");
+        off.width = width; off.height = height;
+        off.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(off.toDataURL("image/jpeg", quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* Wgrywanie zdjęcia: czytamy plik, zmniejszamy zbyt duże obrazy
+   (max 1600px dłuższy bok) i zapisujemy jako base64 wprost w stanie,
+   żeby finalny plik był samowystarczalny. */
+function handleImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1600;
+      let { width, height } = img;
+      let downscaled = false;
+      if (Math.max(width, height) > MAX) {
+        const k = MAX / Math.max(width, height);
+        width = Math.round(width * k);
+        height = Math.round(height * k);
+        downscaled = true;
+      }
+      // Przerysowujemy na <canvas> i kodujemy jako JPEG (mniejszy plik).
+      const off = document.createElement("canvas");
+      off.width = width; off.height = height;
+      off.getContext("2d").drawImage(img, 0, 0, width, height);
+      const dataUrl = off.toDataURL("image/jpeg", 0.85);
+
+      pushUndo();
+      // Dopasuj rozmiar wstawki do płótna (max ~45% szerokości).
+      const maxW = canvas.clientWidth * 0.45;
+      let dispW = width, dispH = height;
+      if (dispW > maxW) { const k = maxW / dispW; dispW = maxW; dispH = dispH * k; }
+      const c = canvasCenter();
+      const item = {
+        id: uid++, type: "image",
+        x: c.x - dispW / 2, y: c.y - dispH / 2,
+        w: Math.round(dispW), h: Math.round(dispH),
+        rot: 0, src: dataUrl,
+        // pola dla integracji z feedem zespołu:
+        feed: false,                                  // domyślnie NIE w feedzie
+        caption: "",                                  // krótki opis (opcjonalny)
+        baseName: sanitizeBaseName(file.name),        // baza nazwy pliku obrazka
+        added: new Date().toISOString().slice(0, 10), // data dodania (YYYY-MM-DD)
+      };
+      state.items.push(item);
+      selectedId = item.id;
+      render();
+      if (downscaled) toast("Zdjęcie zmniejszono do 1600px, by plik nie urósł nadmiernie.");
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   RENDEROWANIE — odbudowuje płótno z aktualnego stanu.
+   z-index = pozycja w tablicy items (warstwowość: kliknięty → na wierzch).
+   ════════════════════════════════════════════════════════════════════ */
+function render() {
+  if (bgColor) bgColor.value = state.bg;
+  applyPageBg();
+
+  [...canvas.querySelectorAll(".item, .guide")].forEach(el => el.remove());
+
+  updatePageNick();
+  updateDropzones();
+  syncCanvasHeight();
+
+  state.items.forEach((item, index) => {
+    const el = document.createElement("div");
+    el.className = "item" + (item.id === selectedId ? " selected" : "");
+    el.dataset.id = item.id;
+    el.style.left = item.x + "px";
+    el.style.top = item.y + "px";
+    el.style.zIndex = index + 1;
+    el.style.transform = `rotate(${item.rot}deg)`;
+
+    if (item.type === "text") {
+      el.style.width = item.w + "px";
+      const body = document.createElement("div");
+      body.className = "text-body";
+      body.style.fontFamily = `'${item.fontFamily}', sans-serif`;
+      body.style.fontSize = item.fontSize + "px";
+      body.style.color = item.color;
+      body.style.fontWeight = item.bold ? "700" : "400";
+      body.textContent = item.text;
+      el.appendChild(body);
+    } else if (item.type === "image") {
+      el.style.width = item.w + "px";
+      el.style.height = item.h + "px";
+      const img = document.createElement("img");
+      img.src = item.src;
+      el.appendChild(img);
+    } else if (item.type === "sticker") {
+      el.classList.add("sticker");
+      if (item.src) {
+        el.style.width = item.w + "px";
+        el.style.height = item.h + "px";
+        const img = document.createElement("img");
+        img.className = "sticker-img";
+        img.src = item.src;
+        img.alt = "";
+        el.appendChild(img);
+      } else {
+        const body = document.createElement("div");
+        body.className = "sticker-body";
+        body.style.fontSize = item.fontSize + "px";
+        body.textContent = item.char;
+        el.appendChild(body);
+      }
+    } else if (item.type === "youtube") {
+      el.style.width = item.w + "px";
+      el.style.height = item.h + "px";
+      // Podgląd = miniatura z YouTube + przycisk play (lekko, bez żywego iframe).
+      const yt = document.createElement("div");
+      yt.className = "yt-body";
+      yt.style.backgroundImage = `url(https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg)`;
+      const play = document.createElement("span");
+      play.className = "yt-play"; play.textContent = "▶";
+      yt.appendChild(play);
+      el.appendChild(yt);
+    }
+
+    // Uchwyty — naklejki mają własny UI (Figma); reszta elementów jak dotąd.
+    if (item.id === selectedId) {
+      if (item.type === "sticker") {
+        const frame = document.createElement("div");
+        frame.className = "sticker-frame";
+        el.appendChild(frame);
+
+        ["tl", "tr", "bl", "br"].forEach(corner => {
+          const ch = document.createElement("div");
+          ch.className = "corner-handle " + corner;
+          ch.title = "Przeciągnij = rozmiar · Shift = obrót";
+          ch.addEventListener("mousedown", e => {
+            e.stopPropagation();
+            if (e.shiftKey) startRotate(e, item, true);
+            else startStickerResize(e, item, corner);
+          });
+          el.appendChild(ch);
+        });
+      } else {
+      const resize = document.createElement("div");
+      resize.className = "handle resize";
+      resize.addEventListener("mousedown", e => startResize(e, item));
+
+      const rotate = document.createElement("div");
+      rotate.className = "handle rotate";
+      rotate.addEventListener("mousedown", e => startRotate(e, item));
+
+      el.append(del, resize, rotate);
+      }
+    }
+
+    canvas.appendChild(el);
+  });
+
+  syncInspector();
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   INSPEKTOR — synchronizacja pól z zaznaczonym elementem
+   ════════════════════════════════════════════════════════════════════ */
+function selectedItem() {
+  return state.items.find(i => i.id === selectedId) || null;
+}
+function syncInspector() {
+  const item = selectedItem();
+  if (!item) {
+    toolbarCtx.classList.remove("show");
+    ctxSep.hidden = true;
+    inspText.style.display = "none";
+    inspImage.style.display = "none";
+    inspSticker.style.display = "none";
+    return;
+  }
+  toolbarCtx.classList.add("show");
+  ctxSep.hidden = false;
+
+  if (item.type === "text") {
+    inspText.style.display = "flex";
+    fontSelect.value = item.fontFamily;
+    fontSizeIn.value = item.fontSize;
+    textColor.value = item.color;
+    boldToggle.style.background = item.bold ? "#fff" : "transparent";
+    boldToggle.style.color = item.bold ? "#0e0e0e" : "#fff";
+  } else {
+    inspText.style.display = "none";
+  }
+  if (item.type === "image" || item.type === "youtube") {
+    inspImage.style.display = "flex";
+    feedCheck.checked = !!item.feed;
+    feedCaption.value = item.caption || "";
+    feedCaption.style.display = item.feed ? "block" : "none";
+  } else {
+    inspImage.style.display = "none";
+  }
+  inspSticker.style.display = item.type === "sticker" ? "flex" : "none";
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ZAZNACZANIE + WARSTWY (kliknięty element → na wierzch)
+   ════════════════════════════════════════════════════════════════════ */
+function selectItem(id, bringToFront = true) {
+  selectedId = id;
+  if (bringToFront) {
+    const idx = state.items.findIndex(i => i.id === id);
+    if (idx !== -1 && idx !== state.items.length - 1) {
+      const [it] = state.items.splice(idx, 1);
+      state.items.push(it);          // na koniec tablicy = na wierzch
+    }
+  }
+  render();
+}
+function deselect() { selectedId = null; render(); }
+
+function deleteSelected() {
+  if (selectedId == null) return;
+  pushUndo();
+  state.items = state.items.filter(i => i.id !== selectedId);
+  selectedId = null;
+  render();
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   PRZECIĄGANIE + LINIE POMOCNICZE (smart guides)
+   ════════════════════════════════════════════════════════════════════ */
+const SNAP = 6;   // próg dociągania do linii pomocniczej (px)
+
+function elBox(item) {
+  const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
+  if (item.type === "sticker" && item.src) {
+    return { w: item.w || 80, h: item.h || 80 };
+  }
+  const w = item.w || (el ? el.offsetWidth : 0);
+  const h = item.h || (el ? el.offsetHeight : 0);
+  return { w, h };
+}
+
+function clearGuides() {
+  [...canvas.querySelectorAll(".guide")].forEach(g => g.remove());
+}
+function drawGuide(orientation, pos) {
+  const g = document.createElement("div");
+  g.className = "guide " + orientation;
+  if (orientation === "v") g.style.left = pos + "px";
+  else g.style.top = pos + "px";
+  canvas.appendChild(g);
+}
+
+function startDrag(e, item) {
+  if (e.button !== 0) return;
+  const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
+  el.classList.add("dragging");
+  pushUndo();
+
+  const startX = e.clientX, startY = e.clientY;
+  const origX = item.x, origY = item.y;
+  const { w, h } = elBox(item);
+
+  // Punkty docelowe innych elementów + środek płótna (do dociągania).
+  const targetsX = [canvas.clientWidth / 2];
+  const targetsY = [canvas.clientHeight / 2];
+  state.items.forEach(o => {
+    if (o.id === item.id) return;
+    const b = elBox(o);
+    targetsX.push(o.x, o.x + b.w / 2, o.x + b.w);
+    targetsY.push(o.y, o.y + b.h / 2, o.y + b.h);
+  });
+
+  function onMove(ev) {
+    let nx = origX + (ev.clientX - startX);
+    let ny = origY + (ev.clientY - startY);
+    clearGuides();
+
+    // Dociąganie po osi X (lewa krawędź / środek / prawa krawędź)
+    const edgesX = [nx, nx + w / 2, nx + w];
+    for (let t of targetsX) {
+      for (let i = 0; i < edgesX.length; i++) {
+        if (Math.abs(edgesX[i] - t) < SNAP) {
+          nx += t - edgesX[i];
+          drawGuide("v", t);
+        }
+      }
+    }
+    const edgesY = [ny, ny + h / 2, ny + h];
+    for (let t of targetsY) {
+      for (let i = 0; i < edgesY.length; i++) {
+        if (Math.abs(edgesY[i] - t) < SNAP) {
+          ny += t - edgesY[i];
+          drawGuide("h", t);
+        }
+      }
+    }
+
+    item.x = nx; item.y = ny;
+    el.style.left = nx + "px";
+    el.style.top = ny + "px";
+  }
+  function onUp() {
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+    el.classList.remove("dragging");
+    clearGuides();
+  }
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+}
+
+/* ── Skalowanie za uchwyt w rogu ──────────────────────────────────────
+   Tekst i naklejka: skalujemy rozmiar fontu.
+   Zdjęcie: skalujemy szerokość/wysokość z zachowaniem proporcji. */
+function startResize(e, item) {
+  e.stopPropagation();
+  pushUndo();
+  const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
+  const startX = e.clientX, startY = e.clientY;
+  const startW = el.offsetWidth, startH = el.offsetHeight;
+  const startFont = item.fontSize;
+
+  function onMove(ev) {
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    if (item.type === "image" || item.type === "youtube") {
+      const ratio = startH / startW;
+      let nw = Math.max(20, startW + dx);
+      item.w = Math.round(nw);
+      item.h = Math.round(nw * ratio);
+      el.style.width = item.w + "px";
+      el.style.height = item.h + "px";
+    } else if (item.type === "sticker") {
+      const delta = (dx + dy) / 2;
+      const factor = (startW + delta) / startW;
+      item.fontSize = Math.max(8, Math.round(startFont * factor));
+      const body = el.querySelector(".sticker-body");
+      if (body) body.style.fontSize = item.fontSize + "px";
+      fontSizeIn.value = item.fontSize;
+    } else {
+      const delta = (dx + dy) / 2;
+      const factor = (startW + delta) / startW;
+      item.fontSize = Math.max(8, Math.round(startFont * factor));
+      el.querySelector(".text-body").style.fontSize = item.fontSize + "px";
+      fontSizeIn.value = item.fontSize;
+    }
+  }
+  function onUp() {
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+  }
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+}
+
+/* Skalowanie naklejki za rogi (Figma: 4 uchwyty, proporcje zachowane dla obrazków) */
+function startStickerResize(e, item, corner) {
+  e.stopPropagation();
+  pushUndo();
+  const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
+  const startX = e.clientX, startY = e.clientY;
+  const origX = item.x, origY = item.y;
+  const isImage = !!item.src;
+  const startW = isImage ? item.w : el.offsetWidth;
+  const startH = isImage ? item.h : el.offsetHeight;
+  const ratio = startH / startW;
+  const startFont = item.fontSize || 80;
+
+  function onMove(ev) {
+    let dx = ev.clientX - startX;
+    let dy = ev.clientY - startY;
+    if (corner === "tl") { dx = -dx; dy = -dy; }
+    else if (corner === "tr") { dy = -dy; }
+    else if (corner === "bl") { dx = -dx; }
+
+    if (isImage) {
+      let nw = Math.max(24, startW + dx);
+      let nh = Math.round(nw * ratio);
+      if (corner === "tl" || corner === "bl") item.x = origX + (startW - nw);
+      if (corner === "tl" || corner === "tr") item.y = origY + (startH - nh);
+      item.w = Math.round(nw);
+      item.h = nh;
+      el.style.width = item.w + "px";
+      el.style.height = item.h + "px";
+      el.style.left = item.x + "px";
+      el.style.top = item.y + "px";
+    } else {
+      const delta = (dx + dy) / 2;
+      const factor = (startW + delta) / startW;
+      item.fontSize = Math.max(8, Math.round(startFont * factor));
+      const body = el.querySelector(".sticker-body");
+      if (body) body.style.fontSize = item.fontSize + "px";
+    }
+  }
+  function onUp() {
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+  }
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+}
+
+/* ── Obrót za uchwyt nad elementem ── */
+function startRotate(e, item, fromCorner) {
+  e.stopPropagation();
+  pushUndo();
+  const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const offset = fromCorner ? 0 : 90;
+
+  function onMove(ev) {
+    const angle = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI + offset;
+    let a = Math.round(angle);
+    if (ev.shiftKey) a = Math.round(a / 15) * 15;   // Shift = skok co 15°
+    item.rot = a;
+    el.style.transform = `rotate(${a}deg)`;
+  }
+  function onUp() {
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+  }
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   EDYCJA TEKSTU (dwuklik)
+   ════════════════════════════════════════════════════════════════════ */
+function startEditText(item, el) {
+  const body = el.querySelector(".text-body");
+  el.classList.add("editing");
+  body.contentEditable = "true";
+  body.focus();
+  // zaznacz całość
+  const range = document.createRange();
+  range.selectNodeContents(body);
+  const sel = window.getSelection();
+  sel.removeAllRanges(); sel.addRange(range);
+
+  const before = item.text;
+  function finish() {
+    body.contentEditable = "false";
+    el.classList.remove("editing");
+    body.removeEventListener("blur", finish);
+    const newText = body.innerText;
+    if (newText !== before) {
+      pushUndo();
+      item.text = newText;
+    }
+    render();
+  }
+  body.addEventListener("blur", finish);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   OBSŁUGA ZDARZEŃ NA PŁÓTNIE (delegacja)
+   ════════════════════════════════════════════════════════════════════ */
+canvas.addEventListener("mousedown", e => {
+  const el = e.target.closest(".item");
+  // klik w pustą część płótna → odznacz
+  if (!el) { if (selectedId !== null) deselect(); return; }
+  // ignoruj kliknięcia w uchwyty i przyciski naklejki
+  if (e.target.classList.contains("handle") || e.target.classList.contains("corner-handle")) return;
+
+  const id = Number(el.dataset.id);
+  const item = state.items.find(i => i.id === id);
+
+  if (el.classList.contains("editing")) return;   // w trakcie edycji tekstu
+
+  if (id !== selectedId) {
+    selectItem(id);                                // zaznacz + na wierzch
+    // po re-renderze chwytamy świeży element, by od razu przeciągać
+    const fresh = canvas.querySelector(`.item[data-id="${id}"]`);
+    startDragFrom(e, item, fresh);
+  } else {
+    startDrag(e, item);
+  }
+});
+
+/* Pomocnik: rozpocznij przeciąganie tuż po zaznaczeniu (bez czekania na nowy klik) */
+function startDragFrom(e, item, el) {
+  if (!el) return;
+  startDrag(e, item);
+}
+
+canvas.addEventListener("dblclick", e => {
+  const el = e.target.closest(".item");
+  if (!el) return;
+  const id = Number(el.dataset.id);
+  const item = state.items.find(i => i.id === id);
+  if (item && item.type === "text") startEditText(item, el);
+});
+
+/* ════════════════════════════════════════════════════════════════════
+   PODŁĄCZENIE KONTROLEK PASKA I INSPEKTORA
+   ════════════════════════════════════════════════════════════════════ */
+document.getElementById("add-text").addEventListener("click", addText);
+document.getElementById("add-image").addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (f) handleImageFile(f);
+  fileInput.value = "";    // pozwól wgrać ten sam plik ponownie
+});
+
+function openStickerPop(anchorEl) {
+  const r = anchorEl.getBoundingClientRect();
+  stickerPop.style.left = Math.min(r.left, window.innerWidth - 380) + "px";
+  stickerPop.style.top = (r.bottom + 8) + "px";
+  stickerPop.classList.add("show");
+}
+
+document.getElementById("add-sticker").addEventListener("click", e => {
+  if (stickerPop.classList.contains("show") && !stickerSwapTarget) {
+    stickerPop.classList.remove("show");
+    return;
+  }
+  stickerSwapTarget = null;
+  openStickerPop(e.currentTarget);
+});
+
+function pickSticker(entry) {
+  stickerPop.classList.remove("show");
+  if (stickerSwapTarget != null) {
+    const item = state.items.find(i => i.id === stickerSwapTarget);
+    stickerSwapTarget = null;
+    if (item) swapSticker(item, entry);
+  } else {
+    addStickerFromLib(entry);
+  }
+}
+
+STICKER_LIBRARY.forEach(entry => {
+  const b = document.createElement("button");
+  b.type = "button";
+  if (entry.kind === "image") {
+    const img = document.createElement("img");
+    img.src = entry.src;
+    img.alt = "";
+    b.appendChild(img);
+  } else {
+    b.textContent = entry.char;
+  }
+  b.addEventListener("click", () => pickSticker(entry));
+  stickerPop.appendChild(b);
+});
+
+document.getElementById("sticker-swap-btn").addEventListener("click", e => {
+  const item = selectedItem();
+  if (!item || item.type !== "sticker") return;
+  stickerSwapTarget = item.id;
+  openStickerPop(e.currentTarget);
+});
+
+document.addEventListener("mousedown", e => {
+  if (!stickerPop.contains(e.target) && e.target.id !== "add-sticker"
+      && !e.target.closest("#add-sticker") && e.target.id !== "sticker-swap-btn"
+      && !e.target.closest("#sticker-swap-btn")) {
+    stickerPop.classList.remove("show");
+    stickerSwapTarget = null;
+  }
+});
+
+// Kolor tła strony
+bgColor.addEventListener("mousedown", () => { pushUndo(); });
+bgColor.addEventListener("input", e => {
+  state.bg = e.target.value;
+  applyPageBg();
+});
+
+// Undo / redo (przyciski)
+document.getElementById("undo").addEventListener("click", undo);
+document.getElementById("redo").addEventListener("click", redo);
+
+// Inspektor: usuń
+document.getElementById("del-selected").addEventListener("click", deleteSelected);
+
+// Inspektor: font (dropdown z nagłówkami grup)
+FONT_GROUPS.forEach(group => {
+  const og = document.createElement("optgroup");
+  og.label = group.label;
+  group.fonts.forEach(f => {
+    const opt = document.createElement("option");
+    opt.value = f; opt.textContent = f;
+    og.appendChild(opt);
+  });
+  fontSelect.appendChild(og);
+});
+fontSelect.addEventListener("change", e => {
+  const item = selectedItem();
+  if (!item || item.type !== "text") return;
+  pushUndo();
+  item.fontFamily = e.target.value;
+  ensureFontCached(item.fontFamily);     // pobierz woff2 do eksportu
+  render();
+});
+
+// Inspektor: rozmiar fontu
+fontSizeIn.addEventListener("change", e => {
+  const item = selectedItem();
+  if (!item) return;
+  pushUndo();
+  item.fontSize = Math.max(8, Math.min(400, Number(e.target.value) || item.fontSize));
+  render();
+});
+
+// Inspektor: kolor tekstu
+textColor.addEventListener("input", e => {
+  const item = selectedItem();
+  if (!item || item.type !== "text") return;
+  item.color = e.target.value;
+  const body = canvas.querySelector(`.item[data-id="${item.id}"] .text-body`);
+  if (body) body.style.color = item.color;
+});
+textColor.addEventListener("change", () => { pushUndo(); });  // jeden wpis historii
+
+// Inspektor: pogrubienie
+boldToggle.addEventListener("click", () => {
+  const item = selectedItem();
+  if (!item || item.type !== "text") return;
+  pushUndo();
+  item.bold = !item.bold;
+  render();
+});
+
+// Inspektor: przełącznik „Pokaż w feedzie zespołu" (zdjęcia i filmy)
+function isFeedable(item) {
+  return item && (item.type === "image" || item.type === "youtube");
+}
+feedCheck.addEventListener("change", () => {
+  const item = selectedItem();
+  if (!isFeedable(item)) return;
+  pushUndo();
+  item.feed = feedCheck.checked;
+  feedCaption.style.display = item.feed ? "block" : "none";
+  if (item.feed) feedCaption.focus();
+});
+
+// Inspektor: opis do feedu (zapis na bieżąco, jeden wpis historii na zmianę)
+feedCaption.addEventListener("input", () => {
+  const item = selectedItem();
+  if (isFeedable(item)) item.caption = feedCaption.value;
+});
+feedCaption.addEventListener("change", () => { pushUndo(); });
+
+/* ════════════════════════════════════════════════════════════════════
+   SKRÓTY KLAWISZOWE
+   ════════════════════════════════════════════════════════════════════ */
+document.addEventListener("keydown", e => {
+  // nie przechwytuj, gdy edytujemy tekst lub jesteśmy w polu formularza
+  const editingText = document.querySelector(".item.editing");
+  const inField = /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName);
+
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+    e.preventDefault();
+    if (e.shiftKey) redo(); else undo();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+    e.preventDefault(); redo(); return;
+  }
+  if ((e.key === "Delete" || e.key === "Backspace") && !editingText && !inField) {
+    if (selectedId !== null) { e.preventDefault(); deleteSelected(); }
+  }
+});
+
+/* ════════════════════════════════════════════════════════════════════
+   POBIERANIE FONTÓW DO EKSPORTU (woff2 → base64)
+   Wołane przy wyborze fontu — wtedy edytor ma dostęp do sieci.
+   Dzięki temu eksport działa nawet offline.
+   ════════════════════════════════════════════════════════════════════ */
+async function ensureFontCached(family) {
+  if (fontCache[family]) return;            // już mamy
+  try {
+    const cssUrl = "https://fonts.googleapis.com/css2?family="
+                 + family.replace(/ /g, "+") + "&display=swap";
+    const css = await (await fetch(cssUrl)).text();
+    // Wybierz blok @font-face z zakresem łacińskim (zwykle ostatni woff2).
+    const urls = [...css.matchAll(/url\((https:\/\/[^)]+\.woff2)\)/g)].map(m => m[1]);
+    if (!urls.length) throw new Error("brak woff2");
+    const fontUrl = urls[urls.length - 1];
+    const buf = await (await fetch(fontUrl)).arrayBuffer();
+    fontCache[family] = arrayBufferToBase64(buf);
+  } catch (err) {
+    console.warn("Nie udało się pobrać fontu do cache:", family, err);
+    // brak w cache → przy eksporcie font po prostu nie zostanie wszyty
+  }
+}
+function arrayBufferToBase64(buffer) {
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   PAKOWANIE ZIP — czysty JS, metoda „store" (bez kompresji, bez zależności).
+   Używane przy eksporcie do spakowania: index.html + feed.json + obrazki.
+   ════════════════════════════════════════════════════════════════════ */
+// Tablica CRC-32 (standardowa dla ZIP).
+const CRC_TABLE = (() => {
+  const t = [];
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes) {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++)
+    crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ bytes[i]) & 0xFF];
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+// dataURL (base64) → Uint8Array z surowymi bajtami pliku obrazka.
+function dataUrlToBytes(dataUrl) {
+  const bin = atob(dataUrl.split(",")[1]);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+}
+// Złóż archiwum ZIP z listy { name, data:Uint8Array } i zwróć Blob.
+function buildZip(files) {
+  const now = new Date();
+  const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  const enc = new TextEncoder();
+  const local = [];      // nagłówki lokalne + dane plików
+  const central = [];    // katalog centralny
+  let offset = 0;
+
+  files.forEach(f => {
+    const nameB = enc.encode(f.name);
+    const data = f.data;
+    const crc = crc32(data);
+
+    // Nagłówek lokalny pliku (30 bajtów + nazwa + dane).
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true);   // sygnatura PK\3\4
+    lh.setUint16(4, 20, true);           // wersja wymagana
+    lh.setUint16(6, 0, true);            // flagi
+    lh.setUint16(8, 0, true);            // metoda: 0 = brak kompresji (store)
+    lh.setUint16(10, dosTime, true);
+    lh.setUint16(12, dosDate, true);
+    lh.setUint32(14, crc, true);
+    lh.setUint32(18, data.length, true); // rozmiar skompresowany
+    lh.setUint32(22, data.length, true); // rozmiar oryginalny
+    lh.setUint16(26, nameB.length, true);
+    lh.setUint16(28, 0, true);           // długość pola „extra"
+    const lhB = new Uint8Array(lh.buffer);
+    local.push(lhB, nameB, data);
+
+    // Wpis w katalogu centralnym (46 bajtów + nazwa).
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true);   // sygnatura PK\1\2
+    ch.setUint16(4, 20, true);
+    ch.setUint16(6, 20, true);
+    ch.setUint16(10, 0, true);
+    ch.setUint16(12, dosTime, true);
+    ch.setUint16(14, dosDate, true);
+    ch.setUint32(16, crc, true);
+    ch.setUint32(20, data.length, true);
+    ch.setUint32(24, data.length, true);
+    ch.setUint16(28, nameB.length, true);
+    ch.setUint32(42, offset, true);      // offset nagłówka lokalnego
+    central.push(new Uint8Array(ch.buffer), nameB);
+
+    offset += lhB.length + nameB.length + data.length;
+  });
+
+  let centralSize = 0;
+  central.forEach(c => centralSize += c.length);
+
+  // Końcówka katalogu centralnego (EOCD).
+  const eocd = new DataView(new ArrayBuffer(22));
+  eocd.setUint32(0, 0x06054b50, true);   // sygnatura PK\5\6
+  eocd.setUint16(8, files.length, true);
+  eocd.setUint16(10, files.length, true);
+  eocd.setUint32(12, centralSize, true);
+  eocd.setUint32(16, offset, true);
+  return new Blob([...local, ...central, new Uint8Array(eocd.buffer)],
+                  { type: "application/zip" });
+}
+// Pobranie dowolnego Bloba pod wskazaną nazwą.
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   EKSPORT — „Pobierz moją stronę"
+   Generuje ŚWIEŻY, czysty index.html z samego stanu:
+   • bez paska narzędzi, inspektora, uchwytów i kodu edytora,
+   • z wszytymi @font-face (base64) TYLKO dla użytych fontów,
+   • zdjęcia już są base64 w stanie → plik samowystarczalny / offline.
+
+   Jeśli jakieś zdjęcia oznaczono „do feedu", zamiast samej strony powstaje
+   ZIP zawierający dodatkowo:
+   • feed.json — lekki spis tych zdjęć (plik, opis, data; bez autora),
+   • feed-images/*.jpg — te zdjęcia jako osobne pliki, żeby hub mógł je
+     wyświetlać lekko, bez przeciągania ciężkiego base64 ze strony.
+   ════════════════════════════════════════════════════════════════════ */
+async function exportPage() {
+  if (!state.items.some(i => !i.demo)) {
+    toast("Najpierw dodaj coś na płótno (poza przykładową naklejką).");
+    return;
+  }
+
+  // 1) Zbierz fonty faktycznie użyte w tekstach.
+  const usedFonts = [...new Set(
+    state.items.filter(i => i.type === "text").map(i => i.fontFamily)
+  )];
+
+  // 2) Upewnij się, że mamy je w cache (gdyby user nie zmieniał fontu po
+  //    pierwszym dodaniu, mogą jeszcze nie być pobrane).
+  if (usedFonts.length) toast("Przygotowuję fonty…", 1500);
+  await Promise.all(usedFonts.map(ensureFontCached));
+
+  await Promise.all(
+    state.items.filter(i => i.type === "sticker" && i.src).map(i => cacheStickerSrc(i.src))
+  );
+  const stickerExports = new Map();
+  for (const it of state.items.filter(i => i.type === "sticker" && i.src)) {
+    stickerExports.set(it.id, await resolveStickerSrc(it));
+  }
+
+  // 3) Zbuduj bloki @font-face tylko dla fontów, które mamy w cache.
+  let fontFaces = "";
+  const missing = [];
+  usedFonts.forEach(f => {
+    if (fontCache[f]) {
+      fontFaces +=
+`    @font-face {
+      font-family: '${f}';
+      font-style: normal;
+      font-weight: 400 700;
+      font-display: swap;
+      src: url(data:font/woff2;base64,${fontCache[f]}) format('woff2');
+    }
+`;
+    } else {
+      missing.push(f);
+    }
+  });
+  if (missing.length) {
+    toast("Uwaga: nie udało się wszyć fontów: " + missing.join(", ") +
+          " (brak internetu przy wyborze fontu). Reszta OK.", 5000);
+  }
+
+  // 3b) Oblicz prostokąt obejmujący WSZYSTKIE elementy (z uwzględnieniem
+  //     obrotu). Opublikowana strona obejmie dokładnie ten obszar, wyśrodkuje
+  //     go i przeskaluje do okna → zawsze responsywne i wycentrowane.
+  //     Rozmiary mierzymy z aktualnego renderu w edytorze.
+  const PAD = 24;   // margines wokół kompozycji (px)
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  state.items.forEach(it => {
+    const el = canvas.querySelector(`.item[data-id="${it.id}"]`);
+    const w = it.w || (el ? el.offsetWidth : 0);
+    let h = it.h;
+    if (!h && (it.type === "image" || it.type === "youtube")) h = it.h;
+    if (!h) h = el ? el.offsetHeight : 0;
+    const cx = it.x + w / 2, cy = it.y + h / 2;
+    const rad = (it.rot || 0) * Math.PI / 180;
+    const cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
+    const bw = w * cos + h * sin, bh = w * sin + h * cos;   // obrócony AABB
+    minX = Math.min(minX, cx - bw / 2); maxX = Math.max(maxX, cx + bw / 2);
+    minY = Math.min(minY, cy - bh / 2); maxY = Math.max(maxY, cy + bh / 2);
+  });
+  const offX = minX - PAD, offY = minY - PAD;                // przesunięcie do 0,0
+  const stageW = Math.max(1, Math.ceil(maxX - minX + PAD * 2));
+  const stageH = Math.max(1, Math.ceil(maxY - minY + PAD * 2));
+
+  // 4) Wygeneruj czysty HTML elementów (z-index = kolejność w tablicy).
+  //    Pozycje przesuwamy o (offX, offY), żeby kompozycja zaczynała się w 0,0.
+  const elementsHtml = state.items.map((item, index) => {
+    const z = index + 1;
+    if (item.type === "text") {
+      const style = [
+        `position:absolute`,
+        `left:${item.x - offX}px`, `top:${item.y - offY}px`, `width:${item.w}px`,
+        `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
+        `z-index:${z}`,
+        `font-family:'${item.fontFamily}', sans-serif`,
+        `font-size:${item.fontSize}px`,
+        `font-weight:${item.bold ? 700 : 400}`,
+        `color:${item.color}`,
+        `line-height:1.25`, `white-space:pre-wrap`, `word-break:break-word`,
+      ].join(";");
+      return `    <div style="${style}">${escapeHtml(item.text)}</div>`;
+    }
+    if (item.type === "image") {
+      const style = [
+        `position:absolute`,
+        `left:${item.x}px`, `top:${item.y}px`,
+        `width:${item.w}px`, `height:${item.h}px`,
+        `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
+        `z-index:${z}`,
+      ].join(";");
+      // Zdjęcia zgłoszone do wspólnego feedu niosą znaczniki dla huba.
+      const feedAttr = item.feed ? ` data-feed="true"` : "";
+      const capAttr  = (item.feed && item.caption)
+        ? ` data-caption="${escapeAttr(item.caption)}"` : "";
+      return `    <img src="${item.src}"${feedAttr}${capAttr} style="${style}" alt="">`;
+    }
+    if (item.type === "sticker") {
+      if (item.src) {
+        const src = stickerExports.get(item.id)
+          || (item.src.startsWith("data:") ? item.src : (stickerSrcCache[item.src] || item.src));
+        const style = [
+          `position:absolute`,
+          `left:${item.x - offX}px`, `top:${item.y - offY}px`,
+          `width:${item.w}px`, `height:${item.h}px`,
+          `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
+          `z-index:${z}`,
+        ].join(";");
+        return `    <img src="${src}" style="${style}" alt="">`;
+      }
+      const style = [
+        `position:absolute`,
+        `left:${item.x - offX}px`, `top:${item.y - offY}px`,
+        `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
+        `z-index:${z}`,
+        `font-size:${item.fontSize}px`, `line-height:1`,
+      ].join(";");
+      return `    <div style="${style}">${escapeHtml(item.char)}</div>`;
+    }
+    if (item.type === "youtube") {
+      const style = [
+        `position:absolute`,
+        `left:${item.x - offX}px`, `top:${item.y - offY}px`,
+        `width:${item.w}px`, `height:${item.h}px`,
+        `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
+        `z-index:${z}`,
+      ].join(";");
+      // Prawdziwy odtwarzacz YouTube (ładuje się z sieci przy oglądaniu).
+      return `    <div style="${style}"><iframe src="https://www.youtube.com/embed/${item.videoId}" `
+           + `style="width:100%;height:100%;border:0" allowfullscreen `
+           + `allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe></div>`;
+    }
+    return "";
+  }).join("\n");
+
+  // 5) Złóż kompletny dokument.
+  //    Kompozycja (.stage) ma rozmiar obszaru zajętego przez elementy. Skalujemy
+  //    ją do SZEROKOŚCI okna (responsywnie), a w PIONIE strona przewija się
+  //    normalnie — jak każda strona WWW. Wrapper rezerwuje przeskalowaną
+  //    wysokość, dzięki czemu pojawia się zwykły pasek przewijania.
+  const doc =
+`<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moja strona</title>
+<style>
+${fontFaces}    * { margin: 0; box-sizing: border-box; }
+    body { background: ${state.bg}; }
+    /* Kompozycja wypełnia szerokość okna; w pionie strona normalnie się przewija. */
+    #wrap { position: relative; width: 100%; overflow: hidden; }
+    .stage {
+      position: relative;
+      width: ${stageW}px;
+      height: ${stageH}px;
+      transform-origin: top left;
+    }
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <div class="stage" id="stage">
+${elementsHtml}
+    </div>
+  </div>
+  <script>
+    /* Skaluje kompozycję do szerokości okna i rezerwuje jej wysokość, żeby
+       strona przewijała się normalnie w pionie. Jedyny skrypt — nic z edytora. */
+    (function () {
+      var W = ${stageW}, H = ${stageH};
+      var wrap = document.getElementById('wrap'), s = document.getElementById('stage');
+      function fit() {
+        var k = document.documentElement.clientWidth / W;   // bez paska przewijania
+        s.style.transform = 'scale(' + k + ')';
+        wrap.style.height = (H * k) + 'px';
+      }
+      addEventListener('resize', fit); fit();
+    })();
+  <\/script>
+</body>
+</html>`;
+
+  // 6) Zbierz elementy do feedu (zdjęcia ORAZ filmy) i sprawdź profil.
+  const feedItems = state.items.filter(i => (i.type === "image" || i.type === "youtube") && i.feed);
+  const feedImageCount = feedItems.filter(i => i.type === "image").length;
+  const feedVideoCount = feedItems.filter(i => i.type === "youtube").length;
+  const profileSet = !!((profile.nick || (profile.name && profile.name.trim())) || profile.avatar);
+
+  const enc = new TextEncoder();
+  const files = [{ name: "index.html", data: enc.encode(doc) }];
+
+  // 6b) project.json — pełny edytowalny stan, żeby później wrócić do edycji
+  //     („Otwórz" w edytorze). NIE jest pokazywany oglądającym — index.html
+  //     zostaje czysty i lekki; ten plik to „źródło" projektu.
+  const projectJson = JSON.stringify(
+    { version: 1, bg: state.bg, items: state.items, profile }, null, 2);
+  files.push({ name: "project.json", data: enc.encode(projectJson) });
+
+  // 7) Profil → profile.json (+ avatar.jpg jako osobny lekki plik).
+  //    Folder w repo nadal decyduje o tożsamości; profil tylko ją wyświetla.
+  if (profileSet) {
+    const prof = { name: (profile.name || profile.nick || "").trim() };
+    if (profile.nick) prof.nick = profile.nick;
+    if (profile.avatar) {
+      prof.avatar = "avatar.jpg";
+      files.push({ name: "avatar.jpg", data: dataUrlToBytes(profile.avatar) });
+    }
+    files.push({ name: "profile.json", data: enc.encode(JSON.stringify(prof, null, 2)) });
+  }
+
+  // 8) Feed → feed.json. Zdjęcia zapisujemy jako osobne lekkie pliki
+  //    (feed-images/<nazwa>.jpg); filmy to tylko wpis z videoId (miniatura
+  //    i link bierze hub z YouTube). feed.json bez pola autora — autorstwo
+  //    wynika z folderu.
+  if (feedItems.length) {
+    const usedNames = new Set();
+    const feedEntries = [];
+    feedItems.forEach(it => {
+      if (it.type === "youtube") {
+        feedEntries.push({ type: "youtube", videoId: it.videoId,
+                           caption: it.caption || "", added: it.added || "" });
+        return;
+      }
+      const base = it.baseName || "obraz";
+      let name = base, n = 2;
+      while (usedNames.has(name)) name = base + "-" + (n++);
+      usedNames.add(name);
+      const path = "feed-images/" + name + ".jpg";
+      files.push({ name: path, data: dataUrlToBytes(it.src) });
+      feedEntries.push({ file: path, caption: it.caption || "", added: it.added || "" });
+    });
+    const feedJson = JSON.stringify(
+      { generated: new Date().toISOString(), items: feedEntries }, null, 2);
+    files.push({ name: "feed.json", data: enc.encode(feedJson) });
+  }
+
+  const zipName = exportZipBaseName() + ".zip";
+  downloadBlob(buildZip(files), zipName);
+
+  // Czytelna informacja, co powstało.
+  const inside = ["index.html (Twoja strona)", "project.json (do ponownej edycji)"];
+  if (profileSet) inside.push("profile.json" + (profile.avatar ? " + avatar.jpg" : ""));
+  if (feedItems.length) {
+    const parts = [];
+    if (feedImageCount) parts.push(feedImageCount + " obraz.");
+    if (feedVideoCount) parts.push(feedVideoCount + " film.");
+    inside.push("feed.json (" + parts.join(" + ") + " do feedu)");
+  }
+  toast("Pobrano " + zipName + " — w środku: " + inside.join(", ")
+      + (missing.length ? " · uwaga: część fontów pominięta" : "")
+      + ". Rozpakuj CAŁOŚĆ do swojego folderu w repo i wgraj na GitHub.", 9000);
+}
+document.getElementById("export").addEventListener("click", () => {
+  if (!profile.nick) { openWelcome(); return; }
+  exportPage();
+});
+
+// Modal „Jak opublikować?"
+const howModal = document.getElementById("how-modal");
+document.getElementById("help-btn").addEventListener("click", () => howModal.classList.add("show"));
+document.getElementById("how-close").addEventListener("click", () => howModal.classList.remove("show"));
+howModal.addEventListener("click", e => { if (e.target === howModal) howModal.classList.remove("show"); });
+
+// Modal „Twój profil" (nazwa + avatar)
+const profileModal  = document.getElementById("profile-modal");
+const profileNameIn = document.getElementById("profile-name");
+const avatarPreview = document.getElementById("avatar-preview");
+const avatarInput   = document.getElementById("avatar-input");
+const avatarRemoveBtn = document.getElementById("avatar-remove-btn");
+
+function renderAvatarPreview() {
+  if (profile.avatar) {
+    avatarPreview.innerHTML = "";
+    const img = document.createElement("img");
+    img.src = profile.avatar; img.alt = "";
+    avatarPreview.appendChild(img);
+    avatarRemoveBtn.style.display = "";
+  } else {
+    const base = (profile.name || "").trim();
+    avatarPreview.textContent = base ? base.charAt(0).toUpperCase() : "🙂";
+    avatarRemoveBtn.style.display = "none";
+  }
+}
+document.getElementById("profile-btn").addEventListener("click", () => {
+  profileNameIn.value = profile.name || "";
+  renderAvatarPreview();
+  profileModal.classList.add("show");
+});
+document.getElementById("profile-close").addEventListener("click", () => profileModal.classList.remove("show"));
+profileModal.addEventListener("click", e => { if (e.target === profileModal) profileModal.classList.remove("show"); });
+profileNameIn.addEventListener("input", () => {
+  profile.name = profileNameIn.value;
+  if (!profile.nick) profile.nick = normalizeNick(profileNameIn.value);
+  if (!profile.avatar) renderAvatarPreview();
+});
+
+// Modal powitalny — nick przed rozpoczęciem pracy
+const welcomeModal = document.getElementById("welcome-modal");
+const welcomeNickIn = document.getElementById("welcome-nick");
+const welcomeError  = document.getElementById("welcome-error");
+
+function openWelcome() {
+  welcomeNickIn.value = profile.nick || "";
+  welcomeError.style.display = "none";
+  welcomeModal.classList.add("show");
+  welcomeNickIn.focus();
+}
+
+function confirmWelcome() {
+  const nick = normalizeNick(welcomeNickIn.value);
+  if (!isValidNick(nick)) {
+    welcomeError.style.display = "block";
+    welcomeNickIn.focus();
+    return;
+  }
+  profile.nick = nick;
+  if (!profile.name.trim()) profile.name = nick;
+  profileNameIn.value = profile.name;
+  welcomeModal.classList.remove("show");
+  updatePageNick();
+  renderAvatarPreview();
+  toast("Witaj, @" + nick + " — możesz zacząć tworzyć!", 2800);
+}
+
+document.getElementById("welcome-start").addEventListener("click", confirmWelcome);
+welcomeNickIn.addEventListener("keydown", e => { if (e.key === "Enter") confirmWelcome(); });
+
+/* Strefy dodawania → te same akcje co w pasku u góry */
+dropzones.querySelectorAll(".dropzone").forEach(zone => {
+  zone.addEventListener("click", () => {
+    const action = zone.dataset.action;
+    if (action === "image") fileInput.click();
+    else if (action === "youtube") document.getElementById("add-youtube").click();
+  });
+});
+
+/* Klik w @nick → edycja profilu */
+pageNick.style.cursor = "pointer";
+pageNick.title = "Edit profile";
+pageNick.addEventListener("click", () => document.getElementById("profile-btn").click());
+
+/* Logo: Shift+klik → otwórz project.json */
+document.querySelector(".logo-link").addEventListener("click", e => {
+  if (e.shiftKey) { e.preventDefault(); document.getElementById("open-project-btn").click(); }
+});
+document.getElementById("avatar-upload-btn").addEventListener("click", () => avatarInput.click());
+avatarInput.addEventListener("change", async e => {
+  const f = e.target.files[0];
+  if (f) { profile.avatar = await fileToDownscaledJpeg(f, 256, 0.85); renderAvatarPreview(); }
+  avatarInput.value = "";
+});
+avatarRemoveBtn.addEventListener("click", () => { profile.avatar = null; renderAvatarPreview(); });
+
+/* ════════════════════════════════════════════════════════════════════
+   OTWIERANIE ZAPISANEGO PROJEKTU (project.json) — powrót do edycji.
+   ════════════════════════════════════════════════════════════════════ */
+const projectInput = document.getElementById("project-input");
+
+function loadProject(data) {
+  if (!data || !Array.isArray(data.items)) {
+    toast("To nie wygląda na plik projektu Dumpboard (project.json).", 4000);
+    return;
+  }
+  past = []; future = []; updateUndoButtons();   // świeża historia
+  state.bg = data.bg || "#0e0e0e";
+  state.items = data.items;
+  profile.nick = normalizeNick((data.profile && data.profile.nick) || (data.profile && data.profile.name) || "");
+  profile.name = (data.profile && data.profile.name) || profile.nick || "";
+  profile.avatar = (data.profile && data.profile.avatar) || null;
+  state.items.forEach(i => { if (i.type === "sticker" && i.src) cacheStickerSrc(i.src); });
+  if (!state.items.length) seedDemoSticker();
+  // licznik id ponad najwyższe wczytane, by uniknąć kolizji
+  uid = state.items.reduce((m, i) => Math.max(m, i.id || 0), 0) + 1;
+  selectedId = null;
+  // pobierz użyte fonty do cache, żeby eksport znów działał offline
+  [...new Set(state.items.filter(i => i.type === "text").map(i => i.fontFamily))]
+    .forEach(ensureFontCached);
+  render();
+  toast("Wczytano projekt — możesz edytować dalej i ponownie pobrać.", 5000);
+}
+
+document.getElementById("open-project-btn").addEventListener("click", () => {
+  if (state.items.length &&
+      !confirm("Otwarcie projektu zastąpi obecne płótno. Niezapisane zmiany przepadną. Kontynuować?")) {
+    return;
+  }
+  projectInput.click();
+});
+projectInput.addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (f) {
+    const r = new FileReader();
+    r.onload = () => {
+      try { loadProject(JSON.parse(r.result)); }
+      catch (err) { toast("Nie udało się odczytać pliku projektu.", 4000); }
+    };
+    r.readAsText(f);
+  }
+  projectInput.value = "";
+});
+
+// Modal „Dodaj film z YouTube"
+const ytModal = document.getElementById("yt-modal");
+const ytUrl   = document.getElementById("yt-url");
+const ytError = document.getElementById("yt-error");
+function closeYt() { ytModal.classList.remove("show"); }
+document.getElementById("add-youtube").addEventListener("click", () => {
+  ytUrl.value = ""; ytError.style.display = "none";
+  ytModal.classList.add("show");
+  ytUrl.focus();
+});
+function confirmYt() {
+  const id = parseYouTubeId(ytUrl.value);
+  if (!id) { ytError.style.display = "block"; return; }
+  closeYt();
+  addYouTube(id);
+}
+document.getElementById("yt-add").addEventListener("click", confirmYt);
+document.getElementById("yt-cancel").addEventListener("click", closeYt);
+ytModal.addEventListener("click", e => { if (e.target === ytModal) closeYt(); });
+ytUrl.addEventListener("keydown", e => { if (e.key === "Enter") confirmYt(); });
+
+/* Ostrzeżenie przed opuszczeniem edytora z niezapisaną pracą (powrót do
+   feedu, odświeżenie, zamknięcie karty). Stan żyje tylko w pamięci — bez
+   tego praca przepadłaby bez śladu. Pokazuje się tylko, gdy jest co tracić. */
+window.addEventListener("beforeunload", e => {
+  if (state.items.length || profile.nick || (profile.name && profile.name.trim()) || profile.avatar) {
+    e.preventDefault();
+    e.returnValue = "";   // wymusza natywne ostrzeżenie przeglądarki
+  }
+});
+
+/* ════════════════════════════════════════════════════════════════════
+   START — demo-naklejka Alf od razu na płótnie
+   ════════════════════════════════════════════════════════════════════ */
+seedDemoSticker();
+updateUndoButtons();
+render();
+if (!profile.nick) openWelcome();
+</script>
+</body>
+</html>

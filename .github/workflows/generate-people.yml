@@ -1,0 +1,62 @@
+name: Generuj people.json
+
+# Po każdym wgraniu zmian skanujemy foldery designerów i automatycznie
+# budujemy people.json. Dzięki temu, żeby pojawić się na hubie, wystarczy
+# utworzyć folder ze swoim nickiem i wgrać pliki — nic nie trzeba edytować ręcznie.
+#
+# UWAGA: ten workflow NADPISUJE people.json. Nie edytuj go ręcznie — zmieniaj
+# tylko foldery. Jeśli jakiś folder ma NIE być traktowany jako osoba, dopisz go
+# do listy EXCLUDE poniżej.
+
+on:
+  push:
+    branches: [main]      # zmień na swoją gałąź, jeśli inna
+  workflow_dispatch:       # pozwala też uruchomić ręcznie z zakładki Actions
+
+permissions:
+  contents: write          # potrzebne, by zapisać zaktualizowany people.json
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Zbuduj people.json z folderów osób
+        run: |
+          # Foldery, których NIE traktujemy jako osoby (hub, demo, zasoby itp.):
+          EXCLUDE="demo feed-images assets img images node_modules"
+
+          {
+            echo '{'
+            echo '  "people": ['
+            first=true
+            for dir in */; do
+              name="${dir%/}"
+              # pomiń foldery z listy wykluczeń
+              case " $EXCLUDE " in *" $name "*) continue ;; esac
+              # osoba = folder z własną stroną (index.html) lub feedem (feed.json)
+              if [ -f "$name/index.html" ] || [ -f "$name/feed.json" ]; then
+                if [ "$first" = true ]; then first=false; else echo ','; fi
+                printf '    { "nick": "%s", "folder": "%s" }' "$name" "$name"
+              fi
+            done
+            echo ''
+            echo '  ]'
+            echo '}'
+          } > people.json
+
+          echo "── Wygenerowany people.json ──"
+          cat people.json
+
+      - name: Zapisz zmiany (jeśli są)
+        run: |
+          if git diff --quiet -- people.json; then
+            echo "people.json bez zmian — nic do zapisania."
+          else
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add people.json
+            git commit -m "auto: aktualizacja people.json"
+            git push
+          fi
