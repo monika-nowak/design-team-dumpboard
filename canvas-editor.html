@@ -217,17 +217,22 @@
   }
   .mini-swatch:hover { border-color: rgba(255, 255, 255, 0.35); }
 
-  /* Custom color picker — dark popover (zamiast natywnego input[type=color]) */
+  /* ── Pop-up / modal glass (Figma 5:298) ─────────────────────────── */
+  .glass-surface {
+    background: rgba(14, 14, 14, 0.5);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+  }
+
+  /* Custom color picker — glass popover */
   #color-pop {
     position: fixed;
     z-index: 11000;
     display: none;
-    width: 272px;
-    padding: 12px;
-    background: #1a1a1a;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    box-shadow: var(--shadow);
+    width: 288px;
+    padding: 16px;
   }
   #color-pop.show { display: block; }
   .color-pop-sb-wrap {
@@ -280,19 +285,19 @@
   .color-pop-hex {
     flex: 1;
     min-width: 0;
-    height: 36px;
-    border: 1px solid var(--line);
+    height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.05);
     color: #fff;
     font: inherit;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
-    padding: 0 10px;
+    padding: 0 12px;
     text-transform: uppercase;
     outline: none;
   }
-  .color-pop-hex:focus { border-color: #6f93ff; }
+  .color-pop-hex:focus { border-color: rgba(255, 255, 255, 0.25); }
 
   #hidden-tools { display: none; }
 
@@ -726,11 +731,15 @@
 
   #sticker-pop {
     position: fixed;
-    background: #1a1a1a; border: 1px solid var(--line); border-radius: 16px;
-    box-shadow: var(--shadow); padding: 12px; z-index: 11000;
-    display: none; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px;
-    width: min(360px, calc(100vw - 24px)); max-height: 280px;
-    overflow-x: hidden; overflow-y: auto;
+    padding: 16px;
+    z-index: 11000;
+    display: none;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 8px;
+    width: min(380px, calc(100vw - 24px));
+    max-height: 300px;
+    overflow-x: hidden;
+    overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.28) transparent;
   }
@@ -742,12 +751,23 @@
   #sticker-pop::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.38); }
   #sticker-pop.show { display: grid; }
   #sticker-pop button {
-    border: 1px solid transparent; background: rgba(255,255,255,0.06);
-    border-radius: 10px; padding: 6px; cursor: pointer; aspect-ratio: 1;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px; line-height: 1; min-width: 0;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 6px;
+    cursor: pointer;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    line-height: 1;
+    min-width: 0;
   }
-  #sticker-pop button:hover { border-color: #6f93ff; background: rgba(111,147,255,0.15); }
+  #sticker-pop button:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+  }
   #sticker-pop button img { max-width: 100%; max-height: 36px; object-fit: contain; pointer-events: none; }
 
   #toast {
@@ -758,33 +778,113 @@
   }
   #toast.show { opacity: 1; }
 
-  /* Modale — ciemne tło overlay, jasna karta */
+  /* Modale — overlay + karta glass */
   .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 13000;
-    display: none; align-items: center; justify-content: center; padding: 20px;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 13000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
   }
   .modal-overlay.show { display: flex; }
+
   .modal {
-    background: #1a1a1a; color: #fff; border: 1px solid var(--line);
-    border-radius: 18px; box-shadow: var(--shadow);
-    max-width: 560px; width: 100%; padding: 28px; max-height: 90vh; overflow: auto;
+    position: relative;
+    color: #fff;
+    max-width: 600px;
+    width: 100%;
+    padding: 32px;
+    max-height: 90vh;
+    overflow: auto;
   }
-  .modal h2 { margin: 0 0 6px; font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
-  .modal .lead { color: var(--muted); margin: 0 0 18px; font-size: 14px; }
-  .modal ol { margin: 0; padding-left: 22px; }
-  .modal li { margin: 0 0 14px; line-height: 1.5; font-size: 14px; }
+  .modal:has(.pop-close) { padding-right: 72px; }
+  .modal h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+  .modal .lead {
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .modal .lead + .lead,
+  .modal .lead + ol,
+  .modal ol + .lead { margin-top: 16px; }
+  .modal ol {
+    margin: 16px 0 0;
+    padding-left: 22px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .modal li {
+    margin: 0 0 12px;
+    line-height: 1.5;
+    font-size: 16px;
+  }
+  .modal li:last-child { margin-bottom: 0; }
   .modal code {
-    background: rgba(255,255,255,0.1); border-radius: 6px; padding: 2px 7px;
-    font-family: monospace; font-size: 13px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-family: monospace;
+    font-size: 14px;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 32px;
   }
   .modal .btn {
-    appearance: none; border: 1px solid var(--line); background: var(--pill);
-    color: #fff; height: 40px; padding: 0 16px; border-radius: 999px;
-    font: inherit; font-weight: 600; font-size: 14px; cursor: pointer;
+    appearance: none;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    height: 43px;
+    padding: 12px 16px;
+    border-radius: 999px;
+    font: inherit;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
   }
-  .modal .btn.primary { background: #fff; color: #0e0e0e; border-color: #fff; }
+  .modal .btn:hover { background: rgba(255, 255, 255, 0.14); }
+  .modal .btn.primary {
+    background: #fff;
+    color: #0e0e0e;
+  }
+  .modal .btn.primary:hover { background: rgba(255, 255, 255, 0.88); }
 
-  .profile-row { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+  .pop-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .pop-close:hover { background: rgba(255, 255, 255, 0.14); }
+  .pop-close svg { width: 20px; height: 20px; display: block; }
+
+  .modal-form { margin-top: 24px; }
+  .profile-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
   .avatar-preview {
     width: 72px; height: 72px; border-radius: 50%; flex: 0 0 auto; overflow: hidden;
     background: rgba(255,255,255,0.15);
@@ -793,14 +893,39 @@
   }
   .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
   .profile-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .profile-label { display: block; font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
-  .profile-input {
-    width: 100%; height: 40px; border: 1px solid var(--line); border-radius: 10px;
-    padding: 0 12px; font: inherit; font-size: 14px;
-    background: rgba(255,255,255,0.06); color: #fff;
+  .profile-label {
+    display: block;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+    margin-bottom: 8px;
   }
-  .modal .field-hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; line-height: 1.4; }
-  .modal .field-error { font-size: 13px; color: #ff5470; margin: 8px 0 0; display: none; }
+  .profile-input {
+    width: 100%;
+    height: 48px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0 16px;
+    font: inherit;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    outline: none;
+  }
+  .profile-input:focus { border-color: rgba(255, 255, 255, 0.25); }
+  .profile-input::placeholder { color: rgba(255, 255, 255, 0.35); }
+  .modal .field-hint {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 8px 0 0;
+    line-height: 1.4;
+  }
+  .modal .field-error {
+    font-size: 14px;
+    color: #ff5470;
+    margin: 8px 0 0;
+    display: none;
+  }
 
   .hidden-input {
     position: fixed;
@@ -858,10 +983,10 @@
   <input type="file" id="project-input" class="hidden-input" accept=".json,application/json,text/json">
 
   <!-- Paleta naklejek (obrazki + emoji) -->
-  <div id="sticker-pop"></div>
+  <div id="sticker-pop" class="glass-surface"></div>
 
   <!-- Własny picker koloru (ciemny motyw) -->
-  <div id="color-pop" role="dialog" aria-label="Color picker">
+  <div id="color-pop" class="glass-surface" role="dialog" aria-label="Color picker">
     <div class="color-pop-sb-wrap">
       <canvas class="color-pop-sb" width="248" height="152" aria-hidden="true"></canvas>
       <div class="color-pop-cursor color-pop-cursor--sb" aria-hidden="true"></div>
@@ -939,7 +1064,10 @@
 
   <!-- Modal: how to publish -->
   <div class="modal-overlay" id="how-modal">
-    <div class="modal">
+    <div class="modal glass-surface">
+      <button type="button" class="pop-close" data-close-modal aria-label="Close">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </button>
       <h2>How to publish your page</h2>
       <p class="lead">Upload your finished page to your folder in this GitHub repo.
          No login on the site — your folder name is your identity.</p>
@@ -951,64 +1079,79 @@
         <li>On GitHub, open the <strong><code>people/</code></strong> folder and create a <strong>subfolder with your nick</strong>, e.g. <code>people/ania/</code>.</li>
         <li><strong>Upload</strong> everything from the ZIP into that folder (not the repo root!).</li>
       </ol>
-      <p class="lead" style="margin: 4px 0 12px">That's it — the people list updates automatically
+      <p class="lead">That's it — the people list updates automatically
          and you appear on the team feed. 🎉</p>
-      <p class="lead" style="margin: 0 0 18px">Want to change something later? On your published page,
+      <p class="lead">Want to change something later? On your published page,
          click <strong>Edit page</strong> — the editor opens with your work already loaded.
          Edit, download again, and replace the files on GitHub.</p>
-      <p class="lead" style="margin: 0 0 18px">Tip: set your display name and avatar in
+      <p class="lead">Tip: set your display name and avatar in
          <strong>Profile</strong> — they show up next to your feed posts.</p>
-      <button class="btn primary" id="how-close">Got it</button>
+      <div class="modal-actions">
+        <button class="btn primary" id="how-close">Got it</button>
+      </div>
     </div>
   </div>
 
   <!-- Modal: nick (before you start) -->
   <div class="modal-overlay" id="welcome-modal">
-    <div class="modal">
+    <div class="modal glass-surface">
       <h2>Let's start with you</h2>
       <p class="lead">What should we call you? This nick appears on your feed posts
          and is used as the download file name.</p>
-      <label class="profile-label" for="welcome-nick">Your nick</label>
-      <input type="text" id="welcome-nick" class="profile-input" maxlength="40"
-             placeholder="e.g. monika.nowak" autocomplete="username">
-      <p class="field-hint">No spaces — your GitHub folder: <code>people/your-nick/</code> (e.g. <code>people/monika.nowak/</code>).</p>
-      <p class="field-error" id="welcome-error">Enter a nick (min. 2 chars: letters, numbers, dot, hyphen).</p>
-      <button class="btn primary" id="welcome-start" style="margin-top:18px">Start creating</button>
+      <div class="modal-form">
+        <label class="profile-label" for="welcome-nick">Your nick</label>
+        <input type="text" id="welcome-nick" class="profile-input" maxlength="40"
+               placeholder="e.g. monika.nowak" autocomplete="username">
+        <p class="field-hint">No spaces — your GitHub folder: <code>people/your-nick/</code> (e.g. <code>people/monika.nowak/</code>).</p>
+        <p class="field-error" id="welcome-error">Enter a nick (min. 2 chars: letters, numbers, dot, hyphen).</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn primary" id="welcome-start">Start creating</button>
+      </div>
     </div>
   </div>
 
   <!-- Modal: profile (name + avatar) -->
   <div class="modal-overlay" id="profile-modal">
-    <div class="modal">
+    <div class="modal glass-surface">
+      <button type="button" class="pop-close" data-close-modal aria-label="Close">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </button>
       <h2>Your profile</h2>
       <p class="lead">Name and avatar appear next to your posts on the hub.
          Both are optional — otherwise we use your folder name and an initial.</p>
       <div class="profile-row">
         <div class="avatar-preview" id="avatar-preview"></div>
         <div class="profile-actions">
-          <button class="btn" id="avatar-upload-btn">Upload avatar</button>
-          <button class="btn" id="avatar-remove-btn" style="display:none">Remove</button>
+          <button class="btn" type="button" id="avatar-upload-btn">Upload avatar</button>
+          <button class="btn" type="button" id="avatar-remove-btn" style="display:none">Remove</button>
         </div>
       </div>
       <label class="profile-label" for="profile-name">Display name</label>
       <input type="text" id="profile-name" class="profile-input" maxlength="60" placeholder="e.g. monika.nowak">
-      <button class="btn primary" id="profile-close" style="margin-top:18px">Save</button>
+      <div class="modal-actions">
+        <button class="btn primary" id="profile-close">Save</button>
+      </div>
       <input type="file" id="avatar-input" class="hidden-input" accept="image/*">
     </div>
   </div>
 
   <!-- Modal: add YouTube video -->
   <div class="modal-overlay" id="yt-modal">
-    <div class="modal">
+    <div class="modal glass-surface">
+      <button type="button" class="pop-close" data-close-modal aria-label="Close">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </button>
       <h2>Add a YouTube video</h2>
       <p class="lead">Paste a video link (e.g. <code>youtu.be/…</code> or
          <code>youtube.com/watch?v=…</code>). It will appear in your media grid.
          Note: on your published page the video loads from YouTube, so it needs internet.</p>
-      <input type="text" id="yt-url" class="profile-input"
-             placeholder="https://www.youtube.com/watch?v=...">
-      <p id="yt-error" style="color:#ff5470;font-size:13px;margin:8px 0 0;display:none">
-        Could not recognize a YouTube link — check the URL.</p>
-      <div style="margin-top:18px;display:flex;gap:8px">
+      <div class="modal-form">
+        <input type="text" id="yt-url" class="profile-input"
+               placeholder="https://www.youtube.com/watch?v=...">
+        <p id="yt-error" class="field-error">Could not recognize a YouTube link — check the URL.</p>
+      </div>
+      <div class="modal-actions">
         <button class="btn primary" id="yt-add">Add video</button>
         <button class="btn" id="yt-cancel">Cancel</button>
       </div>
@@ -2877,6 +3020,12 @@ const howModal = document.getElementById("how-modal");
 document.getElementById("help-btn").addEventListener("click", () => howModal.classList.add("show"));
 document.getElementById("how-close").addEventListener("click", () => howModal.classList.remove("show"));
 howModal.addEventListener("click", e => { if (e.target === howModal) howModal.classList.remove("show"); });
+document.querySelectorAll("[data-close-modal]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const overlay = btn.closest(".modal-overlay");
+    if (overlay) overlay.classList.remove("show");
+  });
+});
 
 // Modal „Twój profil" (nazwa + avatar)
 const profileModal  = document.getElementById("profile-modal");
