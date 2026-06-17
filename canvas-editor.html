@@ -45,6 +45,13 @@
     --accent: #ffffff;
     --accent-handle: #ffffff;
     --line: rgba(255, 255, 255, 0.2);
+    /* Kolory treści na tle strony użytkownika — przełączane w applyPageBg() */
+    --page-fg: #ffffff;
+    --page-fg-muted: rgba(255, 255, 255, 0.8);
+    --page-fg-faint: rgba(255, 255, 255, 0.2);
+    --page-fg-placeholder: rgba(255, 255, 255, 0.4);
+    --page-surface: rgba(255, 255, 255, 0.05);
+    --page-icon-blend: lighten;
     --page-pad: 64px;
     --content-pad: 128px;
     --tools-pad: 64px;
@@ -65,18 +72,24 @@
 
   body { overflow-x: hidden; }
 
-  /* ── Górny pasek (Figma Nav: logo + Download) ─────────────────────── */
+  /* ── Górny pasek (Figma Nav 16:831 — 64px, pełna szerokość) ───────── */
   #site-nav {
     position: sticky;
     top: 0;
     z-index: 10000;
+    width: 100%;
+    height: 64px;
+    background: var(--bg);
+  }
+
+  .site-nav-inner {
+    max-width: 1440px;
+    height: 100%;
+    margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px var(--page-pad);
-    max-width: 1440px;
-    margin: 0 auto;
-    background: var(--bg);
+    padding: 0 var(--page-pad);
   }
 
   .logo-link {
@@ -148,6 +161,8 @@
 
   /* ── Wiersz narzędzi (Figma 16:858 — py 16, tools od x=64) ──────── */
   #editor-tools {
+    max-width: 1440px;
+    margin: 0 auto;
     padding: 16px var(--tools-pad);
     background: var(--bg);
   }
@@ -214,6 +229,15 @@
     padding: 12px 16px 12px 8px;
     gap: 12px;
   }
+  .tool-btn--pencil {
+    padding: 12px 16px 12px 8px;
+    gap: 8px;
+  }
+  .tool-btn--pencil .tool-swatch-wrap {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+  }
   .tool-swatch-wrap {
     width: 32px;
     height: 32px;
@@ -241,6 +265,16 @@
     flex-shrink: 0;
     display: block;
   }
+
+  /* Pionowa kreska między narzędziami ogólnymi a kontekstem zaznaczenia (Figma 10:606) */
+  .tool-divider {
+    width: 1px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+    align-self: center;
+  }
+  .tool-divider[hidden] { display: none; }
 
   .mini-swatch {
     width: 30px; height: 30px; border-radius: 8px; padding: 0;
@@ -335,13 +369,7 @@
 
   #hidden-tools { display: none; }
 
-  /* ── Jedna kolumna edytora (Figma: 1440, padding 64) ───────────── */
-  .editor-column {
-    max-width: 1440px;
-    margin: 0 auto;
-    width: 100%;
-  }
-
+  /* ── Jedna kolumna edytora — cały scroll w #page-scroll (sticky toolbar) */
   #page-scroll {
     position: relative;
     width: 100%;
@@ -352,6 +380,8 @@
     display: flex;
     align-items: center;
     gap: 24px;
+    max-width: 1440px;
+    margin: 0 auto;
     padding: 24px var(--page-pad);
     background: var(--bg);
     position: relative;
@@ -460,7 +490,7 @@
   .media-caption-text {
     font-size: 14px;
     line-height: 20px;
-    color: #fff;
+    color: var(--page-fg);
     opacity: 0.8;
     margin: 0;
     word-break: break-word;
@@ -472,7 +502,7 @@
     justify-content: space-between;
     gap: 8px;
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--page-surface);
     border-radius: 4px;
     padding: 12px 16px;
   }
@@ -481,13 +511,13 @@
     min-width: 0;
     border: none;
     background: transparent;
-    color: #fff;
+    color: var(--page-fg);
     font: inherit;
     font-size: 14px;
     line-height: 20px;
     outline: none;
   }
-  .media-caption-edit input::placeholder { color: #fff; opacity: 0.4; }
+  .media-caption-edit input::placeholder { color: var(--page-fg-placeholder); }
   .media-caption-save {
     appearance: none;
     border: none;
@@ -500,7 +530,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--page-fg);
   }
   .media-caption-save[hidden] { display: none; }
   .media-caption-save svg { display: block; width: 20px; height: 20px; }
@@ -519,13 +549,13 @@
     font: inherit;
     padding: 0;
   }
-  /* Obrys: white @ 20% jak w Figmie (stroke-opacity 0.2) */
+  /* Obrys: kontrast względem tła strony (applyPageBg ustawia --page-fg-faint) */
   .media-add::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: 24px;
-    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border: 1px dashed var(--page-fg-faint);
     pointer-events: none;
   }
   .media-add-inner {
@@ -549,7 +579,7 @@
   .media-add-option:hover { transform: scale(1.03); }
   .media-add-option img {
     display: block;
-    mix-blend-mode: lighten;
+    mix-blend-mode: var(--page-icon-blend);
     pointer-events: none;
   }
   .media-add-option--image img { width: 160px; height: 160px; }
@@ -557,7 +587,7 @@
   .media-add-divider {
     width: 1px;
     height: 100px;
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--page-fg-faint);
     flex-shrink: 0;
   }
 
@@ -596,11 +626,39 @@
     cursor: inherit;
   }
   .item.editing { cursor: text; }
+  .item.sticker {
+    overflow: hidden;
+    box-sizing: border-box;
+    aspect-ratio: 1;
+  }
   .item .sticker-body { line-height: 1; user-select: none; }
   .item.sticker img.sticker-img {
     display: block; width: 100%; height: 100%;
-    pointer-events: none; user-select: none; object-fit: contain;
+    pointer-events: none; user-select: none;
+    object-fit: cover; object-position: center center;
     border-radius: 0;
+  }
+  .item.draw {
+    overflow: visible;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .item.draw svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  #canvas-wrap.draw-mode {
+    pointer-events: auto;
+    cursor: crosshair;
+  }
+  #canvas-wrap.draw-mode .item {
+    pointer-events: none;
+  }
+  .tool-btn.is-active {
+    box-shadow: inset 0 0 0 1px rgba(255, 200, 100, 0.55);
   }
   /* Jednolite zaznaczenie dla WSZYSTKICH elementów (projekt z naklejki):
      niebieska ramka + 4 białe uchwyty w rogach (skalowanie) + uchwyt obrotu u góry. */
@@ -748,10 +806,10 @@
     padding: 16px;
     z-index: 11000;
     display: none;
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-    gap: 8px;
-    width: min(380px, calc(100vw - 24px));
-    max-height: 300px;
+    flex-direction: column;
+    gap: 12px;
+    width: min(480px, calc(100vw - 24px));
+    max-height: min(55vh, 420px);
     overflow-x: hidden;
     overflow-y: auto;
     scrollbar-width: thin;
@@ -763,7 +821,24 @@
     background: rgba(255,255,255,0.22); border-radius: 999px;
   }
   #sticker-pop::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.38); }
-  #sticker-pop.show { display: grid; }
+  #sticker-pop.show { display: flex; }
+  .sticker-pop-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.45);
+    margin: 0;
+    padding: 0 2px;
+  }
+  .sticker-pop-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+  }
+  @media (min-width: 520px) {
+    .sticker-pop-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  }
   #sticker-pop button {
     border: 1px solid transparent;
     background: rgba(255, 255, 255, 0.05);
@@ -782,7 +857,7 @@
     border-color: rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.1);
   }
-  #sticker-pop button img { max-width: 100%; max-height: 36px; object-fit: contain; pointer-events: none; }
+  #sticker-pop button img { max-width: 100%; max-height: 44px; object-fit: contain; pointer-events: none; }
 
   #toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -974,7 +1049,8 @@
 
   @media (max-width: 900px) {
     :root { --page-pad: 24px; --content-pad: 24px; --tools-pad: 24px; }
-    #site-nav { padding: 16px var(--page-pad); }
+    #site-nav { height: 64px; }
+    .site-nav-inner { padding: 0 var(--page-pad); }
     #profile-header { padding: 24px var(--page-pad); }
     #editor-tools { padding: 16px var(--tools-pad); }
     .page-main { padding-bottom: 24px; }
@@ -993,6 +1069,7 @@
 
   <!-- ═══════════════ GÓRNY NAV + NARZĘDZIA (Figma 6:382) ═══════════════ -->
   <header id="site-nav">
+    <div class="site-nav-inner">
     <a class="logo-link" href="index.html" aria-label="Dumpboard" title="Back to feed">
       <img src="assets/landing/logo.svg" alt="">
     </a>
@@ -1005,6 +1082,7 @@
         <img src="assets/icons/tool-download.svg" alt="">
         <span>Download</span>
       </button>
+    </div>
     </div>
   </header>
 
@@ -1039,7 +1117,6 @@
   </div>
 
   <!-- ═══════════════ STRONA EDYTORA ═══════════════ -->
-  <div class="editor-column">
   <div id="page-scroll">
     <div id="profile-header">
       <button type="button" id="header-avatar" class="profile-avatar-btn" title="Edit profile"></button>
@@ -1063,6 +1140,15 @@
           <img src="assets/icons/tool-text.svg" class="tool-icon" alt="">
           <span>Text</span>
         </button>
+        <button type="button" class="tool-btn tool-btn--pencil" id="pencil-tool" title="Draw on the page">
+          <img src="assets/icons/tool-pencil.svg" class="tool-icon" alt="">
+          <span class="tool-swatch-wrap" title="Pencil color">
+            <span class="tool-swatch" id="pencil-swatch" aria-hidden="true"></span>
+          </span>
+          <span>Pencil</span>
+        </button>
+
+        <span class="tool-divider" id="toolbar-divider" aria-hidden="true" hidden></span>
 
         <div id="toolbar-context">
           <div class="tb-group" id="insp-text" style="display:none">
@@ -1081,24 +1167,30 @@
             <button type="button" class="ctx-btn" id="sticker-swap-btn">Change sticker</button>
           </div>
 
+          <div class="tb-group" id="insp-draw" style="display:none">
+            <button type="button" class="ctx-swatch-btn" id="draw-swatch" title="Stroke color" aria-label="Stroke color">
+              <span class="mini-swatch" aria-hidden="true"></span>
+            </button>
+          </div>
+
           <button type="button" class="ctx-btn ctx-btn--danger" id="del-selected">Delete</button>
         </div>
       </div>
     </div>
+    </div>
+
     <div class="page-main-lead" aria-hidden="true"></div>
-    </div>
-  </div>
-  </div>
 
-  <section class="page-main" aria-label="Page content">
-    <div class="page-main-inner">
-      <div id="media-grid" aria-label="Media"></div>
+    <section class="page-main" aria-label="Page content">
+      <div class="page-main-inner">
+        <div id="media-grid" aria-label="Media"></div>
 
-      <div id="canvas-wrap" class="is-empty">
-        <div id="canvas"></div>
+        <div id="canvas-wrap" class="is-empty">
+          <div id="canvas"></div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 
   <div id="toast"></div>
 
@@ -1215,12 +1307,30 @@ const FONT_GROUPS = [
   { label: "Handwritten", fonts: ["Caveat","Shadows Into Light","Permanent Marker","Pacifico","Gloria Hallelujah","Patrick Hand"] },
 ];
 
-/* Biblioteka naklejek — obrazki + emoji (picker przy dodawaniu i zamianie) */
+/* Naklejki — Alf (repo) + osadzone assety obrazów z Figmy 16:976 (bez obróbki).
+   W Figmie każda naklejka siedzi w kwadratowej ramce; obrazek jest wycentrowany (contain). */
+const FIGMA_STICKERS = [
+  { id: "alf",          label: "Alf",          src: "assets/stickers/alf.png",          frame: 200 },
+  { id: "dog-meme",     label: "Dog",          src: "assets/stickers/dog-meme.png",     frame: 250 },
+  { id: "rainbow",      label: "Rainbow",      src: "assets/stickers/rainbow.svg",      frame: 200 },
+  { id: "alien",        label: "Alien",        src: "assets/stickers/alien.png",        frame: 250 },
+  { id: "pink-cat-car", label: "Cat car",      src: "assets/stickers/pink-cat-car.png", frame: 250 },
+  { id: "butterfly",    label: "Butterfly",    src: "assets/stickers/butterfly.png",    frame: 250 },
+  { id: "bomb",         label: "Bomb",         src: "assets/stickers/bomb.png",         frame: 198 },
+  { id: "chihuahua",    label: "Chihuahua",    src: "assets/stickers/chihuahua.png",    frame: 250 },
+  { id: "hoodie-dog",   label: "Hoodie dog",   src: "assets/stickers/hoodie-dog.png",   frame: 250 },
+  { id: "horse",        label: "Horse",        src: "assets/stickers/horse.png",        frame: 250 },
+  { id: "why-u-no",     label: "Why u no",     src: "assets/stickers/why-u-no.png",     frame: 250 },
+  { id: "cat",          label: "Cat",          src: "assets/stickers/cat.png",          frame: 250 },
+  { id: "adam-sandler", label: "Adam Sandler", src: "assets/stickers/adam-sandler.png", frame: 250 },
+  { id: "orangutan",    label: "Orangutan",    src: "assets/stickers/orangutan.png",    frame: 250 },
+];
+/* Emoji — ogólny zestaw „na szybko” (nie z Figmy); reakcje, strzałki, jedzenie, zwierzęta */
 const EMOJIS = ["⭐","❤️","🔥","✨","👍","🎉","💡","✅","❓","💬","📌","🚀","🌟","😀","😎","🙌",
                 "👏","💪","🎨","📷","🏆","⚡","🌈","💯","➡️","⬅️","⬆️","⬇️","✔️","✏️","🔵","🟢",
                 "🍕","🍩","☕","🌸","🦋","🐱","🐶","🦄","🎵","🎬","📚","💻","🛸","👀","💜","🖤","🤍"];
 const STICKER_LIBRARY = [
-  { id: "alf", kind: "image", src: "assets/stickers/alf.png", w: 245, h: 200 },
+  ...FIGMA_STICKERS.map(s => ({ ...s, kind: "image" })),
   ...EMOJIS.map((char, i) => ({ id: "e" + i, kind: "emoji", char })),
 ];
 const stickerSrcCache = {};   // ścieżka → dataURL (do eksportu offline)
@@ -1259,6 +1369,7 @@ const pageMainInner = document.querySelector(".page-main-inner");
 const pageNick  = document.getElementById("page-nick");
 const headerAvatar = document.getElementById("header-avatar");
 const toolbarCtx = document.getElementById("toolbar-context");
+const toolbarDivider = document.getElementById("toolbar-divider");
 const inspText   = document.getElementById("insp-text");
 const fontSelect = document.getElementById("font-select");
 const fontSizeIn = document.getElementById("font-size");
@@ -1272,6 +1383,17 @@ const fileInput  = document.getElementById("file-input");
 const stickerPop   = document.getElementById("sticker-pop");
 const toastEl    = document.getElementById("toast");
 const inspSticker = document.getElementById("insp-sticker");
+const pencilTool = document.getElementById("pencil-tool");
+const pencilSwatch = document.getElementById("pencil-swatch");
+const inspDraw = document.getElementById("insp-draw");
+const drawSwatch = document.getElementById("draw-swatch");
+const drawSwatchFill = drawSwatch ? drawSwatch.querySelector(".mini-swatch") : null;
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+let pencilMode = false;
+let pencilColor = "#ffffff";
+const PENCIL_WIDTH = 4;
+let activeStroke = null;
 
 /* Ikony placeholdera — assety z Figmy (mix-blend-lighten na ciemnym tle) */
 const ASSET_ADD_IMAGE = "assets/icons/media-add-image.png";
@@ -1401,8 +1523,37 @@ function normalizeLegacyMedia() {
   });
 }
 
+function colorLuminance(hex) {
+  const c = parseHexColor(hex);
+  if (!c) return 0;
+  const ch = [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16) / 255);
+  const lin = v => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+  return 0.2126 * lin(ch[0]) + 0.7152 * lin(ch[1]) + 0.0722 * lin(ch[2]);
+}
+
+function isLightPageBg(hex) {
+  return colorLuminance(hex) > 0.55;
+}
+
 function applyPageBg() {
   document.documentElement.style.setProperty("--user-page-bg", state.bg);
+  const light = isLightPageBg(state.bg);
+  const root = document.documentElement.style;
+  if (light) {
+    root.setProperty("--page-fg", "#1f1d2b");
+    root.setProperty("--page-fg-muted", "rgba(31, 29, 43, 0.8)");
+    root.setProperty("--page-fg-faint", "rgba(31, 29, 43, 0.22)");
+    root.setProperty("--page-fg-placeholder", "rgba(31, 29, 43, 0.35)");
+    root.setProperty("--page-surface", "rgba(0, 0, 0, 0.05)");
+    root.setProperty("--page-icon-blend", "multiply");
+  } else {
+    root.setProperty("--page-fg", "#ffffff");
+    root.setProperty("--page-fg-muted", "rgba(255, 255, 255, 0.8)");
+    root.setProperty("--page-fg-faint", "rgba(255, 255, 255, 0.2)");
+    root.setProperty("--page-fg-placeholder", "rgba(255, 255, 255, 0.4)");
+    root.setProperty("--page-surface", "rgba(255, 255, 255, 0.05)");
+    root.setProperty("--page-icon-blend", "lighten");
+  }
   if (pageScroll) pageScroll.style.removeProperty("background");
   document.body.style.removeProperty("background");
 }
@@ -1414,14 +1565,67 @@ function syncCanvasHeight() {
     if (!h) {
       const el = canvas.querySelector(`.item[data-id="${it.id}"]`);
       if (el) h = el.offsetHeight;
+      else if (it.type === "draw") h = strokeBounds(it.points || [], it.width || PENCIL_WIDTH).h;
       else h = it.type === "text" ? (it.fontSize || 40) * 1.5 : (it.fontSize || (it.src ? 200 : 80));
     }
     const bottom = (it.y || 0) + h + 80;
     if (bottom > maxY) maxY = bottom;
   });
   const pageH = pageMain ? pageMain.offsetHeight : (pageScroll ? pageScroll.offsetHeight : 800);
-  canvas.style.minHeight = Math.max(maxY, pageH) + "px";
-  if (canvasWrap) canvasWrap.classList.toggle("is-empty", !state.items.some(isCanvasItem));
+  canvas.style.minHeight = Math.max(maxY, pageH, pencilMode ? window.innerHeight : 0) + "px";
+  if (canvasWrap) canvasWrap.classList.toggle("is-empty", !state.items.some(isCanvasItem) && !pencilMode);
+}
+
+function canvasPointFromEvent(e) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+function strokeBounds(points, width = PENCIL_WIDTH) {
+  if (!points || !points.length) return { x: 0, y: 0, w: 1, h: 1 };
+  const pad = width / 2 + 1;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  points.forEach(p => {
+    minX = Math.min(minX, p.x);
+    minY = Math.min(minY, p.y);
+    maxX = Math.max(maxX, p.x);
+    maxY = Math.max(maxY, p.y);
+  });
+  return {
+    x: minX - pad,
+    y: minY - pad,
+    w: Math.max(1, maxX - minX + pad * 2),
+    h: Math.max(1, maxY - minY + pad * 2),
+  };
+}
+
+function strokePathD(points, ox, oy) {
+  if (!points || !points.length) return "";
+  let d = `M ${(points[0].x - ox).toFixed(1)} ${(points[0].y - oy).toFixed(1)}`;
+  for (let i = 1; i < points.length; i++) {
+    d += ` L ${(points[i].x - ox).toFixed(1)} ${(points[i].y - oy).toFixed(1)}`;
+  }
+  return d;
+}
+
+function finalizeStrokeItem(item) {
+  const b = strokeBounds(item.points, item.width || PENCIL_WIDTH);
+  item.x = b.x;
+  item.y = b.y;
+  item.w = b.w;
+  item.h = b.h;
+}
+
+function setPencilMode(on) {
+  pencilMode = !!on;
+  if (pencilTool) pencilTool.classList.toggle("is-active", pencilMode);
+  if (canvasWrap) canvasWrap.classList.toggle("draw-mode", pencilMode);
+  if (pencilMode) {
+    selectedId = null;
+    closeStickerPop();
+    closeColorPicker();
+  }
+  syncCanvasHeight();
 }
 
 function renderMediaGrid() {
@@ -1529,9 +1733,10 @@ function deselectOutside(e) {
 function seedDemoSticker() {
   if (state.items.some(i => i.demo)) return;
   const alf = STICKER_LIBRARY[0];
+  const size = stickerFrameSize(alf);
   state.items.push({
     id: uid++, type: "sticker", demo: true,
-    stickerId: alf.id, src: alf.src, w: alf.w, h: alf.h,
+    stickerId: alf.id, src: alf.src, w: size, h: size,
     // róg pustej tablicy, nad wyśrodkowanym napisem placeholdera — lekko przekrzywiona
     x: 520, y: 36, rot: -6,
   });
@@ -1542,6 +1747,24 @@ function stickerEntry(id) {
   return STICKER_LIBRARY.find(s => s.id === id) || null;
 }
 
+/** Rozmiar kwadratowej ramki naklejki (jak w Figmie). */
+function stickerFrameSize(entry, item) {
+  if (entry?.frame) return entry.frame;
+  if (item?.w && item?.h) return Math.max(item.w, item.h);
+  return 250;
+}
+
+/** Stare projekty mogły mieć w/h z przyciętego PNG — normalizuj do kwadratu. */
+function normalizeStickerSquare(item) {
+  if (item.type !== "sticker" || !item.src) return;
+  const entry = stickerEntry(item.stickerId);
+  const frame = stickerFrameSize(entry, item);
+  if (!item.w || !item.h || item.w !== item.h) {
+    item.w = frame;
+    item.h = frame;
+  }
+}
+
 async function cacheStickerSrc(path) {
   if (!path || path.startsWith("data:") || stickerSrcCache[path]) return stickerSrcCache[path];
   try {
@@ -1549,7 +1772,9 @@ async function cacheStickerSrc(path) {
     const bytes = new Uint8Array(buf);
     let bin = "";
     for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    const mime = path.endsWith(".png") ? "image/png" : "image/jpeg";
+    const mime = path.endsWith(".png") ? "image/png"
+      : path.endsWith(".svg") ? "image/svg+xml"
+      : "image/jpeg";
     stickerSrcCache[path] = "data:" + mime + ";base64," + btoa(bin);
   } catch (err) {
     console.warn("Nie udało się zbuforować naklejki:", path, err);
@@ -1579,9 +1804,10 @@ function applyStickerEntry(item, entry) {
   // jako „prawdziwa treść"; placeholdery znikają dopiero po dodaniu obrazka/tekstu/filmu
   // lub nowej naklejki z paska narzędzi.
   if (entry.kind === "image") {
+    const size = stickerFrameSize(entry, item);
     item.src = entry.src;
-    item.w = entry.w;
-    item.h = entry.h;
+    item.w = size;
+    item.h = size;
     delete item.char;
     delete item.fontSize;
     cacheStickerSrc(entry.src);
@@ -1597,7 +1823,8 @@ function applyStickerEntry(item, entry) {
 function addStickerFromLib(entry) {
   pushUndo();
   const c = viewportDropPoint();
-  const item = { id: uid++, type: "sticker", stickerId: entry.id, x: c.x - 60, y: c.y - 60, rot: 0 };
+  const size = stickerFrameSize(entry);
+  const item = { id: uid++, type: "sticker", stickerId: entry.id, x: c.x - size / 2, y: c.y - size / 2, rot: 0 };
   applyStickerEntry(item, entry);
   state.items.push(item);
   selectedId = item.id;
@@ -1628,6 +1855,7 @@ function loadSnapshot(json) {
   state.bg = data.bg;
   state.items = data.items;
   selectedId = null;
+  setPencilMode(false);
   render();
 }
 function undo() {
@@ -1651,6 +1879,7 @@ function updateUndoButtons() {
    DODAWANIE ELEMENTÓW
    ════════════════════════════════════════════════════════════════════ */
 function addText() {
+  setPencilMode(false);
   pushUndo();
   const c = viewportDropPoint();
   const item = {
@@ -1771,6 +2000,7 @@ function handleImageFile(file) {
    ════════════════════════════════════════════════════════════════════ */
 function render() {
   updateSwatch(bgSwatch, state.bg);
+  if (pencilSwatch) updateSwatch(pencilSwatch, pencilColor);
   applyPageBg();
 
   [...canvas.querySelectorAll(".item, .guide")].forEach(el => el.remove());
@@ -1787,7 +2017,7 @@ function render() {
     el.style.left = item.x + "px";
     el.style.top = item.y + "px";
     el.style.zIndex = index + 1;
-    el.style.transform = `rotate(${item.rot}deg)`;
+    el.style.transform = item.type === "draw" ? "" : `rotate(${item.rot}deg)`;
 
     if (item.type === "text") {
       const body = document.createElement("div");
@@ -1814,6 +2044,7 @@ function render() {
       el.appendChild(img);
     } else if (item.type === "sticker") {
       el.classList.add("sticker");
+      normalizeStickerSquare(item);
       if (item.src) {
         el.style.width = item.w + "px";
         el.style.height = item.h + "px";
@@ -1829,6 +2060,26 @@ function render() {
         body.textContent = item.char;
         el.appendChild(body);
       }
+    } else if (item.type === "draw") {
+      if (!item.points || item.points.length < 2) return;
+      if (!item.w || !item.h) finalizeStrokeItem(item);
+      el.classList.add("draw");
+      el.style.left = item.x + "px";
+      el.style.top = item.y + "px";
+      el.style.width = item.w + "px";
+      el.style.height = item.h + "px";
+      el.style.transform = "";
+      const svg = document.createElementNS(SVG_NS, "svg");
+      svg.setAttribute("viewBox", `0 0 ${item.w} ${item.h}`);
+      const path = document.createElementNS(SVG_NS, "path");
+      path.setAttribute("d", strokePathD(item.points, item.x, item.y));
+      path.setAttribute("stroke", item.color || "#fff");
+      path.setAttribute("stroke-width", String(item.width || PENCIL_WIDTH));
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linejoin", "round");
+      svg.appendChild(path);
+      el.appendChild(svg);
     } else if (item.type === "youtube") {
       el.style.width = item.w + "px";
       el.style.height = item.h + "px";
@@ -1851,6 +2102,7 @@ function render() {
       if (item.type === "image" || item.type === "youtube") frame.style.borderRadius = "16px";
       el.appendChild(frame);
 
+      if (item.type !== "draw") {
       ["tl", "tr", "bl", "br"].forEach(corner => {
         const ch = document.createElement("div");
         ch.className = "corner-handle " + corner;
@@ -1867,6 +2119,7 @@ function render() {
       rotate.title = "Drag to rotate (Shift = 15° steps)";
       rotate.addEventListener("mousedown", e => startRotate(e, item));
       el.appendChild(rotate);
+      }
     }
 
     canvas.appendChild(el);
@@ -1886,15 +2139,19 @@ function syncInspector() {
   const item = selectedItem();
   if (!item) {
     toolbarCtx.classList.remove("show");
+    toolbarDivider.hidden = true;
     inspText.style.display = "none";
     inspSticker.style.display = "none";
+    if (inspDraw) inspDraw.style.display = "none";
     return;
   }
   toolbarCtx.classList.add("show");
+  toolbarDivider.hidden = false;
 
   if (isMediaItem(item)) {
     inspText.style.display = "none";
     inspSticker.style.display = "none";
+    if (inspDraw) inspDraw.style.display = "none";
     return;
   }
 
@@ -1908,12 +2165,21 @@ function syncInspector() {
     inspText.style.display = "none";
   }
   inspSticker.style.display = item.type === "sticker" ? "flex" : "none";
+  if (inspDraw) {
+    inspDraw.style.display = item.type === "draw" ? "flex" : "none";
+    if (item.type === "draw" && drawSwatchFill) updateSwatch(drawSwatchFill, item.color || "#fff");
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════════
    ZAZNACZANIE + WARSTWY (kliknięty element → na wierzch)
    ════════════════════════════════════════════════════════════════════ */
 function selectItem(id, bringToFront = true) {
+  if (pencilMode) {
+    pencilMode = false;
+    pencilTool?.classList.remove("is-active");
+    canvasWrap?.classList.remove("draw-mode");
+  }
   selectedId = id;
   const item = state.items.find(i => i.id === id);
   if (bringToFront && item && isCanvasItem(item)) {
@@ -1947,6 +2213,9 @@ function elBox(item) {
   const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
   if (item.type === "sticker" && item.src) {
     return { w: item.w || 80, h: item.h || 80 };
+  }
+  if (item.type === "draw") {
+    return { w: item.w || 1, h: item.h || 1 };
   }
   const w = item.w || (el ? el.offsetWidth : 0);
   const h = item.h || (el ? el.offsetHeight : 0);
@@ -2035,12 +2304,13 @@ function startCornerResize(e, item, corner) {
   const origX = item.x, origY = item.y;
   const hasBox = item.type === "image" || item.type === "youtube"
               || (item.type === "sticker" && !!item.src);
+  const isStickerImg = item.type === "sticker" && !!item.src;
   const isText = item.type === "text";
   const startW = hasBox ? item.w
     : isText ? (item.w || el.offsetWidth)
     : el.offsetWidth;
   const startH = hasBox ? item.h : el.offsetHeight;
-  const ratio = startH / startW;
+  const ratio = isStickerImg ? 1 : (startH / startW);
   const startFont = item.fontSize || 80;
 
   function onMove(ev) {
@@ -2137,10 +2407,68 @@ function startEditText(item, el) {
   body.addEventListener("blur", finish);
 }
 
+function startPencilStroke(e) {
+  pushUndo();
+  const pt = canvasPointFromEvent(e);
+  const item = {
+    id: uid++,
+    type: "draw",
+    color: pencilColor,
+    width: PENCIL_WIDTH,
+    points: [pt],
+  };
+  state.items.push(item);
+  activeStroke = item;
+
+  function onMove(ev) {
+    const p = canvasPointFromEvent(ev);
+    const last = item.points[item.points.length - 1];
+    if (Math.hypot(p.x - last.x, p.y - last.y) < 1.5) return;
+    item.points.push(p);
+    finalizeStrokeItem(item);
+    const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
+    if (el) {
+      el.style.left = item.x + "px";
+      el.style.top = item.y + "px";
+      el.style.width = item.w + "px";
+      el.style.height = item.h + "px";
+      const svg = el.querySelector("svg");
+      if (svg) svg.setAttribute("viewBox", `0 0 ${item.w} ${item.h}`);
+      const path = el.querySelector("path");
+      if (path) path.setAttribute("d", strokePathD(item.points, item.x, item.y));
+      else render();
+    } else {
+      render();
+    }
+    syncCanvasHeight();
+  }
+  function onUp() {
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+    activeStroke = null;
+    if (item.points.length < 2) {
+      state.items = state.items.filter(i => i.id !== item.id);
+    } else {
+      finalizeStrokeItem(item);
+    }
+    render();
+    syncCanvasHeight();
+  }
+  render();
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+}
+
 /* ════════════════════════════════════════════════════════════════════
    OBSŁUGA ZDARZEŃ NA PŁÓTNIE (delegacja)
    ════════════════════════════════════════════════════════════════════ */
 canvas.addEventListener("mousedown", e => {
+  if (pencilMode && e.button === 0
+      && !e.target.closest(".corner-handle") && !e.target.closest(".rotate-handle")) {
+    e.preventDefault();
+    startPencilStroke(e);
+    return;
+  }
   const el = e.target.closest(".item");
   // klik w pustą część płótna → odznacz
   if (!el) { if (selectedId !== null) deselect(); return; }
@@ -2186,16 +2514,57 @@ fileInput.addEventListener("change", e => {
   fileInput.value = "";    // pozwól wgrać ten sam plik ponownie
 });
 
-function openStickerPop(anchorEl) {
-  const r = anchorEl.getBoundingClientRect();
-  stickerPop.style.left = Math.min(r.left, window.innerWidth - 380) + "px";
-  stickerPop.style.top = (r.bottom + 8) + "px";
-  stickerPop.classList.add("show");
+function positionAnchorPop(anchor, pop, opts = {}) {
+  if (!anchor || !pop) return;
+  const r = anchor.getBoundingClientRect();
+  if (opts.width) pop.style.width = opts.width + "px";
+  const pw = opts.width || pop.offsetWidth || 272;
+  if (opts.maxHeight) pop.style.maxHeight = opts.maxHeight + "px";
+  const limitH = opts.maxHeight || pop.offsetHeight || 240;
+  let left = Math.max(12, Math.min(r.left, window.innerWidth - pw - 12));
+  let top = r.bottom + 8;
+  if (top + limitH > window.innerHeight - 12) {
+    top = Math.max(12, r.top - limitH - 8);
+  }
+  pop.style.left = left + "px";
+  pop.style.top = top + "px";
 }
 
+let stickerAnchor = null;
+
+function openStickerPop(anchorEl) {
+  stickerAnchor = anchorEl;
+  const popW = Math.min(480, window.innerWidth - 24);
+  const maxH = Math.min(Math.round(window.innerHeight * 0.55), 420);
+  stickerPop.classList.add("show");
+  positionAnchorPop(anchorEl, stickerPop, { width: popW, maxHeight: maxH });
+  stickerPop.scrollTop = 0;
+}
+
+function closeStickerPop() {
+  stickerPop.classList.remove("show");
+  stickerAnchor = null;
+  stickerSwapTarget = null;
+}
+
+function repositionOpenPops() {
+  if (colorPop.classList.contains("show") && cpAnchor) {
+    positionAnchorPop(cpAnchor, colorPop);
+  }
+  if (stickerPop.classList.contains("show") && stickerAnchor) {
+    const popW = Math.min(480, window.innerWidth - 24);
+    const maxH = Math.min(Math.round(window.innerHeight * 0.55), 420);
+    positionAnchorPop(stickerAnchor, stickerPop, { width: popW, maxHeight: maxH });
+  }
+}
+
+window.addEventListener("scroll", repositionOpenPops, { passive: true, capture: true });
+window.addEventListener("resize", repositionOpenPops, { passive: true });
+
 document.getElementById("add-sticker").addEventListener("click", e => {
+  setPencilMode(false);
   if (stickerPop.classList.contains("show") && !stickerSwapTarget) {
-    stickerPop.classList.remove("show");
+    closeStickerPop();
     return;
   }
   stickerSwapTarget = null;
@@ -2203,30 +2572,49 @@ document.getElementById("add-sticker").addEventListener("click", e => {
 });
 
 function pickSticker(entry) {
-  stickerPop.classList.remove("show");
-  if (stickerSwapTarget != null) {
-    const item = state.items.find(i => i.id === stickerSwapTarget);
-    stickerSwapTarget = null;
+  const swapId = stickerSwapTarget;
+  closeStickerPop();
+  if (swapId != null) {
+    const item = state.items.find(i => i.id === swapId);
     if (item) swapSticker(item, entry);
   } else {
     addStickerFromLib(entry);
   }
 }
 
-STICKER_LIBRARY.forEach(entry => {
+function makeStickerBtn(entry) {
   const b = document.createElement("button");
   b.type = "button";
+  b.title = entry.label || entry.char || entry.id;
   if (entry.kind === "image") {
     const img = document.createElement("img");
     img.src = entry.src;
-    img.alt = "";
+    img.alt = entry.label || "";
     b.appendChild(img);
   } else {
     b.textContent = entry.char;
   }
   b.addEventListener("click", () => pickSticker(entry));
-  stickerPop.appendChild(b);
-});
+  return b;
+}
+
+function buildStickerPop() {
+  stickerPop.innerHTML = "";
+  const images = STICKER_LIBRARY.filter(s => s.kind === "image");
+  const emojis = STICKER_LIBRARY.filter(s => s.kind === "emoji");
+
+  [["Stickers", images], ["Emoji", emojis]].forEach(([title, entries]) => {
+    const heading = document.createElement("p");
+    heading.className = "sticker-pop-section-title";
+    heading.textContent = title;
+    stickerPop.appendChild(heading);
+    const grid = document.createElement("div");
+    grid.className = "sticker-pop-grid";
+    entries.forEach(entry => grid.appendChild(makeStickerBtn(entry)));
+    stickerPop.appendChild(grid);
+  });
+}
+buildStickerPop();
 
 document.getElementById("sticker-swap-btn").addEventListener("click", e => {
   const item = selectedItem();
@@ -2243,8 +2631,7 @@ document.addEventListener("mousedown", e => {
   if (!stickerPop.contains(e.target) && e.target.id !== "add-sticker"
       && !e.target.closest("#add-sticker") && e.target.id !== "sticker-swap-btn"
       && !e.target.closest("#sticker-swap-btn")) {
-    stickerPop.classList.remove("show");
-    stickerSwapTarget = null;
+    closeStickerPop();
   }
 });
 
@@ -2380,14 +2767,7 @@ function emitCpInput() {
 }
 
 function positionColorPop(anchor) {
-  const r = anchor.getBoundingClientRect();
-  const pw = colorPop.offsetWidth || 272;
-  const ph = colorPop.offsetHeight || 240;
-  let left = Math.min(Math.max(12, r.left), window.innerWidth - pw - 12);
-  let top = r.bottom + 8;
-  if (top + ph > window.innerHeight - 12) top = Math.max(12, r.top - ph - 8);
-  colorPop.style.left = left + "px";
-  colorPop.style.top = top + "px";
+  positionAnchorPop(anchor, colorPop);
 }
 
 function openColorPicker({ anchor, value, onInput, onCommit }) {
@@ -2484,6 +2864,43 @@ bgTool.addEventListener("click", e => {
     onCommit() {},
   });
 });
+
+if (pencilTool) {
+  pencilTool.addEventListener("click", e => {
+    if (e.target.closest(".tool-swatch-wrap")) {
+      openColorPicker({
+        anchor: pencilTool,
+        value: pencilColor,
+        onInput(hex) {
+          pencilColor = hex;
+          updateSwatch(pencilSwatch, hex);
+        },
+        onCommit() {},
+      });
+      return;
+    }
+    setPencilMode(!pencilMode);
+    render();
+  });
+}
+
+if (drawSwatch) {
+  drawSwatch.addEventListener("click", e => {
+    const item = selectedItem();
+    if (!item || item.type !== "draw") return;
+    openColorPicker({
+      anchor: e.currentTarget,
+      value: item.color || "#fff",
+      onInput(hex) {
+        item.color = hex;
+        updateSwatch(drawSwatchFill, hex);
+        const path = canvas.querySelector(`.item[data-id="${item.id}"] path`);
+        if (path) path.setAttribute("stroke", hex);
+      },
+      onCommit() { pushUndo(); },
+    });
+  });
+}
 
 textSwatch.addEventListener("click", e => {
   const item = selectedItem();
@@ -2786,6 +3203,15 @@ async function exportPage() {
     const PAD = 24;
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     freeItems.forEach(it => {
+      if (it.type === "draw") {
+        if (!it.w || !it.h) finalizeStrokeItem(it);
+        const w = it.w || 1, h = it.h || 1;
+        minX = Math.min(minX, it.x || 0);
+        maxX = Math.max(maxX, (it.x || 0) + w);
+        minY = Math.min(minY, it.y || 0);
+        maxY = Math.max(maxY, (it.y || 0) + h);
+        return;
+      }
       const el = canvas.querySelector(`.item[data-id="${it.id}"]`);
       const w = it.w || (el ? el.offsetWidth : 0);
       let h = it.h;
@@ -2820,9 +3246,10 @@ async function exportPage() {
           const style = [
             `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
             `width:${item.w}px`, `height:${item.h}px`,
+            `overflow:hidden`,
             `transform:rotate(${item.rot}deg)`, `transform-origin:center center`, `z-index:${z}`,
           ].join(";");
-          return `        <img src="${src}" style="${style}" alt="">`;
+          return `        <div style="${style}"><img src="${src}" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" alt=""></div>`;
         }
         const style = [
           `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
@@ -2830,6 +3257,15 @@ async function exportPage() {
           `font-size:${item.fontSize}px`, `line-height:1`,
         ].join(";");
         return `        <div style="${style}">${escapeHtml(item.char)}</div>`;
+      }
+      if (item.type === "draw" && item.points && item.points.length > 1) {
+        if (!item.w || !item.h) finalizeStrokeItem(item);
+        const path = strokePathD(item.points, item.x, item.y);
+        const style = [
+          `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
+          `width:${item.w}px`, `height:${item.h}px`, `z-index:${z}`, `overflow:visible`,
+        ].join(";");
+        return `        <svg style="${style}" viewBox="0 0 ${item.w} ${item.h}" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="${path}" stroke="${escapeAttr(item.color || "#fff")}" stroke-width="${item.width || PENCIL_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
       }
       return "";
     }).join("\n");
