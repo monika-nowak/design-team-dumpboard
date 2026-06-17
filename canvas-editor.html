@@ -627,15 +627,22 @@
   }
   .item.editing { cursor: text; }
   .item.sticker {
+    overflow: hidden;
     box-sizing: border-box;
     aspect-ratio: 1;
   }
   .item .sticker-body { line-height: 1; user-select: none; }
+  /* Jak w Figmie: kwadratowa ramka + obrazek w stałym rozmiarze/pozycji, przycięty overflow */
   .item.sticker img.sticker-img {
-    display: block; width: 100%; height: 100%;
-    pointer-events: none; user-select: none;
-    object-fit: contain; object-position: center center;
+    position: absolute;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    object-fit: cover;
+    object-position: center center;
     border-radius: 0;
+    width: auto;
+    height: auto;
   }
   .item.draw {
     overflow: visible;
@@ -1306,23 +1313,22 @@ const FONT_GROUPS = [
   { label: "Handwritten", fonts: ["Caveat","Shadows Into Light","Permanent Marker","Pacifico","Gloria Hallelujah","Patrick Hand"] },
 ];
 
-/* Naklejki — Alf (repo) + osadzone assety obrazów z Figmy 16:976 (bez obróbki).
-   W Figmie każda naklejka siedzi w kwadratowej ramce; obrazek jest wycentrowany (contain). */
+/* Naklejki z Figmy 16:976 — kwadratowa ramka (frame) + place {x,y,w,h} obrazka wewnątrz. */
 const FIGMA_STICKERS = [
-  { id: "alf",          label: "Alf",          src: "assets/stickers/alf.png",          frame: 200 },
-  { id: "dog-meme",     label: "Dog",          src: "assets/stickers/dog-meme.png",     frame: 250 },
-  { id: "rainbow",      label: "Rainbow",      src: "assets/stickers/rainbow.svg",      frame: 200 },
-  { id: "alien",        label: "Alien",        src: "assets/stickers/alien.png",        frame: 250 },
-  { id: "pink-cat-car", label: "Cat car",      src: "assets/stickers/pink-cat-car.png", frame: 250 },
-  { id: "butterfly",    label: "Butterfly",    src: "assets/stickers/butterfly.png",    frame: 250 },
-  { id: "bomb",         label: "Bomb",         src: "assets/stickers/bomb.png",         frame: 198 },
-  { id: "chihuahua",    label: "Chihuahua",    src: "assets/stickers/chihuahua.png",    frame: 250 },
-  { id: "hoodie-dog",   label: "Hoodie dog",   src: "assets/stickers/hoodie-dog.png",   frame: 250 },
-  { id: "horse",        label: "Horse",        src: "assets/stickers/horse.png",        frame: 250 },
-  { id: "why-u-no",     label: "Why u no",     src: "assets/stickers/why-u-no.png",     frame: 250 },
-  { id: "cat",          label: "Cat",          src: "assets/stickers/cat.png",          frame: 250 },
-  { id: "adam-sandler", label: "Adam Sandler", src: "assets/stickers/adam-sandler.png", frame: 250 },
-  { id: "orangutan",    label: "Orangutan",    src: "assets/stickers/orangutan.png",    frame: 250 },
+  { id: "alf",          label: "Alf",          src: "assets/stickers/alf.png",          frame: 200, place: { x: -46, y: 8, w: 246, h: 192 } },
+  { id: "dog-meme",     label: "Dog",          src: "assets/stickers/dog-meme.png",     frame: 250, place: { x: 0, y: 0, w: 250, h: 250 } },
+  { id: "rainbow",      label: "Rainbow",      src: "assets/stickers/rainbow.svg",      frame: 200, place: { x: 36, y: 36, w: 129, h: 129 } },
+  { id: "alien",        label: "Alien",        src: "assets/stickers/alien.png",        frame: 250, place: { x: 25, y: 58, w: 200, h: 133 } },
+  { id: "pink-cat-car", label: "Cat car",      src: "assets/stickers/pink-cat-car.png", frame: 250, place: { x: 15, y: 39, w: 221, h: 173 } },
+  { id: "butterfly",    label: "Butterfly",    src: "assets/stickers/butterfly.png",    frame: 250, place: { x: -10, y: -57, w: 272, h: 363 } },
+  { id: "bomb",         label: "Bomb",         src: "assets/stickers/bomb.png",         frame: 198, place: { x: 0, y: 0, w: 198, h: 198 } },
+  { id: "chihuahua",    label: "Chihuahua",    src: "assets/stickers/chihuahua.png",    frame: 250, place: { x: -93, y: 16, w: 437, h: 219 } },
+  { id: "hoodie-dog",   label: "Hoodie dog",   src: "assets/stickers/hoodie-dog.png",   frame: 250, place: { x: -37, y: 2, w: 324, h: 247 } },
+  { id: "horse",        label: "Horse",        src: "assets/stickers/horse.png",        frame: 250, place: { x: 57, y: -15, w: 137, h: 280 } },
+  { id: "why-u-no",     label: "Why u no",     src: "assets/stickers/why-u-no.png",     frame: 250, place: { x: -71, y: 0, w: 369, h: 250 } },
+  { id: "cat",          label: "Cat",          src: "assets/stickers/cat.png",          frame: 250, place: { x: -19, y: -37, w: 288, h: 287 } },
+  { id: "adam-sandler", label: "Adam Sandler", src: "assets/stickers/adam-sandler.png", frame: 250, place: { x: 23, y: 23, w: 204, h: 204 } },
+  { id: "orangutan",    label: "Orangutan",    src: "assets/stickers/orangutan.png",    frame: 250, place: { x: 0, y: -28, w: 250, h: 384 } },
 ];
 /* Emoji — ogólny zestaw „na szybko” (nie z Figmy); reakcje, strzałki, jedzenie, zwierzęta */
 const EMOJIS = ["⭐","❤️","🔥","✨","👍","🎉","💡","✅","❓","💬","📌","🚀","🌟","😀","😎","🙌",
@@ -1745,13 +1751,13 @@ function deselectOutside(e) {
 function seedDemoSticker() {
   if (state.items.some(i => i.demo)) return;
   const alf = STICKER_LIBRARY[0];
-  const size = stickerFrameSize(alf);
-  state.items.push({
+  const item = {
     id: uid++, type: "sticker", demo: true,
-    stickerId: alf.id, src: alf.src, w: size, h: size,
-    // róg pustej tablicy, nad wyśrodkowanym napisem placeholdera — lekko przekrzywiona
+    stickerId: alf.id, src: alf.src,
     x: 520, y: 36, rot: -6,
-  });
+  };
+  applyStickerPlacement(item, alf);
+  state.items.push(item);
   cacheStickerSrc(alf.src);
 }
 
@@ -1761,19 +1767,53 @@ function stickerEntry(id) {
 
 /** Rozmiar kwadratowej ramki naklejki (jak w Figmie). */
 function stickerFrameSize(entry, item) {
-  if (entry?.frame) return entry.frame;
   if (item?.w && item?.h) return Math.max(item.w, item.h);
+  if (entry?.frame) return entry.frame;
   return 250;
 }
 
-/** Stare projekty mogły mieć w/h z przyciętego PNG — normalizuj do kwadratu. */
-function normalizeStickerSquare(item) {
+/** Ustawia ramkę i pozycję obrazka wewnątrz (skalowane względem frame z biblioteki). */
+function applyStickerPlacement(item, entry, frameOverride) {
+  const baseFrame = entry?.frame || 250;
+  const frame = frameOverride ?? stickerFrameSize(entry, item);
+  const scale = frame / baseFrame;
+  const p = entry?.place || { x: 0, y: 0, w: baseFrame, h: baseFrame };
+  item.w = frame;
+  item.h = frame;
+  item.px = Math.round(p.x * scale);
+  item.py = Math.round(p.y * scale);
+  item.pw = Math.round(p.w * scale);
+  item.ph = Math.round(p.h * scale);
+}
+
+function applyStickerImgStyle(img, item, entry) {
+  const isSvg = (item.src || entry?.src || "").endsWith(".svg");
+  img.style.left = item.px + "px";
+  img.style.top = item.py + "px";
+  img.style.width = item.pw + "px";
+  img.style.height = item.ph + "px";
+  img.style.objectFit = isSvg ? "contain" : "cover";
+}
+
+/** Uzupełnia brakujące place w starych projektach. */
+function syncStickerPlacement(item) {
   if (item.type !== "sticker" || !item.src) return;
   const entry = stickerEntry(item.stickerId);
-  const frame = stickerFrameSize(entry, item);
-  if (!item.w || !item.h || item.w !== item.h) {
+  const baseFrame = entry?.frame || 250;
+  if (item.px == null || item.py == null || item.pw == null || item.ph == null) {
+    const frame = (item.w && item.h && item.w === item.h) ? item.w : baseFrame;
+    applyStickerPlacement(item, entry, frame);
+    return;
+  }
+  const frame = Math.max(item.w || baseFrame, item.h || baseFrame);
+  if (item.w !== frame || item.h !== frame) {
+    const s = frame / (item.w || frame);
     item.w = frame;
     item.h = frame;
+    item.px = Math.round(item.px * s);
+    item.py = Math.round(item.py * s);
+    item.pw = Math.round(item.pw * s);
+    item.ph = Math.round(item.ph * s);
   }
 }
 
@@ -1816,10 +1856,8 @@ function applyStickerEntry(item, entry) {
   // jako „prawdziwa treść"; placeholdery znikają dopiero po dodaniu obrazka/tekstu/filmu
   // lub nowej naklejki z paska narzędzi.
   if (entry.kind === "image") {
-    const size = stickerFrameSize(entry, item);
+    applyStickerPlacement(item, entry);
     item.src = entry.src;
-    item.w = size;
-    item.h = size;
     delete item.char;
     delete item.fontSize;
     cacheStickerSrc(entry.src);
@@ -2056,14 +2094,16 @@ function render() {
       el.appendChild(img);
     } else if (item.type === "sticker") {
       el.classList.add("sticker");
-      normalizeStickerSquare(item);
+      syncStickerPlacement(item);
       if (item.src) {
+        const entry = stickerEntry(item.stickerId);
         el.style.width = item.w + "px";
         el.style.height = item.h + "px";
         const img = document.createElement("img");
         img.className = "sticker-img";
         img.src = item.src;
         img.alt = "";
+        applyStickerImgStyle(img, item, entry);
         el.appendChild(img);
       } else {
         const body = document.createElement("div");
@@ -2074,7 +2114,9 @@ function render() {
       }
     } else if (item.type === "draw") {
       if (!item.points || item.points.length < 2) return;
-      localizeStrokeItem(item);
+      const drafting = item.id === activeStroke?.id;
+      if (!item.pointsLocal && !drafting) localizeStrokeItem(item);
+      if (!item.pointsLocal) updateStrokeBounds(item);
       el.classList.add("draw");
       el.style.left = item.x + "px";
       el.style.top = item.y + "px";
@@ -2084,7 +2126,9 @@ function render() {
       const svg = document.createElementNS(SVG_NS, "svg");
       svg.setAttribute("viewBox", `0 0 ${item.w} ${item.h}`);
       const path = document.createElementNS(SVG_NS, "path");
-      path.setAttribute("d", strokePathD(item.points));
+      const pathOx = item.pointsLocal ? 0 : item.x;
+      const pathOy = item.pointsLocal ? 0 : item.y;
+      path.setAttribute("d", strokePathD(item.points, pathOx, pathOy));
       path.setAttribute("stroke", item.color || "#fff");
       path.setAttribute("stroke-width", String(item.width || PENCIL_WIDTH));
       path.setAttribute("fill", "none");
@@ -2324,6 +2368,9 @@ function startCornerResize(e, item, corner) {
   const startH = hasBox ? item.h : el.offsetHeight;
   const ratio = isStickerImg ? 1 : (startH / startW);
   const startFont = item.fontSize || 80;
+  const startPlace = isStickerImg
+    ? { px: item.px, py: item.py, pw: item.pw, ph: item.ph }
+    : null;
 
   function onMove(ev) {
     let dx = ev.clientX - startX;
@@ -2343,6 +2390,15 @@ function startCornerResize(e, item, corner) {
       el.style.height = item.h + "px";
       el.style.left = item.x + "px";
       el.style.top = item.y + "px";
+      if (isStickerImg && startPlace) {
+        const s = nw / startW;
+        item.px = Math.round(startPlace.px * s);
+        item.py = Math.round(startPlace.py * s);
+        item.pw = Math.round(startPlace.pw * s);
+        item.ph = Math.round(startPlace.ph * s);
+        const img = el.querySelector(".sticker-img");
+        if (img) applyStickerImgStyle(img, item, stickerEntry(item.stickerId));
+      }
     } else if (isText) {
       const nw = Math.max(48, Math.round(startW + dx));
       if (corner === "tl" || corner === "bl") item.x = origX + (startW - nw);
@@ -2449,7 +2505,7 @@ function startPencilStroke(e) {
       const path = el.querySelector("path");
       if (path) path.setAttribute("d", strokePathD(item.points, item.x, item.y));
       else render();
-    } else {
+    } else if (item.points.length >= 2) {
       render();
     }
     syncCanvasHeight();
@@ -3253,14 +3309,24 @@ async function exportPage() {
       }
       if (item.type === "sticker") {
         if (item.src) {
+          syncStickerPlacement(item);
+          const entry = stickerEntry(item.stickerId);
           const src = stickerExports.get(item.id)
             || (item.src.startsWith("data:") ? item.src : (stickerSrcCache[item.src] || item.src));
+          const isSvg = item.src.endsWith(".svg");
+          const fit = isSvg ? "contain" : "cover";
           const style = [
             `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
             `width:${item.w}px`, `height:${item.h}px`,
+            `overflow:hidden`,
             `transform:rotate(${item.rot}deg)`, `transform-origin:center center`, `z-index:${z}`,
           ].join(";");
-          return `        <div style="${style}"><img src="${src}" style="width:100%;height:100%;object-fit:contain;object-position:center;display:block" alt=""></div>`;
+          const imgStyle = [
+            `position:absolute`, `left:${item.px}px`, `top:${item.py}px`,
+            `width:${item.pw}px`, `height:${item.ph}px`,
+            `object-fit:${fit}`, `object-position:center`, `display:block`,
+          ].join(";");
+          return `        <div style="${style}"><img src="${src}" style="${imgStyle}" alt=""></div>`;
         }
         const style = [
           `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
