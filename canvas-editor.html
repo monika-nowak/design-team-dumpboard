@@ -273,6 +273,7 @@
     opacity: 0.8;
     margin: 0;
     word-break: break-word;
+    text-align: center;
   }
 
   .media-caption-edit {
@@ -294,43 +295,49 @@
     font-size: 14px;
     line-height: 20px;
     outline: none;
+    text-align: center;
   }
   .media-caption-edit input::placeholder { color: #fff; opacity: 0.4; }
   .media-caption-save {
     appearance: none;
     border: none;
     background: transparent;
-    color: #fff;
     width: 20px;
     height: 20px;
     padding: 0;
     cursor: pointer;
     flex-shrink: 0;
-    opacity: 0.9;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  .media-caption-save svg { display: block; width: 16px; height: 16px; }
+  .media-caption-save[hidden] { display: none; }
+  .media-caption-save img { display: block; width: 20px; height: 20px; }
 
   /* Add-media placeholder — always visible at end of grid */
   .media-add {
-    appearance: none;
+    position: relative;
     border: 1px dashed rgba(255, 255, 255, 0.2);
     background: transparent;
     border-radius: 24px;
     width: 100%;
     max-width: var(--content-w);
     margin: 0 auto;
-    min-height: 500px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
+    height: 500px;
+    overflow: hidden;
     cursor: default;
     color: #fff;
     font: inherit;
-    padding: 24px;
+    padding: 0;
+  }
+  .media-add-inner {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 24px;
   }
   .media-add-option {
     appearance: none;
@@ -338,22 +345,29 @@
     background: transparent;
     cursor: pointer;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    opacity: 0.85;
-    transition: opacity 0.15s, transform 0.15s;
+    display: block;
+    transition: transform 0.15s;
   }
-  .media-add-option:hover { opacity: 1; transform: scale(1.03); }
-  .media-add-option svg { display: block; }
-  .media-add-option--image svg { width: 160px; height: 160px; }
-  .media-add-option--youtube svg { width: 140px; height: 140px; }
+  .media-add-option:hover { transform: scale(1.03); }
+  .media-add-option img {
+    display: block;
+    mix-blend-mode: lighten;
+    pointer-events: none;
+  }
+  .media-add-option--image img { width: 160px; height: 160px; }
+  .media-add-option--youtube img { width: 140px; height: 140px; }
   .media-add-divider {
-    width: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 0;
     height: 100px;
-    background: rgba(255, 255, 255, 0.2);
     flex-shrink: 0;
+  }
+  .media-add-divider img {
+    display: block;
+    width: 100px;
+    height: auto;
   }
 
   /* ── Free canvas (text + stickers only, below grid) ──────────────── */
@@ -561,9 +575,11 @@
     .toolbar-add .pill-btn span.label { display: none; }
     #media-grid { padding-left: var(--page-pad); padding-right: var(--page-pad); gap: 48px; }
     .media-frame, .media-add { min-height: 320px; height: auto; aspect-ratio: 16 / 10; }
-    .media-add-option--image svg { width: 100px; height: 100px; }
-    .media-add-option--youtube svg { width: 88px; height: 88px; }
+    .media-add { height: auto; }
+    .media-add-option--image img { width: 100px; height: 100px; }
+    .media-add-option--youtube img { width: 88px; height: 88px; }
     .media-add-divider { height: 72px; }
+    .media-add-divider img { width: 72px; }
   }
 </style>
 </head>
@@ -795,10 +811,11 @@ const stickerPop   = document.getElementById("sticker-pop");
 const toastEl    = document.getElementById("toast");
 const inspSticker = document.getElementById("insp-sticker");
 
-/* SVG icons for add-media placeholder (Figma-style) */
-const ICON_IMAGE = `<svg viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="24" y="40" width="88" height="72" rx="12" stroke="white" stroke-opacity="0.5" stroke-width="2"/><rect x="48" y="24" width="88" height="72" rx="12" fill="#0e0e0e" stroke="white" stroke-opacity="0.8" stroke-width="2"/><circle cx="72" cy="48" r="8" fill="white" fill-opacity="0.6"/><path d="M56 80l16-16 12 12 24-24 16 16v16H56V80z" fill="white" fill-opacity="0.5"/></svg>`;
-const ICON_YOUTUBE = `<svg viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="20" y="36" width="100" height="68" rx="20" fill="#FF0000" fill-opacity="0.9"/><path d="M68 58l28 16-28 16V58z" fill="white"/></svg>`;
-const ICON_CHECK = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10.5l4 4 8-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+/* Ikony placeholdera — assety z Figmy (mix-blend-lighten na ciemnym tle) */
+const ASSET_ADD_IMAGE = "assets/icons/media-add-image.png";
+const ASSET_ADD_YOUTUBE = "assets/icons/media-add-youtube.png";
+const ASSET_ADD_DIVIDER = "assets/icons/media-add-divider.png";
+const ASSET_CAPTION_CHECK = "assets/icons/caption-check.png";
 
 function isMediaItem(item) {
   return item && (item.type === "image" || item.type === "youtube");
@@ -963,15 +980,19 @@ function renderMediaGrid() {
       input.maxLength = 120;
       input.placeholder = "Description (optional)";
       input.value = item.caption || "";
-      input.addEventListener("input", () => { item.caption = input.value; });
+      input.addEventListener("input", () => {
+        item.caption = input.value;
+        save.hidden = !input.value.trim();
+      });
       input.addEventListener("keydown", e => {
-        if (e.key === "Enter") { e.preventDefault(); commitMediaCaption(item); }
+        if (e.key === "Enter" && input.value.trim()) { e.preventDefault(); commitMediaCaption(item); }
       });
       const save = document.createElement("button");
       save.type = "button";
       save.className = "media-caption-save";
       save.title = "Save caption";
-      save.innerHTML = ICON_CHECK;
+      save.hidden = !input.value.trim();
+      save.innerHTML = `<img src="${ASSET_CAPTION_CHECK}" alt="" aria-hidden="true">`;
       save.addEventListener("click", e => {
         e.stopPropagation();
         commitMediaCaption(item);
@@ -992,9 +1013,11 @@ function renderMediaGrid() {
   const add = document.createElement("div");
   add.className = "media-add";
   add.innerHTML =
-    `<button type="button" class="media-add-option media-add-option--image" id="grid-add-image" title="Add image">${ICON_IMAGE}</button>`
-    + `<span class="media-add-divider" aria-hidden="true"></span>`
-    + `<button type="button" class="media-add-option media-add-option--youtube" id="grid-add-youtube" title="Add YouTube video">${ICON_YOUTUBE}</button>`;
+    `<div class="media-add-inner">`
+    + `<button type="button" class="media-add-option media-add-option--image" id="grid-add-image" title="Add image"><img src="${ASSET_ADD_IMAGE}" alt="" aria-hidden="true"></button>`
+    + `<span class="media-add-divider" aria-hidden="true"><img src="${ASSET_ADD_DIVIDER}" alt=""></span>`
+    + `<button type="button" class="media-add-option media-add-option--youtube" id="grid-add-youtube" title="Add YouTube video"><img src="${ASSET_ADD_YOUTUBE}" alt="" aria-hidden="true"></button>`
+    + `</div>`;
   mediaGrid.appendChild(add);
 }
 
@@ -2184,6 +2207,7 @@ ${fontFaces}    @font-face {
     .media-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
     .media-caption {
       font-size: 14px; line-height: 20px; color: #fff; opacity: 0.8; margin: 0;
+      text-align: center;
     }
     .free-wrap {
       position: relative; margin: 64px auto 0; overflow: hidden;
