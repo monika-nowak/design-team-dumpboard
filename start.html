@@ -8,7 +8,7 @@
 /* Kto już widział intro — od razu na hub; landing tylko przy pierwszej wizycie. */
 (function () {
   try {
-    if (localStorage.getItem("dumpboard_intro_seen")) location.replace("index.html");
+    if (localStorage.getItem("dumpboard_intro_seen")) location.replace("hub.html");
   } catch (e) {}
 })();
 </script>
@@ -186,7 +186,7 @@
       <p class="line" data-i="5">One rule: make it unapologetically you. Pin the images you keep coming back to, the things that inspire you, the dumb stuff that makes you grin. It's a Dumpboard.</p>
       <p class="line" data-i="6">Be wild. Be free. Just us here on GitHub, doing it for the fun of it.</p>
     </div>
-    <a class="cta" id="cta" href="index.html">Let's start</a>
+    <a class="cta" id="cta" href="hub.html">Let's start</a>
   </div>
 
 <script>
@@ -288,7 +288,7 @@ if (reduceMotion) {
 /* Po „Let's start" zapisujemy, że intro było — kolejne wejścia idą prosto na hub. */
 function goToHub() {
   try { localStorage.setItem("dumpboard_intro_seen", "1"); } catch (e) {}
-  location.replace("index.html");
+  location.replace("hub.html");
 }
 cta.addEventListener("click", e => {
   e.preventDefault();

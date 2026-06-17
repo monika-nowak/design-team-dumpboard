@@ -17,8 +17,9 @@ Szczegóły publikacji są też w edytorze (modal „Jak opublikować").
 
 | Plik / folder | Po co |
 |---|---|
-| `index.html` | Feed zespołu (strona główna — przy pierwszej wizycie przekierowuje na intro) |
+| `index.html` | Router wejścia (pierwsza wizyta → `start.html`, kolejne → `hub.html`) |
 | `start.html` | Intro / landing (tylko przy pierwszym wejściu) |
+| `hub.html` | Feed zespołu |
 | `canvas-editor.html` | Edytor — pobieraj i otwieraj lokalnie (`file://` też działa) |
 | `people.json` | Lista osób — **nie edytuj ręcznie**, generuje się automatycznie |
 | `twoj-nick/` | Twój folder ze stroną (`index.html`, `feed.json`, …) |

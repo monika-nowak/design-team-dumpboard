@@ -13,9 +13,9 @@ pinterestowy feed.
 ## Pliki (deliverables)
 
 - `canvas-editor.html` — jednoplikowy edytor WYSIWYG (Canva-like). To go pobierają designerzy.
-- `index.html` — strona główna z feedem (GitHub Pages). Przy pierwszej wizycie przekierowuje na `start.html` (localStorage `dumpboard_intro_seen`).
-- `start.html` — intro / landing (tylko pierwsze wejście; przycisk „Let's start" ustawia flagę i prowadzi na hub).
-- `hub.html` — przekierowanie do `index.html` (stare linki).
+- `index.html` — router wejścia (mały plik): pierwsza wizyta → `start.html`, kolejne → `hub.html` (localStorage `dumpboard_intro_seen`).
+- `start.html` — intro / landing; przycisk „Let's start" ustawia flagę i prowadzi na `hub.html`.
+- `hub.html` — feed zespołu.
 - `people.json` — lista osób `{ "nick", "folder" }` (auto-generowana przez Actions, patrz niżej).
 - `.github/workflows/generate-people.yml` — skanuje foldery i nadpisuje `people.json` przy każdym pushu.
 - `.claude/server.js`, `.claude/launch.json` — statyczny serwer node do lokalnych testów (NIE część produktu).
@@ -68,7 +68,7 @@ Zawsze tworzy **ZIP** (`dumpboard-eksport.zip`), składany ręcznie w czystym JS
 
 ## Testowanie lokalne
 
-- Serwer: `node .claude/server.js` (port 8753, serwuje korzeń repo, `no-store`). Hub testuj pod `http://localhost:8753/index.html`.
+- Serwer: `node .claude/server.js` (port 8753). Hub: `http://localhost:8753/hub.html`, landing: `http://localhost:8753/start.html`.
 - SVG wymaga content-type `image/svg+xml` (jest w server.js) — inaczej `<img>` nie wyrenderuje.
 
 ## Częste pułapki
