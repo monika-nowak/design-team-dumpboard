@@ -50,7 +50,7 @@ Zawsze tworzy **ZIP** (`dumpboard-eksport.zip`), składany ręcznie w czystym JS
 ### Układ opublikowanej strony (ważne — zmieniane kilka razy)
 
 - Eksport liczy **bounding-box** wszystkich elementów (z obrotem; rozmiary z renderu), przesuwa je do 0,0 (`offX/offY`, `PAD=24`), tworzy `.stage` o rozmiarze boxa w `#wrap`.
-- Skrypt skaluje `.stage` do **szerokości** okna (`scale = clientWidth/W`, `transform-origin: top left`) i ustawia `wrap.height = H*scale` → strona **przewija się normalnie w pionie** jak zwykła WWW.
+- Skrypt skaluje `.stage` do **szerokości** kontenera `#wrap` (max 900px, jak płótno w edytorze), wyśrodkowanego na stronie — NIE na pełną szerokość monitora.
 - Odrzucone wcześniejsze podejścia: stały artboard 16:9; scale-to-contain (wszystko na jeden ekran, bez scrolla). Obecny model to: wypełnia szerokość + scroll pionowy.
 
 ## Feed i hub

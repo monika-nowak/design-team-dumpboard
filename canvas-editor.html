@@ -1821,7 +1821,7 @@ async function exportPage() {
     if (item.type === "image") {
       const style = [
         `position:absolute`,
-        `left:${item.x}px`, `top:${item.y}px`,
+        `left:${item.x - offX}px`, `top:${item.y - offY}px`,
         `width:${item.w}px`, `height:${item.h}px`,
         `transform:rotate(${item.rot}deg)`, `transform-origin:center center`,
         `z-index:${z}`,
@@ -1885,8 +1885,8 @@ async function exportPage() {
 <style>
 ${fontFaces}    * { margin: 0; box-sizing: border-box; }
     body { background: ${state.bg}; }
-    /* Kompozycja wypełnia szerokość okna; w pionie strona normalnie się przewija. */
-    #wrap { position: relative; width: 100%; overflow: hidden; }
+    /* Jak w edytorze: max 900px szerokości, wyśrodkowane — nie rozciągamy na cały monitor. */
+    #wrap { position: relative; margin: 0 auto; overflow: hidden; max-width: 900px; width: 100%; }
     .stage {
       position: relative;
       width: ${stageW}px;
@@ -1902,13 +1902,12 @@ ${elementsHtml}
     </div>
   </div>
   <script>
-    /* Skaluje kompozycję do szerokości okna i rezerwuje jej wysokość, żeby
-       strona przewijała się normalnie w pionie. Jedyny skrypt — nic z edytora. */
+    /* Skaluje kompozycję do szerokości #wrap (max 900px jak płótno w edytorze). */
     (function () {
       var W = ${stageW}, H = ${stageH};
       var wrap = document.getElementById('wrap'), s = document.getElementById('stage');
       function fit() {
-        var k = document.documentElement.clientWidth / W;   // bez paska przewijania
+        var k = wrap.clientWidth / W;
         s.style.transform = 'scale(' + k + ')';
         wrap.style.height = (H * k) + 'px';
       }
