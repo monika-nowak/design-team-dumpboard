@@ -791,7 +791,7 @@
   }
   .modal:has(.pop-close) { padding-right: 72px; }
   .modal h2 {
-    margin: 0 0 8px;
+    margin: 0;
     font-size: 20px;
     font-weight: 600;
     letter-spacing: 0;
@@ -830,6 +830,21 @@
     flex-wrap: wrap;
     margin-top: 32px;
   }
+  /* Spójny rytm pionowy w modalach formularzy (Figma: 8px w bloku, 32px między) */
+  .modal-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  .modal-stack .modal-actions { margin-top: 0; }
+  .modal-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .modal-stack .profile-row { margin-bottom: 0; }
+  .modal-stack .profile-label { margin-bottom: 0; }
+  .modal-stack .modal-form { margin-top: 0; }
   .modal .btn {
     appearance: none;
     border: none;
@@ -873,7 +888,12 @@
   .pop-close svg { width: 20px; height: 20px; display: block; }
 
   .modal-form { margin-top: 24px; }
-  .profile-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .profile-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
   .avatar-preview {
     width: 72px; height: 72px; border-radius: 50%; flex: 0 0 auto; overflow: hidden;
     background: rgba(255,255,255,0.15);
@@ -1100,13 +1120,15 @@
 
   <!-- Modal: profile (name + avatar) -->
   <div class="modal-overlay" id="profile-modal">
-    <div class="modal glass-surface">
+    <div class="modal glass-surface modal-stack">
       <button type="button" class="pop-close" data-close-modal aria-label="Close">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
       </button>
-      <h2>Your profile</h2>
-      <p class="lead">Name and avatar appear next to your posts on the hub.
-         Both are optional — otherwise we use your folder name and an initial.</p>
+      <div class="modal-block">
+        <h2>Your profile</h2>
+        <p class="lead">Name and avatar appear next to your posts on the hub.
+           Both are optional — otherwise we use your folder name and an initial.</p>
+      </div>
       <div class="profile-row">
         <div class="avatar-preview" id="avatar-preview"></div>
         <div class="profile-actions">
@@ -1114,8 +1136,10 @@
           <button class="btn" type="button" id="avatar-remove-btn" style="display:none">Remove</button>
         </div>
       </div>
-      <label class="profile-label" for="profile-name">Display name</label>
-      <input type="text" id="profile-name" class="profile-input" maxlength="60" placeholder="e.g. monika.nowak">
+      <div class="modal-block">
+        <label class="profile-label" for="profile-name">Display name</label>
+        <input type="text" id="profile-name" class="profile-input" maxlength="60" placeholder="e.g. monika.nowak">
+      </div>
       <div class="modal-actions">
         <button class="btn primary" id="profile-close">Save</button>
       </div>
@@ -1343,7 +1367,8 @@ function normalizeLegacyMedia() {
 }
 
 function applyPageBg() {
-  if (pageScroll) pageScroll.style.background = state.bg;
+  if (pageMain) pageMain.style.background = state.bg;
+  if (pageScroll) pageScroll.style.background = "";
 }
 
 function syncCanvasHeight() {
