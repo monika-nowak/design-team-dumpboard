@@ -308,7 +308,8 @@
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: fill;
+    object-fit: contain;
+    object-position: center;
     pointer-events: none;
   }
   .how-panel {
@@ -318,7 +319,7 @@
     align-items: center;
     padding: 32px;
     gap: 24px;
-    min-height: 372px;
+    height: 316px;
     box-sizing: border-box;
   }
   .how-dots {
@@ -350,12 +351,12 @@
     word-break: break-word;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: flex-end;
     gap: 8px;
-    height: 208px;
-    min-height: 208px;
-    flex-shrink: 0;
-    overflow: hidden;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .how-copy h2 {
     margin: 0;
@@ -390,13 +391,7 @@
   }
   .how-next:hover { background: rgba(255, 255, 255, 0.88); }
   @media (max-height: 640px) {
-    .how-panel { min-height: 304px; }
-    .how-copy {
-      height: 140px;
-      min-height: 140px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
+    .how-panel { height: 272px; }
   }
 
   .pop-close {
@@ -766,6 +761,7 @@ const HOW_STEPS = [
     body: 'Wait 1–2 minutes, then check: your page: <strong>…/people/your-nick/</strong> and team feed: <a href="https://monika-nowak.github.io/design-team-dumpboard/hub.html" target="_blank" rel="noopener">https://monika-nowak.github.io/design-team-dumpboard/hub.html</a>. Hard-refresh if needed: <strong>Cmd+Shift+R</strong> / <strong>Ctrl+Shift+R</strong>. To update: open your page → <strong>Edit page</strong> → change things → <strong>Download</strong> → unzip → upload again to the same folder (replace the old files).',
   },
 ];
+const HOW_PICTURE_H = Math.round(Math.max(...HOW_STEPS.map(s => s.pictureH)) * HOW_SCALE);
 const howModal = document.getElementById("how-modal");
 const howPicture = document.getElementById("how-picture");
 const howPictureImg = document.getElementById("how-picture-img");
@@ -781,7 +777,7 @@ howDots.innerHTML = HOW_STEPS.map((_, i) =>
 
 function renderHowStep() {
   const step = HOW_STEPS[howStep];
-  howPicture.style.height = Math.round(step.pictureH * HOW_SCALE) + "px";
+  howPicture.style.height = HOW_PICTURE_H + "px";
   howPictureImg.src = step.image;
   howPictureImg.alt = step.title;
   howTitle.textContent = step.title;
