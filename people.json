@@ -1,8 +1,10 @@
 {
   "people": [
     { "nick": "gidge", "folder": "people/gidge" },
+    { "nick": "jakub", "folder": "people/jakub" },
     { "nick": "jimboslice", "folder": "people/jimboslice" },
     { "nick": "lech", "folder": "people/lech" },
+    { "nick": "michal-ux", "folder": "people/michal-ux" },
     { "nick": "monika.nowak", "folder": "people/monika.nowak" },
     { "nick": "ukasz", "folder": "people/ukasz" },
     { "nick": "volvo (3)", "folder": "people/volvo (3)" },
