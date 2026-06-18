@@ -3433,6 +3433,7 @@ async function exportPage() {
     const offX = minX - PAD, offY = minY - PAD;
     stageW = Math.max(1, Math.ceil(maxX - minX + PAD * 2));
     stageH = Math.max(1, Math.ceil(maxY - minY + PAD * 2));
+    const canvasRefW = Math.max(1, (pageMainInner || canvas)?.clientWidth || 1440);
     freeLayerHtml = freeItems.map((item, index) => {
       const z = index + 1;
       if (item.type === "text") {
@@ -3484,16 +3485,18 @@ async function exportPage() {
     }).join("\n");
     freeLayerScript =
 `    (function () {
-      var W = ${stageW}, H = ${stageH};
+      var W = ${stageW}, H = ${stageH}, OX = ${offX}, OY = ${offY}, REF = ${canvasRefW};
       var wrap = document.getElementById('free-wrap'), s = document.getElementById('free-stage');
       var stage = document.querySelector('.page-stage');
       if (!wrap || !s || !stage) return;
       function fit() {
-        var k = wrap.clientWidth / W;
+        var k = wrap.clientWidth / REF;
+        s.style.left = (OX * k) + 'px';
+        s.style.top = (OY * k) + 'px';
         s.style.transform = 'scale(' + k + ')';
         var scaledH = H * k;
         var mediaH = stage.querySelector('.media-grid')?.offsetHeight || 0;
-        stage.style.minHeight = Math.max(mediaH, scaledH) + 'px';
+        stage.style.minHeight = Math.max(mediaH, OY * k + scaledH) + 'px';
       }
       addEventListener('resize', fit); fit();
     })();`;
@@ -3591,7 +3594,7 @@ ${fontFaces}    @font-face {
       font-weight: 300; font-size: clamp(40px, 8vw, 82px);
       line-height: 1.12; color: #fff; opacity: 0.8; margin: 0;
     }
-    .media-grid { display: flex; flex-direction: column; gap: 64px; padding: 64px 128px 128px; }
+    .media-grid { display: flex; flex-direction: column; gap: 64px; padding: 0 128px 128px; }
     .page-stage { position: relative; }
     .media-card { display: flex; flex-direction: column; gap: 20px; }
     .media-frame {
@@ -3621,7 +3624,7 @@ ${fontFaces}    @font-face {
       max-width: none;
       margin: 0;
     }
-    .free-stage { position: relative; transform-origin: top left; }
+    .free-stage { position: absolute; left: 0; top: 0; transform-origin: top left; }
 </style>
 </head>
 <body>

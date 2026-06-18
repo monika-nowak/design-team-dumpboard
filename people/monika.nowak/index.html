@@ -76,7 +76,7 @@
       font-weight: 300; font-size: clamp(40px, 8vw, 82px);
       line-height: 1.12; color: #fff; opacity: 0.8; margin: 0;
     }
-    .media-grid { display: flex; flex-direction: column; gap: 64px; padding: 64px 128px 128px; }
+    .media-grid { display: flex; flex-direction: column; gap: 64px; padding: 0 128px 128px; }
     .page-stage { position: relative; }
     .media-card { display: flex; flex-direction: column; gap: 20px; }
     .media-frame {
@@ -106,7 +106,7 @@
       max-width: none;
       margin: 0;
     }
-    .free-stage { position: relative; transform-origin: top left; }
+    .free-stage { position: absolute; left: 0; top: 0; transform-origin: top left; }
 </style>
 </head>
 <body>
@@ -160,16 +160,18 @@
   <script>
 (function(){try{var p="monika.nowak";var s=(localStorage.getItem("dumpboard_nick")||"").toLowerCase();if(s&&s===p){var b=document.getElementById("edit-dump-btn");if(b)b.style.display="inline-flex";}}catch(e){}})();
     (function () {
-      var W = 1165, H = 3610;
+      var W = 1165, H = 3610, OX = 122.5, OY = 313.5, REF = 1312;
       var wrap = document.getElementById('free-wrap'), s = document.getElementById('free-stage');
       var stage = document.querySelector('.page-stage');
       if (!wrap || !s || !stage) return;
       function fit() {
-        var k = wrap.clientWidth / W;
+        var k = wrap.clientWidth / REF;
+        s.style.left = (OX * k) + 'px';
+        s.style.top = (OY * k) + 'px';
         s.style.transform = 'scale(' + k + ')';
         var scaledH = H * k;
         var mediaH = stage.querySelector('.media-grid')?.offsetHeight || 0;
-        stage.style.minHeight = Math.max(mediaH, scaledH) + 'px';
+        stage.style.minHeight = Math.max(mediaH, OY * k + scaledH) + 'px';
       }
       addEventListener('resize', fit); fit();
     })();
