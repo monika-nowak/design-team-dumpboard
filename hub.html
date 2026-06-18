@@ -16,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
 
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -417,6 +418,101 @@
     :root { --page-pad: 24px; }
     .nav-btn span { display: none; }
   }
+
+  /* ── Reactions ─────────────────────────────────────────────── */
+  .pin {
+    position: relative;
+  }
+  .reaction-tooltip {
+    position: absolute;
+    bottom: 40px; /* slightly above meta */
+    right: 8px;
+    background: rgba(14, 14, 14, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 4px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    transform: translateY(4px);
+    z-index: 10;
+  }
+  .pin:hover .reaction-tooltip {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .react-btn {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s, background 0.1s;
+    color: #fff;
+  }
+  .react-btn:hover {
+    transform: scale(1.15);
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .react-plus {
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  .reactions-badge {
+    position: absolute;
+    bottom: 40px;
+    left: 8px;
+    display: flex;
+    gap: 4px;
+    pointer-events: auto;
+    z-index: 5;
+    flex-wrap: wrap;
+    max-width: calc(100% - 140px);
+  }
+  .reaction-item {
+    background: rgba(14, 14, 14, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 2px 6px;
+    font-size: 12px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+  .reaction-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  .reaction-item.reacted {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .emoji-picker-popover {
+    position: absolute;
+    z-index: 10000;
+    display: none;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .emoji-picker-popover.show {
+    display: block;
+  }
 </style>
 </head>
 <body>
@@ -453,6 +549,9 @@
 
     <div id="feed" class="hidden"></div>
   </main>
+  </div>
+  <div class="emoji-picker-popover" id="emoji-picker-popover">
+    <emoji-picker class="dark"></emoji-picker>
   </div>
 
   <!-- Modal: How it works (Figma 24:1246 — carousel) -->
@@ -689,10 +788,138 @@ function makeAvatar(pin) {
   return el;
 }
 
+/* ── Reactions ───────────────────────────────────────────────────── */
+function getPinId(pin) {
+  return String(pin.src || pin.videoId || pin.page);
+}
+
+function getReactions(pin) {
+  const key = "reactions_" + getPinId(pin);
+  try {
+    return JSON.parse(localStorage.getItem(key)) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveReactions(pin, reactions) {
+  const key = "reactions_" + getPinId(pin);
+  try {
+    localStorage.setItem(key, JSON.stringify(reactions));
+  } catch (e) {}
+}
+
+function addReaction(pin, emoji, container) {
+  const reactions = getReactions(pin);
+  if (!reactions[emoji]) {
+    reactions[emoji] = { count: 1, reacted: true };
+  } else {
+    if (reactions[emoji].reacted) {
+      reactions[emoji].count--;
+      reactions[emoji].reacted = false;
+      if (reactions[emoji].count <= 0) delete reactions[emoji];
+    } else {
+      reactions[emoji].count++;
+      reactions[emoji].reacted = true;
+    }
+  }
+  saveReactions(pin, reactions);
+  renderReactions(pin, container);
+}
+
+function renderReactions(pin, container) {
+  container.innerHTML = "";
+  const reactions = getReactions(pin);
+  Object.keys(reactions).forEach(emoji => {
+    const data = reactions[emoji];
+    const el = document.createElement("div");
+    el.className = "reaction-item" + (data.reacted ? " reacted" : "");
+    el.innerHTML = `<span>${emoji}</span><span>${data.count}</span>`;
+    el.onclick = (ev) => {
+      ev.preventDefault();
+      addReaction(pin, emoji, container);
+    };
+    container.appendChild(el);
+  });
+}
+
+const emojiPopover = document.getElementById("emoji-picker-popover");
+const emojiPicker = emojiPopover.querySelector("emoji-picker");
+
+let currentPickerTarget = null;
+let currentPickerPin = null;
+
+function openEmojiPicker(pin, container, btn) {
+  if (currentPickerTarget === btn && emojiPopover.classList.contains("show")) {
+    closeEmojiPicker();
+    return;
+  }
+  currentPickerTarget = btn;
+  currentPickerPin = { pin, container };
+  
+  const rect = btn.getBoundingClientRect();
+  
+  emojiPopover.style.left = Math.max(8, rect.left - 150) + "px";
+  emojiPopover.style.top = Math.max(8, rect.top + window.scrollY - 360) + "px";
+  
+  emojiPopover.classList.add("show");
+}
+
+function closeEmojiPicker() {
+  emojiPopover.classList.remove("show");
+  currentPickerTarget = null;
+  currentPickerPin = null;
+}
+
+emojiPicker.addEventListener("emoji-click", event => {
+  if (currentPickerPin) {
+    addReaction(currentPickerPin.pin, event.detail.unicode, currentPickerPin.container);
+  }
+  closeEmojiPicker();
+});
+
+document.addEventListener("click", e => {
+  if (emojiPopover.classList.contains("show") && !emojiPopover.contains(e.target) && !e.target.closest(".react-plus")) {
+    closeEmojiPicker();
+  }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && emojiPopover.classList.contains("show")) {
+    closeEmojiPicker();
+  }
+});
+
 function makePin(pin) {
   const art = document.createElement("article");
   art.className = "pin";
   art.appendChild(makeMedia(pin));
+
+  const badgeContainer = document.createElement("div");
+  badgeContainer.className = "reactions-badge";
+  art.appendChild(badgeContainer);
+
+  const tooltip = document.createElement("div");
+  tooltip.className = "reaction-tooltip";
+  ["😱", "🔥", "❤️"].forEach(e => {
+    const btn = document.createElement("button");
+    btn.className = "react-btn";
+    btn.textContent = e;
+    btn.onclick = (ev) => {
+      ev.preventDefault();
+      addReaction(pin, e, badgeContainer);
+    };
+    tooltip.appendChild(btn);
+  });
+
+  const plusBtn = document.createElement("button");
+  plusBtn.className = "react-btn react-plus";
+  plusBtn.textContent = "➕";
+  plusBtn.onclick = (ev) => {
+    ev.preventDefault();
+    openEmojiPicker(pin, badgeContainer, plusBtn);
+  };
+  tooltip.appendChild(plusBtn);
+  art.appendChild(tooltip);
 
   const meta = document.createElement("a");
   meta.className = "pin-meta";
@@ -705,6 +932,8 @@ function makePin(pin) {
   handle.textContent = handleFor(pin);
   meta.appendChild(handle);
   art.appendChild(meta);
+
+  renderReactions(pin, badgeContainer);
 
   return art;
 }
