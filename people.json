@@ -1,5 +1,6 @@
 {
   "people": [
+    { "nick": "jimboslice", "folder": "people/jimboslice" },
     { "nick": "monika.nowak", "folder": "people/monika.nowak" }
   ]
 }
