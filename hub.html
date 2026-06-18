@@ -305,9 +305,11 @@
     background: #0e0e0e;
   }
   .how-picture img {
-    position: absolute;
     display: block;
-    max-width: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
     pointer-events: none;
   }
   .how-panel {
@@ -716,49 +718,42 @@ const HOW_STEPS = [
     title: "Set your nick and avatar",
     pictureH: 317,
     image: "assets/how-it-works/step-1.png",
-    place: { x: -26, y: -17, w: 653, h: 405 },
     body: "On first visit, enter your nick <strong>(e.g.&nbsp;john.smith)</strong> – no spaces. This becomes your GitHub folder name:&nbsp;<strong>people/your-nick/</strong>. Click your avatar to set your profile and photo.",
   },
   {
     title: "Add media",
     pictureH: 317,
     image: "assets/how-it-works/step-2.png",
-    place: { x: -299, y: -184, w: 1181, h: 608 },
     body: "Use the grid to add an <strong>image</strong> or <strong>YouTube</strong> video (the placeholder is always visible). Add a caption if you like – these items go to the shared team feed.",
   },
   {
     title: "Decorate your page",
     pictureH: 365,
     image: "assets/how-it-works/step-3.png",
-    place: { x: -418, y: -186, w: 1151, h: 605 },
     body: "Add <strong>stickers</strong>, <strong>text</strong>, and <strong>drawings</strong>, and change the <strong>background</strong> color.",
   },
   {
     title: "Download the ZIP",
     pictureH: 293,
     image: "assets/how-it-works/step-4.png",
-    place: { x: 144, y: 69, w: 313, h: 155, r: 16 },
     body: "Click <strong>Download</strong>. Your browser saves a ZIP file, e.g.&nbsp;<strong>john.smith.zip</strong>. Unzip. Open the unzipped folder – you should see files like <strong>index.html</strong>, <strong>project.json</strong>. Keep this folder handy for the next step.<br><br><strong>Tip:</strong> rename the unzipped folder to your nick (e.g.&nbsp;<strong>john.smith</strong>).",
   },
   {
     title: "Open the repo on GitHub",
     pictureH: 317,
     image: "assets/how-it-works/step-5.png",
-    place: { x: 0, y: -193, w: 600, h: 658 },
     body: 'Go to <a href="https://github.com/monika-nowak/design-team-dumpboard" target="_blank" rel="noopener">https://github.com/monika-nowak/design-team-dumpboard</a>. Click the <strong>people</strong> folder in the file list. You should now be inside <strong>people/</strong>.',
   },
   {
     title: "Upload your folder",
     pictureH: 317,
     image: "assets/how-it-works/step-6.png",
-    place: { x: -83, y: -46, w: 766, h: 385 },
     body: "Click <strong>Add file</strong> → <strong>Upload files</strong>. Drag your <strong>whole unzipped folder</strong> (e.g.&nbsp;<strong>john.smith</strong>) into the upload area. Click <strong>Commit changes</strong>. GitHub creates the folder for you – no need to create it manually.",
   },
   {
     title: "See it live & update later",
     pictureH: 269,
     image: "assets/how-it-works/step-7.png",
-    place: { x: 1, y: -78, w: 599, h: 375 },
     body: 'Wait 1–2 minutes, then check: your page: <strong>…/people/your-nick/</strong> and team feed: <a href="https://monika-nowak.github.io/design-team-dumpboard/hub.html" target="_blank" rel="noopener">https://monika-nowak.github.io/design-team-dumpboard/hub.html</a>. Hard-refresh if needed: <strong>Cmd+Shift+R</strong> / <strong>Ctrl+Shift+R</strong>. To update: open your page → <strong>Edit page</strong> → change things → <strong>Download</strong> → unzip → upload again to the same folder (replace the old files).',
   },
 ];
@@ -777,16 +772,9 @@ howDots.innerHTML = HOW_STEPS.map((_, i) =>
 
 function renderHowStep() {
   const step = HOW_STEPS[howStep];
-  const s = HOW_SCALE;
-  howPicture.style.height = Math.round(step.pictureH * s) + "px";
+  howPicture.style.height = Math.round(step.pictureH * HOW_SCALE) + "px";
   howPictureImg.src = step.image;
   howPictureImg.alt = step.title;
-  const p = step.place;
-  howPictureImg.style.left = Math.round(p.x * s) + "px";
-  howPictureImg.style.top = Math.round(p.y * s) + "px";
-  howPictureImg.style.width = Math.round(p.w * s) + "px";
-  howPictureImg.style.height = Math.round(p.h * s) + "px";
-  howPictureImg.style.borderRadius = p.r ? Math.round(p.r * s) + "px" : "";
   howTitle.textContent = step.title;
   howDesc.innerHTML = step.body;
   howNext.textContent = howStep === HOW_STEPS.length - 1 ? "Ok, I got it!" : "Next";
