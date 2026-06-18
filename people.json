@@ -1,6 +1,7 @@
 {
   "people": [
     { "nick": "jimboslice", "folder": "people/jimboslice" },
+    { "nick": "lech", "folder": "people/lech" },
     { "nick": "monika.nowak", "folder": "people/monika.nowak" },
     { "nick": "wlodi", "folder": "people/wlodi" }
   ]
