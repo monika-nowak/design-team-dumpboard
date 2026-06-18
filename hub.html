@@ -698,10 +698,6 @@ function makePin(pin) {
   meta.className = "pin-meta";
   meta.href = pin.page;
   meta.title = "View page";
-  meta.addEventListener("click", () => {
-    saveNickLocal(pin.nick);
-    updateHeaderCta(knownPeople);
-  });
   meta.appendChild(makeAvatar(pin));
 
   const handle = document.createElement("span");
