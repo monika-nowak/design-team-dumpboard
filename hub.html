@@ -60,6 +60,7 @@
     gap: 8px;
     padding: 12px 16px;
     border-radius: 999px;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
     font-size: 16px;
     font-weight: 600;
     line-height: normal;
@@ -73,7 +74,6 @@
     color: #fff;
     border: none;
     cursor: pointer;
-    font: inherit;
     appearance: none;
   }
   .how-btn img {
@@ -228,7 +228,7 @@
   .state .create-btn { margin-top: 24px; }
   .hidden { display: none !important; }
 
-  /* ── Modal „How it works" (layout docelowy — Figma w przygotowaniu) ── */
+  /* ── Modal „How it works" (Figma 24:1246 — karuzela) ── */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -249,131 +249,117 @@
     border-radius: 24px;
   }
 
-  .how-modal-card {
+  .how-popup {
     position: relative;
-    color: #fff;
-    width: min(720px, 100%);
-    max-height: 90vh;
-    overflow: auto;
-    padding: 32px;
-    padding-right: 72px;
-  }
-
-  .how-modal-card h2 {
-    margin: 0 0 8px;
-    font-size: 20px;
-    font-weight: 600;
-    line-height: 1.2;
-  }
-
-  .how-modal-card .lead {
-    margin: 0;
-    font-size: 16px;
-    line-height: 1.5;
-    color: rgba(255, 255, 255, 0.6);
-  }
-
-  .how-steps {
-    list-style: none;
-    margin: 24px 0 0;
-    padding: 0;
+    width: 600px;
+    max-width: calc(100vw - 48px);
+    height: 600px;
+    max-height: calc(100vh - 48px);
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    overflow: hidden;
+    padding: 0;
   }
-
-  .how-step {
-    display: grid;
-    grid-template-columns: 36px 1fr;
-    gap: 8px 16px;
-    align-items: start;
-  }
-
-  .how-step-num {
-    width: 36px;
-    height: 36px;
+  .how-close-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    width: 44px;
+    height: 44px;
+    border: none;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.1);
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+  }
+  .how-close-btn:hover { background: rgba(255, 255, 255, 0.14); }
+  .how-close-btn svg { width: 20px; height: 20px; display: block; }
+  .how-picture {
+    flex-shrink: 0;
+    overflow: hidden;
+    background: #0e0e0e;
+  }
+  .how-picture img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  .how-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px;
+    gap: 32px;
+  }
+  .how-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 8px;
     flex-shrink: 0;
   }
-
-  .how-step-body h3 {
-    margin: 0 0 6px;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 1.3;
+  .how-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
   }
-
-  .how-step-body p,
-  .how-step-body ol {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.72);
-  }
-
-  .how-step-body p + p,
-  .how-step-body p + ol { margin-top: 8px; }
-
-  .how-step-body ol {
-    padding-left: 1.15em;
-  }
-
-  .how-step-body li + li { margin-top: 4px; }
-
-  .how-step-body code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.92em;
-    background: rgba(255, 255, 255, 0.08);
-    padding: 0.1em 0.35em;
-    border-radius: 4px;
-  }
-
-  .how-step-body a { color: #fff; }
-
-  .how-step-shot {
-    grid-column: 1 / -1;
-    aspect-ratio: 16 / 10;
-    border-radius: 12px;
-    background: #1f1f1f;
-    border: 1px dashed rgba(255, 255, 255, 0.12);
+  .how-dot.is-active { background: rgba(255, 255, 255, 0.8); }
+  .how-copy {
+    width: 100%;
+    text-align: center;
+    word-break: break-word;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255, 255, 255, 0.28);
-    font-size: 13px;
-  }
-
-  .how-modal-actions {
-    display: flex;
+    flex-direction: column;
     gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 32px;
   }
-
-  .how-modal-btn {
+  .how-copy h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: normal;
+    color: #fff;
+  }
+  .how-copy p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .how-copy strong { font-weight: 600; color: inherit; }
+  .how-copy a { color: #fff; text-decoration: none; }
+  .how-copy a:hover { text-decoration: underline; }
+  .how-next {
     appearance: none;
     border: none;
     background: #fff;
     color: #0e0e0e;
-    height: 44px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: normal;
     padding: 12px 16px;
     border-radius: 999px;
-    font: inherit;
-    font-weight: 600;
-    font-size: 16px;
     cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
-  .how-modal-btn:hover { opacity: 0.88; }
+  .how-next:hover { background: rgba(255, 255, 255, 0.88); }
+  @media (max-height: 640px) {
+    .how-popup { height: auto; }
+    .how-picture { flex: 1 1 0; min-height: 140px; }
+  }
 
   .pop-close {
     position: absolute;
@@ -431,84 +417,22 @@
     <div id="feed" class="hidden"></div>
   </main>
 
-  <!-- Modal: How it works -->
-  <div class="modal-overlay" id="how-modal" role="dialog" aria-modal="true" aria-labelledby="how-modal-title">
-    <div class="how-modal-card glass-surface">
-      <button type="button" class="pop-close" id="how-modal-close" aria-label="Close">
+  <!-- Modal: How it works (Figma 24:1246 — carousel) -->
+  <div class="modal-overlay" id="how-modal" role="dialog" aria-modal="true" aria-labelledby="how-title">
+    <div class="how-popup glass-surface">
+      <button type="button" class="how-close-btn" id="how-modal-close" aria-label="Close">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
       </button>
-      <h2 id="how-modal-title">How it works</h2>
-      <p class="lead">Build your page in the editor, download a ZIP, and upload it to GitHub. No coding required.</p>
-      <ol class="how-steps">
-        <li class="how-step">
-          <span class="how-step-num">1</span>
-          <div class="how-step-body">
-            <h3>Set your nick</h3>
-            <p>Open the editor and enter your nick when asked (e.g. <code>monika.nowak</code>) — no spaces. This becomes your folder name: <code>people/your-nick/</code>.</p>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-        <li class="how-step">
-          <span class="how-step-num">2</span>
-          <div class="how-step-body">
-            <h3>Add media</h3>
-            <p>At the top, use the grid to add an <strong>image</strong> or <strong>YouTube</strong> link. Add a caption if you like — these items go to the shared team feed.</p>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-        <li class="how-step">
-          <span class="how-step-num">3</span>
-          <div class="how-step-body">
-            <h3>Decorate your page</h3>
-            <p>Use <strong>Background</strong>, <strong>Stickers</strong>, <strong>Text</strong>, and <strong>Draw</strong> on the canvas below. Click your <strong>avatar</strong> to set your name and profile photo.</p>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-        <li class="how-step">
-          <span class="how-step-num">4</span>
-          <div class="how-step-body">
-            <h3>Download &amp; unzip</h3>
-            <p>Click <strong>Download</strong> (top right). Find the ZIP in your <strong>Downloads</strong> folder and unzip it (double-click on Mac, <strong>Extract All</strong> on Windows).</p>
-            <p><strong>Tip:</strong> rename the unzipped folder to your nick (e.g. <code>monika.nowak</code>) — it makes the next step easier.</p>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-        <li class="how-step">
-          <span class="how-step-num">5</span>
-          <div class="how-step-body">
-            <h3>Open the repo on GitHub</h3>
-            <ol>
-              <li>Go to <a href="https://github.com/monika-nowak/design-team-dumpboard" target="_blank" rel="noopener">github.com/monika-nowak/design-team-dumpboard</a></li>
-              <li>Click the <strong>people</strong> folder</li>
-            </ol>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-        <li class="how-step">
-          <span class="how-step-num">6</span>
-          <div class="how-step-body">
-            <h3>Upload your folder</h3>
-            <ol>
-              <li>Click <strong>Add file</strong> → <strong>Upload files</strong></li>
-              <li>Drag your <strong>whole unzipped folder</strong> (e.g. <code>monika.nowak</code>) into the upload area</li>
-              <li>Check the path looks like <code>people/your-nick/index.html</code> — not the repo root</li>
-              <li>Click <strong>Commit changes</strong></li>
-            </ol>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-        <li class="how-step">
-          <span class="how-step-num">7</span>
-          <div class="how-step-body">
-            <h3>See it live &amp; update later</h3>
-            <p>Wait 1–2 minutes, then open your page at <code>…/people/your-nick/</code> and check the team feed.</p>
-            <p>To update: open your page → <strong>Edit dump</strong> → change things → <strong>Download</strong> → unzip → upload again to the same folder.</p>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-      </ol>
-      <div class="how-modal-actions">
-        <a class="how-modal-btn" href="canvas-editor.html">Create your dump</a>
+      <div class="how-picture" id="how-picture">
+        <img id="how-picture-img" src="" alt="">
+      </div>
+      <div class="how-panel">
+        <div class="how-dots" id="how-dots" aria-hidden="true"></div>
+        <div class="how-copy">
+          <h2 id="how-title"></h2>
+          <p id="how-desc"></p>
+        </div>
+        <button type="button" class="how-next" id="how-next">Next</button>
       </div>
     </div>
   </div>
@@ -750,10 +674,78 @@ function makePin(pin) {
   return art;
 }
 
-/* ── Modal „How it works" ─────────────────────────────────────────── */
+/* ── Modal „How it works" (Figma 24:1246) ─────────────────────────── */
+const HOW_STEPS = [
+  {
+    title: "Set your nick and avatar",
+    pictureH: 317,
+    image: "assets/how-it-works/step-1.png",
+    body: "On first visit, enter your nick <strong>(e.g.&nbsp;john.smith)</strong> – no spaces. This becomes your GitHub folder name:&nbsp;<strong>people/your-nick/</strong>. Click your avatar to set your profile and photo.",
+  },
+  {
+    title: "Add media",
+    pictureH: 317,
+    image: "assets/how-it-works/step-2.png",
+    body: "Use the grid to add an <strong>image</strong> or <strong>YouTube</strong> video (the placeholder is always visible). Add a caption if you like – these items go to the shared team feed.",
+  },
+  {
+    title: "Decorate your page",
+    pictureH: 365,
+    image: "assets/how-it-works/step-3.png",
+    body: "Add <strong>stickers</strong>, <strong>text</strong>, and <strong>drawings</strong>, and change the <strong>background</strong> color.",
+  },
+  {
+    title: "Download the ZIP",
+    pictureH: 293,
+    image: "assets/how-it-works/step-4.png",
+    body: "Click <strong>Download</strong>. Your browser saves a ZIP file, e.g.&nbsp;<strong>john.smith.zip</strong>. Unzip. Open the unzipped folder – you should see files like <strong>index.html</strong>, <strong>project.json</strong>. Keep this folder handy for the next step.<br><br><strong>Tip:</strong> rename the unzipped folder to your nick (e.g.&nbsp;<strong>john.smith</strong>).",
+  },
+  {
+    title: "Open the repo on GitHub",
+    pictureH: 317,
+    image: "assets/how-it-works/step-5.png",
+    body: 'Go to <a href="https://github.com/monika-nowak/design-team-dumpboard" target="_blank" rel="noopener">https://github.com/monika-nowak/design-team-dumpboard</a>. Click the <strong>people</strong> folder in the file list. You should now be inside <strong>people/</strong>.',
+  },
+  {
+    title: "Upload your folder",
+    pictureH: 317,
+    image: "assets/how-it-works/step-6.png",
+    body: "Click <strong>Add file</strong> → <strong>Upload files</strong>. Drag your <strong>whole unzipped folder</strong> (e.g.&nbsp;<strong>john.smith</strong>) into the upload area. Click <strong>Commit changes</strong>. GitHub creates the folder for you – no need to create it manually.",
+  },
+  {
+    title: "See it live & update later",
+    pictureH: 269,
+    image: "assets/how-it-works/step-7.png",
+    body: 'Wait 1–2 minutes, then check: your page: <strong>…/people/your-nick/</strong> and team feed: <a href="https://monika-nowak.github.io/design-team-dumpboard/hub.html" target="_blank" rel="noopener">https://monika-nowak.github.io/design-team-dumpboard/hub.html</a>. Hard-refresh if needed: <strong>Cmd+Shift+R</strong> / <strong>Ctrl+Shift+R</strong>. To update: open your page → <strong>Edit page</strong> → change things → <strong>Download</strong> → unzip → upload again to the same folder (replace the old files).',
+  },
+];
 const howModal = document.getElementById("how-modal");
+const howPicture = document.getElementById("how-picture");
+const howPictureImg = document.getElementById("how-picture-img");
+const howDots = document.getElementById("how-dots");
+const howTitle = document.getElementById("how-title");
+const howDesc = document.getElementById("how-desc");
+const howNext = document.getElementById("how-next");
+let howStep = 0;
+
+howDots.innerHTML = HOW_STEPS.map((_, i) =>
+  `<span class="how-dot${i === 0 ? " is-active" : ""}"></span>`).join("");
+
+function renderHowStep() {
+  const step = HOW_STEPS[howStep];
+  howPicture.style.height = step.pictureH + "px";
+  howPictureImg.src = step.image;
+  howTitle.textContent = step.title;
+  howDesc.innerHTML = step.body;
+  howNext.textContent = howStep === HOW_STEPS.length - 1 ? "Ok, I got it!" : "Next";
+  howDots.querySelectorAll(".how-dot").forEach((dot, i) => {
+    dot.classList.toggle("is-active", i === howStep);
+  });
+}
 
 function openHowModal() {
+  howStep = 0;
+  renderHowStep();
   howModal.classList.add("show");
 }
 
@@ -763,6 +755,14 @@ function closeHowModal() {
 
 document.getElementById("how-it-works-btn").addEventListener("click", openHowModal);
 document.getElementById("how-modal-close").addEventListener("click", closeHowModal);
+howNext.addEventListener("click", () => {
+  if (howStep < HOW_STEPS.length - 1) {
+    howStep++;
+    renderHowStep();
+  } else {
+    closeHowModal();
+  }
+});
 howModal.addEventListener("click", e => { if (e.target === howModal) closeHowModal(); });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && howModal.classList.contains("show")) closeHowModal();

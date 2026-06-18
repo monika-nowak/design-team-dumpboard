@@ -113,10 +113,10 @@
     height: 44px;
     border-radius: 999px;
     padding: 12px 16px;
-    font: inherit;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
     font-size: 16px;
     font-weight: 600;
-    line-height: 1;
+    line-height: normal;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -631,9 +631,15 @@
   }
   .item.editing { cursor: text; }
   .item.sticker {
-    overflow: hidden;
+    overflow: visible;
     box-sizing: border-box;
     aspect-ratio: 1;
+  }
+  .item.sticker .sticker-clip {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
   .item .sticker-body { line-height: 1; user-select: none; }
   /* Jak w Figmie: kwadratowa ramka + obrazek w stałym rozmiarze/pozycji, przycięty overflow */
@@ -928,61 +934,116 @@
     font-size: 16px;
   }
   .modal li:last-child { margin-bottom: 0; }
-  .how-steps {
-    list-style: none;
-    margin: 24px 0 0;
-    padding: 0;
+  .how-popup {
+    position: relative;
+    width: 600px;
+    max-width: calc(100vw - 48px);
+    height: 600px;
+    max-height: calc(100vh - 48px);
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    overflow: hidden;
+    padding: 0;
   }
-  .how-step {
-    display: grid;
-    grid-template-columns: 36px 1fr;
-    gap: 8px 16px;
-    align-items: start;
-  }
-  .how-step-num {
-    width: 36px;
-    height: 36px;
+  .how-close-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    width: 44px;
+    height: 44px;
+    border: none;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.1);
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+  }
+  .how-close-btn:hover { background: rgba(255, 255, 255, 0.14); }
+  .how-close-btn svg { width: 20px; height: 20px; display: block; }
+  .how-picture {
+    flex-shrink: 0;
+    overflow: hidden;
+    background: #0e0e0e;
+  }
+  .how-picture img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  .how-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px;
+    gap: 32px;
+  }
+  .how-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 8px;
     flex-shrink: 0;
   }
-  .how-step-body h3 {
-    margin: 0 0 6px;
+  .how-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+  }
+  .how-dot.is-active { background: rgba(255, 255, 255, 0.8); }
+  .how-copy {
+    width: 100%;
+    text-align: center;
+    word-break: break-word;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .how-copy h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: normal;
+    color: #fff;
+  }
+  .how-copy p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .how-copy strong { font-weight: 600; color: inherit; }
+  .how-copy a { color: #fff; text-decoration: none; }
+  .how-copy a:hover { text-decoration: underline; }
+  .how-next {
+    appearance: none;
+    border: none;
+    background: #fff;
+    color: #0e0e0e;
+    font-family: inherit;
     font-size: 16px;
     font-weight: 600;
-    line-height: 1.3;
+    line-height: normal;
+    padding: 12px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
-  .how-step-body p,
-  .how-step-body ol {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.72);
-  }
-  .how-step-body p + p,
-  .how-step-body p + ol { margin-top: 8px; }
-  .how-step-body ol { padding-left: 1.15em; }
-  .how-step-body li + li { margin-top: 4px; }
-  .how-step-body a { color: #fff; }
-  .how-step-shot {
-    grid-column: 1 / -1;
-    aspect-ratio: 16 / 10;
-    border-radius: 12px;
-    background: #1f1f1f;
-    border: 1px dashed rgba(255, 255, 255, 0.12);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255, 255, 255, 0.28);
-    font-size: 13px;
+  .how-next:hover { background: rgba(255, 255, 255, 0.88); }
+  @media (max-height: 640px) {
+    .how-popup { height: auto; }
+    .how-picture { flex: 1 1 0; min-height: 140px; }
   }
   .modal code {
     background: rgba(255, 255, 255, 0.1);
@@ -1262,84 +1323,22 @@
 
   <div id="toast"></div>
 
-  <!-- Modal: how to publish -->
-  <div class="modal-overlay" id="how-modal">
-    <div class="modal glass-surface" style="max-width:720px">
-      <button type="button" class="pop-close" data-close-modal aria-label="Close">
+  <!-- Modal: How it works (Figma 24:1246 — carousel) -->
+  <div class="modal-overlay" id="how-modal" role="dialog" aria-modal="true" aria-labelledby="how-title">
+    <div class="how-popup glass-surface">
+      <button type="button" class="how-close-btn" data-close-modal aria-label="Close">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
       </button>
-      <h2>How it works</h2>
-      <p class="lead">Build your page in the editor, download a ZIP, and upload it to GitHub. No coding required.</p>
-      <ol class="how-steps">
-        <li class="how-step">
-          <span class="how-step-num">1</span>
-          <div class="how-step-body">
-            <h3>Set your nick</h3>
-            <p>Open the editor and enter your nick when asked (e.g. <code>monika.nowak</code>) — no spaces. This becomes your folder name: <code>people/your-nick/</code>.</p>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-        <li class="how-step">
-          <span class="how-step-num">2</span>
-          <div class="how-step-body">
-            <h3>Add media</h3>
-            <p>At the top, use the grid to add an <strong>image</strong> or <strong>YouTube</strong> link. Add a caption if you like — these items go to the shared team feed.</p>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-        <li class="how-step">
-          <span class="how-step-num">3</span>
-          <div class="how-step-body">
-            <h3>Decorate your page</h3>
-            <p>Use <strong>Background</strong>, <strong>Stickers</strong>, <strong>Text</strong>, and <strong>Draw</strong> on the canvas below. Click your <strong>avatar</strong> to set your name and profile photo.</p>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-        <li class="how-step">
-          <span class="how-step-num">4</span>
-          <div class="how-step-body">
-            <h3>Download &amp; unzip</h3>
-            <p>Click <strong>Download</strong> (top right). Find the ZIP in your <strong>Downloads</strong> folder and unzip it (double-click on Mac, <strong>Extract All</strong> on Windows).</p>
-            <p><strong>Tip:</strong> rename the unzipped folder to your nick (e.g. <code>monika.nowak</code>) — it makes the next step easier.</p>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-        <li class="how-step">
-          <span class="how-step-num">5</span>
-          <div class="how-step-body">
-            <h3>Open the repo on GitHub</h3>
-            <ol>
-              <li>Go to <a href="https://github.com/monika-nowak/design-team-dumpboard" target="_blank" rel="noopener">github.com/monika-nowak/design-team-dumpboard</a></li>
-              <li>Click the <strong>people</strong> folder</li>
-            </ol>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-        <li class="how-step">
-          <span class="how-step-num">6</span>
-          <div class="how-step-body">
-            <h3>Upload your folder</h3>
-            <ol>
-              <li>Click <strong>Add file</strong> → <strong>Upload files</strong></li>
-              <li>Drag your <strong>whole unzipped folder</strong> (e.g. <code>monika.nowak</code>) into the upload area</li>
-              <li>Check the path looks like <code>people/your-nick/index.html</code> — not the repo root</li>
-              <li>Click <strong>Commit changes</strong></li>
-            </ol>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-        <li class="how-step">
-          <span class="how-step-num">7</span>
-          <div class="how-step-body">
-            <h3>See it live &amp; update later</h3>
-            <p>Wait 1–2 minutes, then open your page at <code>…/people/your-nick/</code> and check the team feed.</p>
-            <p>To update: open your page → <strong>Edit dump</strong> → change things → <strong>Download</strong> → unzip → upload again to the same folder.</p>
-          </div>
-          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
-        </li>
-      </ol>
-      <div class="modal-actions">
-        <button class="btn primary" id="how-close">Got it</button>
+      <div class="how-picture" id="how-picture">
+        <img id="how-picture-img" src="" alt="">
+      </div>
+      <div class="how-panel">
+        <div class="how-dots" id="how-dots" aria-hidden="true"></div>
+        <div class="how-copy">
+          <h2 id="how-title"></h2>
+          <p id="how-desc"></p>
+        </div>
+        <button type="button" class="how-next" id="how-next">Next</button>
       </div>
     </div>
   </div>
@@ -1426,6 +1425,10 @@ const FIGMA_STICKERS = [
   { id: "cat",          label: "Cat",          src: "assets/stickers/cat.png",          frame: 250, place: { x: -19, y: -37, w: 288, h: 287 } },
   { id: "adam-sandler", label: "Adam Sandler", src: "assets/stickers/adam-sandler.png", frame: 250, place: { x: 23, y: 23, w: 204, h: 204 } },
   { id: "orangutan",    label: "Orangutan",    src: "assets/stickers/orangutan.png",    frame: 250, place: { x: 0, y: -28, w: 250, h: 384 } },
+  { id: "onion",        label: "Onion",        src: "assets/stickers/onion.png",        frame: 250, place: { x: 0, y: 0, w: 250, h: 250 } },
+  { id: "cowboy-hat",   label: "Cowboy hat",   src: "assets/stickers/cowboy-hat.png",   frame: 250, place: { x: 0, y: 0, w: 250, h: 250 } },
+  { id: "ugly-toy",     label: "Ugly toy",     src: "assets/stickers/ugly-toy.png",     frame: 250, place: { x: 0, y: 0, w: 250, h: 250 } },
+  { id: "duck",         label: "Duck",         src: "assets/stickers/duck.png",         frame: 250, place: { x: 0, y: 0, w: 250, h: 250 } },
 ];
 /* Emoji — ogólny zestaw „na szybko” (nie z Figmy); reakcje, strzałki, jedzenie, zwierzęta */
 const EMOJIS = ["⭐","❤️","🔥","✨","👍","🎉","💡","✅","❓","💬","📌","🚀","🌟","😀","😎","🙌",
@@ -2175,7 +2178,7 @@ function render() {
     el.style.left = item.x + "px";
     el.style.top = item.y + "px";
     el.style.zIndex = index + 1;
-    el.style.transform = item.type === "draw" ? "" : `rotate(${item.rot}deg)`;
+    el.style.transform = item.type === "draw" ? "" : `rotate(${item.rot || 0}deg)`;
 
     if (item.type === "text") {
       const body = document.createElement("div");
@@ -2207,12 +2210,15 @@ function render() {
         const entry = stickerEntry(item.stickerId);
         el.style.width = item.w + "px";
         el.style.height = item.h + "px";
+        const clip = document.createElement("div");
+        clip.className = "sticker-clip";
         const img = document.createElement("img");
         img.className = "sticker-img";
         img.src = item.src;
         img.alt = "";
         applyStickerImgStyle(img, item, entry);
-        el.appendChild(img);
+        clip.appendChild(img);
+        el.appendChild(clip);
       } else {
         const body = document.createElement("div");
         body.className = "sticker-body";
@@ -2545,9 +2551,10 @@ function startRotate(e, item) {
   e.stopPropagation();
   pushUndo();
   const el = canvas.querySelector(`.item[data-id="${item.id}"]`);
-  const rect = el.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
+  const { w, h } = elBox(item);
+  const canvasRect = canvas.getBoundingClientRect();
+  const cx = canvasRect.left + (item.x || 0) + w / 2;
+  const cy = canvasRect.top + (item.y || 0) + h / 2;
 
   function onMove(ev) {
     const angle = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI + 90;
@@ -3414,7 +3421,7 @@ async function exportPage() {
         const style = [
           `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
           `width:${item.w}px`,
-          `transform:rotate(${item.rot}deg)`, `transform-origin:center center`, `z-index:${z}`,
+          `transform:rotate(${item.rot || 0}deg)`, `transform-origin:center center`, `z-index:${z}`,
           `font-family:'${item.fontFamily}', sans-serif`, `font-size:${item.fontSize}px`,
           `font-weight:${item.bold ? 700 : 400}`, `color:${item.color}`,
           `line-height:1.25`, `white-space:pre-wrap`, `word-break:break-word`,
@@ -3433,7 +3440,7 @@ async function exportPage() {
             `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
             `width:${item.w}px`, `height:${item.h}px`,
             `overflow:hidden`,
-            `transform:rotate(${item.rot}deg)`, `transform-origin:center center`, `z-index:${z}`,
+            `transform:rotate(${item.rot || 0}deg)`, `transform-origin:center center`, `z-index:${z}`,
           ].join(";");
           const imgStyle = [
             `position:absolute`, `left:${item.px}px`, `top:${item.py}px`,
@@ -3444,7 +3451,7 @@ async function exportPage() {
         }
         const style = [
           `position:absolute`, `left:${item.x - offX}px`, `top:${item.y - offY}px`,
-          `transform:rotate(${item.rot}deg)`, `transform-origin:center center`, `z-index:${z}`,
+          `transform:rotate(${item.rot || 0}deg)`, `transform-origin:center center`, `z-index:${z}`,
           `font-size:${item.fontSize}px`, `line-height:1`,
         ].join(";");
         return `        <div style="${style}">${escapeHtml(item.char)}</div>`;
@@ -3464,16 +3471,20 @@ async function exportPage() {
 `    (function () {
       var W = ${stageW}, H = ${stageH};
       var wrap = document.getElementById('free-wrap'), s = document.getElementById('free-stage');
-      if (!wrap || !s) return;
+      var stage = document.querySelector('.page-stage');
+      if (!wrap || !s || !stage) return;
       function fit() {
         var k = wrap.clientWidth / W;
         s.style.transform = 'scale(' + k + ')';
-        wrap.style.height = (H * k) + 'px';
+        var scaledH = H * k;
+        var mediaH = stage.querySelector('.media-grid')?.offsetHeight || 0;
+        stage.style.minHeight = Math.max(mediaH, scaledH) + 'px';
       }
       addEventListener('resize', fit); fit();
     })();`;
   }
 
+  const pageStageAttr = freeLayerHtml ? ` style="min-height:${stageH}px"` : "";
   const pageTitle = escapeHtml((profile.name || profile.nick || "My page").trim() || "My page");
   const editHref = profile.nick
     ? "../../canvas-editor.html?project=" + encodeURIComponent("people/" + profile.nick + "/project.json")
@@ -3485,7 +3496,7 @@ async function exportPage() {
     : `<span>${avatarInitial}</span>`;
   let freeLayerBlock = "";
   if (freeLayerHtml) {
-    freeLayerBlock = `\n  <div id="free-wrap" class="free-wrap">\n    <div id="free-stage" class="free-stage" style="width:${stageW}px;height:${stageH}px">\n${freeLayerHtml}\n    </div>\n  </div>`;
+    freeLayerBlock = `\n      <div id="free-wrap" class="free-wrap">\n        <div id="free-stage" class="free-stage" style="width:${stageW}px;height:${stageH}px">\n${freeLayerHtml}\n        </div>\n      </div>`;
   }
 
   const pageNickRaw = (profile.nick || "").trim().toLowerCase();
@@ -3500,6 +3511,9 @@ async function exportPage() {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${pageTitle}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
 ${fontFaces}    @font-face {
       font-family: "NaN Serf A Display";
@@ -3510,7 +3524,7 @@ ${fontFaces}    @font-face {
     * { margin: 0; box-sizing: border-box; }
     body {
       background: ${state.bg};
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
     }
     .site-nav {
       position: sticky;
@@ -3563,6 +3577,7 @@ ${fontFaces}    @font-face {
       line-height: 1.12; color: #fff; opacity: 0.8; margin: 0;
     }
     .media-grid { display: flex; flex-direction: column; gap: 64px; padding: 64px 128px 128px; }
+    .page-stage { position: relative; }
     .media-card { display: flex; flex-direction: column; gap: 20px; }
     .media-frame {
       width: fit-content; max-width: 100%; margin: 0 auto;
@@ -3583,8 +3598,13 @@ ${fontFaces}    @font-face {
       color: inherit; text-decoration: none; cursor: pointer;
     }
     .free-wrap {
-      position: relative; margin: 64px auto 0; overflow: hidden;
-      max-width: 900px; width: 100%;
+      position: absolute;
+      inset: 0;
+      overflow: visible;
+      pointer-events: none;
+      width: 100%;
+      max-width: none;
+      margin: 0;
     }
     .free-stage { position: relative; transform-origin: top left; }
 </style>
@@ -3601,9 +3621,11 @@ ${fontFaces}    @font-face {
       <div class="profile-avatar">${avatarBlock}</div>
       <h1 class="profile-nick">${nickLabel}</h1>
     </header>
+    <div class="page-stage"${pageStageAttr}>
     <div class="media-grid">
 ${mediaHtml}
     </div>${freeLayerBlock}
+    </div>
   </main>
   <script>
 ${ownerScript}
@@ -3690,16 +3712,92 @@ document.getElementById("export").addEventListener("click", () => {
   });
 });
 
-// Modal „How it works" (treść / layout — docelowy design z Figmy)
+// Modal „How it works" — karuzela (Figma 24:1246)
+const HOW_STEPS = [
+  {
+    title: "Set your nick and avatar",
+    pictureH: 317,
+    image: "assets/how-it-works/step-1.png",
+    body: "On first visit, enter your nick <strong>(e.g.&nbsp;john.smith)</strong> – no spaces. This becomes your GitHub folder name:&nbsp;<strong>people/your-nick/</strong>. Click your avatar to set your profile and photo.",
+  },
+  {
+    title: "Add media",
+    pictureH: 317,
+    image: "assets/how-it-works/step-2.png",
+    body: "Use the grid to add an <strong>image</strong> or <strong>YouTube</strong> video (the placeholder is always visible). Add a caption if you like – these items go to the shared team feed.",
+  },
+  {
+    title: "Decorate your page",
+    pictureH: 365,
+    image: "assets/how-it-works/step-3.png",
+    body: "Add <strong>stickers</strong>, <strong>text</strong>, and <strong>drawings</strong>, and change the <strong>background</strong> color.",
+  },
+  {
+    title: "Download the ZIP",
+    pictureH: 293,
+    image: "assets/how-it-works/step-4.png",
+    body: "Click <strong>Download</strong>. Your browser saves a ZIP file, e.g.&nbsp;<strong>john.smith.zip</strong>. Unzip. Open the unzipped folder – you should see files like <strong>index.html</strong>, <strong>project.json</strong>. Keep this folder handy for the next step.<br><br><strong>Tip:</strong> rename the unzipped folder to your nick (e.g.&nbsp;<strong>john.smith</strong>).",
+  },
+  {
+    title: "Open the repo on GitHub",
+    pictureH: 317,
+    image: "assets/how-it-works/step-5.png",
+    body: 'Go to <a href="https://github.com/monika-nowak/design-team-dumpboard" target="_blank" rel="noopener">https://github.com/monika-nowak/design-team-dumpboard</a>. Click the <strong>people</strong> folder in the file list. You should now be inside <strong>people/</strong>.',
+  },
+  {
+    title: "Upload your folder",
+    pictureH: 317,
+    image: "assets/how-it-works/step-6.png",
+    body: "Click <strong>Add file</strong> → <strong>Upload files</strong>. Drag your <strong>whole unzipped folder</strong> (e.g.&nbsp;<strong>john.smith</strong>) into the upload area. Click <strong>Commit changes</strong>. GitHub creates the folder for you – no need to create it manually.",
+  },
+  {
+    title: "See it live & update later",
+    pictureH: 269,
+    image: "assets/how-it-works/step-7.png",
+    body: 'Wait 1–2 minutes, then check: your page: <strong>…/people/your-nick/</strong> and team feed: <a href="https://monika-nowak.github.io/design-team-dumpboard/hub.html" target="_blank" rel="noopener">https://monika-nowak.github.io/design-team-dumpboard/hub.html</a>. Hard-refresh if needed: <strong>Cmd+Shift+R</strong> / <strong>Ctrl+Shift+R</strong>. To update: open your page → <strong>Edit page</strong> → change things → <strong>Download</strong> → unzip → upload again to the same folder (replace the old files).',
+  },
+];
 const howModal = document.getElementById("how-modal");
+const howPicture = document.getElementById("how-picture");
+const howPictureImg = document.getElementById("how-picture-img");
+const howDots = document.getElementById("how-dots");
+const howTitle = document.getElementById("how-title");
+const howDesc = document.getElementById("how-desc");
+const howNext = document.getElementById("how-next");
+let howStep = 0;
+
+howDots.innerHTML = HOW_STEPS.map((_, i) =>
+  `<span class="how-dot${i === 0 ? " is-active" : ""}"></span>`).join("");
+
+function renderHowStep() {
+  const step = HOW_STEPS[howStep];
+  howPicture.style.height = step.pictureH + "px";
+  howPictureImg.src = step.image;
+  howTitle.textContent = step.title;
+  howDesc.innerHTML = step.body;
+  howNext.textContent = howStep === HOW_STEPS.length - 1 ? "Ok, I got it!" : "Next";
+  howDots.querySelectorAll(".how-dot").forEach((dot, i) => {
+    dot.classList.toggle("is-active", i === howStep);
+  });
+}
+
 function openHowModal() {
   closeStickerPop();
   closeColorPicker();
+  howStep = 0;
+  renderHowStep();
   howModal.classList.add("show");
 }
 document.getElementById("how-it-works-btn").addEventListener("click", openHowModal);
 document.getElementById("help-btn").addEventListener("click", openHowModal);
-document.getElementById("how-close").addEventListener("click", () => howModal.classList.remove("show"));
+howNext.addEventListener("click", () => {
+  if (howStep < HOW_STEPS.length - 1) {
+    howStep++;
+    renderHowStep();
+  } else {
+    howModal.classList.remove("show");
+  }
+});
 howModal.addEventListener("click", e => { if (e.target === howModal) howModal.classList.remove("show"); });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && howModal.classList.contains("show")) howModal.classList.remove("show");
