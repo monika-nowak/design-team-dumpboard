@@ -434,12 +434,11 @@
 
   .media-frame {
     position: relative;
-    width: fit-content;
-    max-width: 100%;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
     height: auto;
     border-radius: 16px;
-    overflow: visible;
+    overflow: hidden;
     background: transparent;
     border: 1px solid transparent;
     cursor: pointer;
@@ -450,9 +449,9 @@
   }
   .media-frame img {
     display: block;
-    max-width: 100%;
-    width: auto;
+    width: 100%;
     height: auto;
+    max-width: 100%;
     border-radius: inherit;
     pointer-events: none;
     user-select: none;
@@ -3590,11 +3589,11 @@ ${fontFaces}    @font-face {
     .page-stage { position: relative; }
     .media-card { display: flex; flex-direction: column; gap: 20px; }
     .media-frame {
-      width: fit-content; max-width: 100%; margin: 0 auto;
+      width: 100%; margin: 0;
       height: auto; border-radius: 16px;
-      overflow: visible; background: transparent; position: relative;
+      overflow: hidden; background: transparent; position: relative;
     }
-    .media-frame img { max-width: 100%; width: auto; height: auto; display: block; border-radius: inherit; }
+    .media-frame img { width: 100%; height: auto; max-width: 100%; display: block; border-radius: inherit; }
     .media-frame--yt {
       width: 100%; margin: 0; overflow: hidden;
       background: #1a1a1a; aspect-ratio: 16 / 9;
