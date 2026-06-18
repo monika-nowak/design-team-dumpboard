@@ -225,18 +225,10 @@
     white-space: nowrap;
   }
   .tool-btn:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
+  .tool-btn > span { opacity: 0.8; }
   .tool-btn--bg {
     padding: 12px 16px 12px 8px;
     gap: 12px;
-  }
-  .tool-btn--pencil {
-    padding: 12px 16px 12px 8px;
-    gap: 8px;
-  }
-  .tool-btn--pencil .tool-swatch-wrap {
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
   }
   .tool-swatch-wrap {
     width: 32px;
@@ -924,6 +916,62 @@
     font-size: 16px;
   }
   .modal li:last-child { margin-bottom: 0; }
+  .how-steps {
+    list-style: none;
+    margin: 24px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .how-step {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 8px 16px;
+    align-items: start;
+  }
+  .how-step-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .how-step-body h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .how-step-body p,
+  .how-step-body ol {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.72);
+  }
+  .how-step-body p + p,
+  .how-step-body p + ol { margin-top: 8px; }
+  .how-step-body ol { padding-left: 1.15em; }
+  .how-step-body li + li { margin-top: 4px; }
+  .how-step-body a { color: #fff; }
+  .how-step-shot {
+    grid-column: 1 / -1;
+    aspect-ratio: 16 / 10;
+    border-radius: 12px;
+    background: #1f1f1f;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.28);
+    font-size: 13px;
+  }
   .modal code {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 6px;
@@ -1001,6 +1049,7 @@
     gap: 16px;
     margin-bottom: 24px;
   }
+  .modal-stack .profile-row { margin-bottom: 0; }
   .avatar-preview {
     width: 72px; height: 72px; border-radius: 50%; flex: 0 0 auto; overflow: hidden;
     background: rgba(255,255,255,0.15);
@@ -1080,6 +1129,10 @@
       <img src="assets/landing/logo.svg" alt="">
     </a>
     <div class="site-nav-actions">
+      <button type="button" class="nav-btn nav-btn--secondary" id="how-it-works-btn" title="How to publish your page">
+        <img src="assets/icons/seal-question.svg" alt="" aria-hidden="true">
+        <span>How it works</span>
+      </button>
       <button type="button" class="nav-btn nav-btn--secondary" id="open-project-btn" title="Load project.json from a previous download">
         <img src="assets/icons/nav-open.svg" alt="">
         <span>Open existing project</span>
@@ -1146,12 +1199,9 @@
           <img src="assets/icons/tool-text.svg" class="tool-icon" alt="">
           <span>Text</span>
         </button>
-        <button type="button" class="tool-btn tool-btn--pencil" id="pencil-tool" title="Draw on the page">
+        <button type="button" class="tool-btn" id="pencil-tool" title="Draw on the page">
           <img src="assets/icons/tool-pencil.svg" class="tool-icon" alt="">
-          <span class="tool-swatch-wrap" title="Pencil color">
-            <span class="tool-swatch" id="pencil-swatch" aria-hidden="true"></span>
-          </span>
-          <span>Pencil</span>
+          <span>Draw</span>
         </button>
 
         <span class="tool-divider" id="toolbar-divider" aria-hidden="true" hidden></span>
@@ -1202,63 +1252,95 @@
 
   <!-- Modal: how to publish -->
   <div class="modal-overlay" id="how-modal">
-    <div class="modal glass-surface">
+    <div class="modal glass-surface" style="max-width:720px">
       <button type="button" class="pop-close" data-close-modal aria-label="Close">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
       </button>
-      <h2>How to publish your page</h2>
-      <p class="lead">Upload your finished page to your folder in this GitHub repo.
-         No login on the site — your folder name is your identity.</p>
-      <ol>
-        <li>Click <strong>Download my page</strong> — you get a ZIP. Inside:
-            <code>index.html</code> (your page), <code>project.json</code>
-            (for editing later), and — if you used them — <code>profile.json</code>,
-            <code>avatar.jpg</code>, <code>feed.json</code>, and <code>feed-images/</code>.</li>
-        <li>On GitHub, open the <strong><code>people/</code></strong> folder and create a <strong>subfolder with your nick</strong>, e.g. <code>people/ania/</code>.</li>
-        <li><strong>Upload</strong> everything from the ZIP into that folder (not the repo root!).</li>
+      <h2>How it works</h2>
+      <p class="lead">Build your page in the editor, download a ZIP, and upload it to GitHub. No coding required.</p>
+      <ol class="how-steps">
+        <li class="how-step">
+          <span class="how-step-num">1</span>
+          <div class="how-step-body">
+            <h3>Set your nick</h3>
+            <p>Open the editor and enter your nick when asked (e.g. <code>monika.nowak</code>) — no spaces. This becomes your folder name: <code>people/your-nick/</code>.</p>
+          </div>
+          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
+        </li>
+        <li class="how-step">
+          <span class="how-step-num">2</span>
+          <div class="how-step-body">
+            <h3>Add media</h3>
+            <p>At the top, use the grid to add an <strong>image</strong> or <strong>YouTube</strong> link. Add a caption if you like — these items go to the shared team feed.</p>
+          </div>
+          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
+        </li>
+        <li class="how-step">
+          <span class="how-step-num">3</span>
+          <div class="how-step-body">
+            <h3>Decorate your page</h3>
+            <p>Use <strong>Background</strong>, <strong>Stickers</strong>, <strong>Text</strong>, and <strong>Draw</strong> on the canvas below. Click your <strong>avatar</strong> to set your name and profile photo.</p>
+          </div>
+          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
+        </li>
+        <li class="how-step">
+          <span class="how-step-num">4</span>
+          <div class="how-step-body">
+            <h3>Download &amp; unzip</h3>
+            <p>Click <strong>Download</strong> (top right). Find the ZIP in your <strong>Downloads</strong> folder and unzip it (double-click on Mac, <strong>Extract All</strong> on Windows).</p>
+            <p><strong>Tip:</strong> rename the unzipped folder to your nick (e.g. <code>monika.nowak</code>) — it makes the next step easier.</p>
+          </div>
+          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
+        </li>
+        <li class="how-step">
+          <span class="how-step-num">5</span>
+          <div class="how-step-body">
+            <h3>Open the repo on GitHub</h3>
+            <ol>
+              <li>Go to <a href="https://github.com/monika-nowak/design-team-dumpboard" target="_blank" rel="noopener">github.com/monika-nowak/design-team-dumpboard</a></li>
+              <li>Click the <strong>people</strong> folder</li>
+            </ol>
+          </div>
+          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
+        </li>
+        <li class="how-step">
+          <span class="how-step-num">6</span>
+          <div class="how-step-body">
+            <h3>Upload your folder</h3>
+            <ol>
+              <li>Click <strong>Add file</strong> → <strong>Upload files</strong></li>
+              <li>Drag your <strong>whole unzipped folder</strong> (e.g. <code>monika.nowak</code>) into the upload area</li>
+              <li>Check the path looks like <code>people/your-nick/index.html</code> — not the repo root</li>
+              <li>Click <strong>Commit changes</strong></li>
+            </ol>
+          </div>
+          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
+        </li>
+        <li class="how-step">
+          <span class="how-step-num">7</span>
+          <div class="how-step-body">
+            <h3>See it live &amp; update later</h3>
+            <p>Wait 1–2 minutes, then open your page at <code>…/people/your-nick/</code> and check the team feed.</p>
+            <p>To update: open your page → <strong>Edit dump</strong> → change things → <strong>Download</strong> → unzip → upload again to the same folder.</p>
+          </div>
+          <div class="how-step-shot" aria-hidden="true">Screenshot</div>
+        </li>
       </ol>
-      <p class="lead">That's it — the people list updates automatically
-         and you appear on the team feed. 🎉</p>
-      <p class="lead">Want to change something later? On your published page,
-         click <strong>Edit page</strong> — the editor opens with your work already loaded.
-         Edit, download again, and replace the files on GitHub.</p>
-      <p class="lead">Tip: set your display name and avatar in
-         <strong>Profile</strong> — they show up next to your feed posts.</p>
       <div class="modal-actions">
         <button class="btn primary" id="how-close">Got it</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal: nick (before you start) -->
-  <div class="modal-overlay" id="welcome-modal">
-    <div class="modal glass-surface">
-      <h2>Let's start with you</h2>
-      <p class="lead">What should we call you? This nick appears on your feed posts
-         and is used as the download file name.</p>
-      <div class="modal-form">
-        <label class="profile-label" for="welcome-nick">Your nick</label>
-        <input type="text" id="welcome-nick" class="profile-input" maxlength="40"
-               placeholder="e.g. monika.nowak" autocomplete="username">
-        <p class="field-hint">No spaces — your GitHub folder: <code>people/your-nick/</code> (e.g. <code>people/monika.nowak/</code>).</p>
-        <p class="field-error" id="welcome-error">Enter a nick (min. 2 chars: letters, numbers, dot, hyphen).</p>
-      </div>
-      <div class="modal-actions">
-        <button class="btn primary" id="welcome-start">Start creating</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: profile (name + avatar) -->
+  <!-- Modal: profil (nick + avatar) — tryb powitalny i edycja -->
   <div class="modal-overlay" id="profile-modal">
     <div class="modal glass-surface modal-stack">
-      <button type="button" class="pop-close" data-close-modal aria-label="Close">
+      <button type="button" class="pop-close" id="profile-modal-close-x" aria-label="Close">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
       </button>
       <div class="modal-block">
-        <h2>Your profile</h2>
-        <p class="lead">Name and avatar appear next to your posts on the hub.
-           Both are optional — otherwise we use your folder name and an initial.</p>
+        <h2 id="profile-modal-title">Your profile</h2>
+        <p class="lead" id="profile-modal-lead">Your nick and avatar appear next to your posts on the hub. Avatar is optional — otherwise we show an initial.</p>
       </div>
       <div class="profile-row">
         <div class="avatar-preview" id="avatar-preview"></div>
@@ -1268,11 +1350,14 @@
         </div>
       </div>
       <div class="modal-block">
-        <label class="profile-label" for="profile-name">Display name</label>
-        <input type="text" id="profile-name" class="profile-input" maxlength="60" placeholder="e.g. monika.nowak">
+        <label class="profile-label" for="profile-nick">Your nick</label>
+        <input type="text" id="profile-nick" class="profile-input" maxlength="40"
+               placeholder="e.g. monika.nowak" autocomplete="username">
+        <p class="field-hint">No spaces — your GitHub folder: <code>people/your-nick/</code> (e.g. <code>people/monika.nowak/</code>).</p>
+        <p class="field-error" id="profile-nick-error">Enter a nick (min. 2 chars: letters, numbers, dot, hyphen).</p>
       </div>
       <div class="modal-actions">
-        <button class="btn primary" id="profile-close">Save</button>
+        <button class="btn primary" id="profile-save">Save</button>
       </div>
       <input type="file" id="avatar-input" class="hidden-input" accept="image/*">
     </div>
@@ -1389,10 +1474,10 @@ const stickerPop   = document.getElementById("sticker-pop");
 const toastEl    = document.getElementById("toast");
 const inspSticker = document.getElementById("insp-sticker");
 const pencilTool = document.getElementById("pencil-tool");
-const pencilSwatch = document.getElementById("pencil-swatch");
 const inspDraw = document.getElementById("insp-draw");
 const drawSwatch = document.getElementById("draw-swatch");
 const drawSwatchFill = drawSwatch ? drawSwatch.querySelector(".mini-swatch") : null;
+const delSelected = document.getElementById("del-selected");
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 let pencilMode = false;
@@ -1642,6 +1727,7 @@ function setPencilMode(on) {
     selectedId = null;
     closeStickerPop();
     closeColorPicker();
+    syncInspector();
   }
   syncCanvasHeight();
 }
@@ -2050,7 +2136,6 @@ function handleImageFile(file) {
    ════════════════════════════════════════════════════════════════════ */
 function render() {
   updateSwatch(bgSwatch, state.bg);
-  if (pencilSwatch) updateSwatch(pencilSwatch, pencilColor);
   applyPageBg();
 
   [...canvas.querySelectorAll(".item, .guide")].forEach(el => el.remove());
@@ -2199,8 +2284,18 @@ function syncInspector() {
     inspText.style.display = "none";
     inspSticker.style.display = "none";
     if (inspDraw) inspDraw.style.display = "none";
+    if (pencilMode) {
+      toolbarCtx.classList.add("show");
+      toolbarDivider.hidden = false;
+      if (delSelected) delSelected.hidden = true;
+      if (inspDraw) {
+        inspDraw.style.display = "flex";
+        if (drawSwatchFill) updateSwatch(drawSwatchFill, pencilColor);
+      }
+    }
     return;
   }
+  if (delSelected) delSelected.hidden = false;
   toolbarCtx.classList.add("show");
   toolbarDivider.hidden = false;
 
@@ -2934,19 +3029,7 @@ bgTool.addEventListener("click", e => {
 });
 
 if (pencilTool) {
-  pencilTool.addEventListener("click", e => {
-    if (e.target.closest(".tool-swatch-wrap")) {
-      openColorPicker({
-        anchor: pencilTool,
-        value: pencilColor,
-        onInput(hex) {
-          pencilColor = hex;
-          updateSwatch(pencilSwatch, hex);
-        },
-        onCommit() {},
-      });
-      return;
-    }
+  pencilTool.addEventListener("click", () => {
     setPencilMode(!pencilMode);
     render();
   });
@@ -2955,17 +3038,23 @@ if (pencilTool) {
 if (drawSwatch) {
   drawSwatch.addEventListener("click", e => {
     const item = selectedItem();
-    if (!item || item.type !== "draw") return;
+    const isDrawStroke = item && item.type === "draw";
+    if (!isDrawStroke && !pencilMode) return;
     openColorPicker({
       anchor: e.currentTarget,
-      value: item.color || "#fff",
+      value: isDrawStroke ? (item.color || "#fff") : pencilColor,
       onInput(hex) {
-        item.color = hex;
-        updateSwatch(drawSwatchFill, hex);
-        const path = canvas.querySelector(`.item[data-id="${item.id}"] path`);
-        if (path) path.setAttribute("stroke", hex);
+        if (isDrawStroke) {
+          item.color = hex;
+          updateSwatch(drawSwatchFill, hex);
+          const path = canvas.querySelector(`.item[data-id="${item.id}"] path`);
+          if (path) path.setAttribute("stroke", hex);
+        } else {
+          pencilColor = hex;
+          updateSwatch(drawSwatchFill, hex);
+        }
       },
-      onCommit() { pushUndo(); },
+      onCommit() { if (isDrawStroke) pushUndo(); },
     });
   });
 }
@@ -3374,6 +3463,11 @@ async function exportPage() {
     freeLayerBlock = `\n  <div id="free-wrap" class="free-wrap">\n    <div id="free-stage" class="free-stage" style="width:${stageW}px;height:${stageH}px">\n${freeLayerHtml}\n    </div>\n  </div>`;
   }
 
+  const pageNickRaw = (profile.nick || "").trim().toLowerCase();
+  const ownerScript = pageNickRaw
+    ? `(function(){try{var p=${JSON.stringify(pageNickRaw)};var s=(localStorage.getItem("dumpboard_nick")||"").toLowerCase();if(s&&s===p){var b=document.getElementById("edit-dump-btn");if(b)b.style.display="inline-flex";}}catch(e){}})();`
+    : "";
+
   const doc =
 `<!DOCTYPE html>
 <html lang="en">
@@ -3400,7 +3494,7 @@ ${fontFaces}    @font-face {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      height: 64px;
       padding: 16px 64px;
       background: #0e0e0e;
     }
@@ -3409,29 +3503,22 @@ ${fontFaces}    @font-face {
       align-items: center;
       flex-shrink: 0;
     }
-    .site-nav .logo img { display: block; width: 28px; height: 28px; }
-    .site-nav .nav-links {
-      display: flex;
+    .site-nav .logo img { display: block; width: 32px; height: 32px; }
+    .site-nav .edit-dump-btn {
+      display: none;
       align-items: center;
-      gap: 10px;
-    }
-    .site-nav a {
+      justify-content: center;
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
       color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: normal;
       text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-      line-height: 1;
       white-space: nowrap;
     }
-    .site-nav a:hover { opacity: 0.85; }
-    .site-nav .nav-pill {
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: #fff;
-      color: #0e0e0e;
-      font-weight: 600;
-    }
-    .site-nav .nav-pill:hover { opacity: 0.9; }
+    .site-nav .edit-dump-btn:hover { opacity: 0.88; }
     .page { max-width: 1440px; margin: 0 auto; padding: 0 64px 128px; }
     .profile-header {
       display: flex; align-items: center; gap: 24px;
@@ -3448,7 +3535,7 @@ ${fontFaces}    @font-face {
     .profile-nick {
       font-family: "NaN Serf A Display", "Times New Roman", serif;
       font-weight: 300; font-size: clamp(40px, 8vw, 82px);
-      line-height: 1.12; color: #fff; margin: 0;
+      line-height: 1.12; color: #fff; opacity: 0.8; margin: 0;
     }
     .media-grid { display: flex; flex-direction: column; gap: 64px; padding: 64px 128px 128px; }
     .media-card { display: flex; flex-direction: column; gap: 20px; }
@@ -3475,13 +3562,10 @@ ${fontFaces}    @font-face {
 </head>
 <body>
   <nav class="site-nav" aria-label="Site">
-    <a class="logo" href="../../index.html" title="Back to feed">
+    <a class="logo" href="../../hub.html" title="Back to feed">
       <img src="../../assets/landing/logo.svg" alt="Dumpboard">
     </a>
-    <div class="nav-links">
-      <a href="../../index.html">Feed</a>
-      <a class="nav-pill" href="${editHref}">Edit page</a>
-    </div>
+    <a class="edit-dump-btn" id="edit-dump-btn" href="${editHref}">Edit dump</a>
   </nav>
   <main class="page">
     <header class="profile-header">
@@ -3492,8 +3576,8 @@ ${fontFaces}    @font-face {
 ${mediaHtml}
     </div>${freeLayerBlock}
   </main>
-  ${profile.nick ? `<script>try{localStorage.setItem("dumpboard_nick",${JSON.stringify(profile.nick)})}catch(e){}<\/script>` : ""}
   <script>
+${ownerScript}
 ${freeLayerScript}
   <\/script>
 </body>
@@ -3574,11 +3658,20 @@ document.getElementById("export").addEventListener("click", () => {
   exportPage();
 });
 
-// Modal „Jak opublikować?"
+// Modal „How it works" (treść / layout — docelowy design z Figmy)
 const howModal = document.getElementById("how-modal");
-document.getElementById("help-btn").addEventListener("click", () => howModal.classList.add("show"));
+function openHowModal() {
+  closeStickerPop();
+  closeColorPicker();
+  howModal.classList.add("show");
+}
+document.getElementById("how-it-works-btn").addEventListener("click", openHowModal);
+document.getElementById("help-btn").addEventListener("click", openHowModal);
 document.getElementById("how-close").addEventListener("click", () => howModal.classList.remove("show"));
 howModal.addEventListener("click", e => { if (e.target === howModal) howModal.classList.remove("show"); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && howModal.classList.contains("show")) howModal.classList.remove("show");
+});
 document.querySelectorAll("[data-close-modal]").forEach(btn => {
   btn.addEventListener("click", () => {
     const overlay = btn.closest(".modal-overlay");
@@ -3586,12 +3679,22 @@ document.querySelectorAll("[data-close-modal]").forEach(btn => {
   });
 });
 
-// Modal „Twój profil" (nazwa + avatar)
-const profileModal  = document.getElementById("profile-modal");
-const profileNameIn = document.getElementById("profile-name");
+// Modal profilu — nick + avatar (powitanie i edycja)
+const profileModal = document.getElementById("profile-modal");
+const profileModalTitle = document.getElementById("profile-modal-title");
+const profileModalLead = document.getElementById("profile-modal-lead");
+const profileModalCloseX = document.getElementById("profile-modal-close-x");
+const profileNickIn = document.getElementById("profile-nick");
+const profileNickError = document.getElementById("profile-nick-error");
+const profileSaveBtn = document.getElementById("profile-save");
 const avatarPreview = document.getElementById("avatar-preview");
-const avatarInput   = document.getElementById("avatar-input");
+const avatarInput = document.getElementById("avatar-input");
 const avatarRemoveBtn = document.getElementById("avatar-remove-btn");
+let profileModalMode = "edit";
+
+function syncProfileNameFromNick() {
+  profile.name = (profile.nick || "").trim();
+}
 
 function renderAvatarPreview() {
   if (profile.avatar) {
@@ -3601,56 +3704,70 @@ function renderAvatarPreview() {
     avatarPreview.appendChild(img);
     avatarRemoveBtn.style.display = "";
   } else {
-    const base = (profile.name || "").trim();
-    avatarPreview.textContent = base ? base.charAt(0).toUpperCase() : "🙂";
+    const base = (profile.nick || profile.name || "").trim();
+    avatarPreview.textContent = base ? base.charAt(0).toUpperCase() : "";
     avatarRemoveBtn.style.display = "none";
   }
   renderHeaderAvatar();
 }
-document.getElementById("profile-btn").addEventListener("click", () => {
-  profileNameIn.value = profile.name || "";
+
+function openProfileModal(mode = "edit") {
+  profileModalMode = mode;
+  profileModalTitle.textContent = mode === "welcome" ? "Let's start with you" : "Your profile";
+  profileModalLead.textContent = mode === "welcome"
+    ? "What should we call you? Your nick appears on your feed posts and is used as the download file name."
+    : "Your nick and avatar appear next to your posts on the hub. Avatar is optional — otherwise we show an initial.";
+  profileSaveBtn.textContent = mode === "welcome" ? "Start creating" : "Save";
+  profileModalCloseX.style.display = mode === "welcome" ? "none" : "";
+  profileNickIn.value = profile.nick || profile.name || "";
+  profileNickError.style.display = "none";
   renderAvatarPreview();
   profileModal.classList.add("show");
-});
-document.getElementById("profile-close").addEventListener("click", () => profileModal.classList.remove("show"));
-profileModal.addEventListener("click", e => { if (e.target === profileModal) profileModal.classList.remove("show"); });
-profileNameIn.addEventListener("input", () => {
-  profile.name = profileNameIn.value;
-  if (!profile.nick) profile.nick = normalizeNick(profileNameIn.value);
-  if (!profile.avatar) renderAvatarPreview();
-});
-
-// Modal powitalny — nick przed rozpoczęciem pracy
-const welcomeModal = document.getElementById("welcome-modal");
-const welcomeNickIn = document.getElementById("welcome-nick");
-const welcomeError  = document.getElementById("welcome-error");
+  profileNickIn.focus();
+}
 
 function openWelcome() {
-  welcomeNickIn.value = profile.nick || "";
-  welcomeError.style.display = "none";
-  welcomeModal.classList.add("show");
-  welcomeNickIn.focus();
+  openProfileModal("welcome");
 }
 
-function confirmWelcome() {
-  const nick = normalizeNick(welcomeNickIn.value);
-  if (!isValidNick(nick)) {
-    welcomeError.style.display = "block";
-    welcomeNickIn.focus();
+function saveProfileModal() {
+  const nick = normalizeNick(profileNickIn.value);
+  const needsNick = profileModalMode === "welcome";
+  if ((needsNick || profileNickIn.value.trim()) && !isValidNick(nick)) {
+    profileNickError.style.display = "block";
+    profileNickIn.focus();
     return;
   }
-  profile.nick = nick;
-  if (!profile.name.trim()) profile.name = nick;
-  saveNickLocal(nick);
-  profileNameIn.value = profile.name;
-  welcomeModal.classList.remove("show");
+  if (nick) {
+    profile.nick = nick;
+    saveNickLocal(nick);
+  }
+  syncProfileNameFromNick();
+  profileModal.classList.remove("show");
   updatePageNick();
   renderAvatarPreview();
-  toast("Welcome, @" + nick + " — start creating!", 2800);
+  if (profileModalMode === "welcome") {
+    toast("Welcome, @" + nick + " — start creating!", 2800);
+  }
 }
 
-document.getElementById("welcome-start").addEventListener("click", confirmWelcome);
-welcomeNickIn.addEventListener("keydown", e => { if (e.key === "Enter") confirmWelcome(); });
+document.getElementById("profile-btn").addEventListener("click", () => openProfileModal("edit"));
+profileSaveBtn.addEventListener("click", saveProfileModal);
+profileNickIn.addEventListener("keydown", e => { if (e.key === "Enter") saveProfileModal(); });
+profileNickIn.addEventListener("input", () => {
+  profileNickError.style.display = "none";
+  if (!profile.avatar) {
+    const base = profileNickIn.value.trim();
+    avatarPreview.textContent = base ? base.charAt(0).toUpperCase() : "";
+    renderHeaderAvatar();
+  }
+});
+profileModal.addEventListener("click", e => {
+  if (e.target === profileModal && profileModalMode !== "welcome") profileModal.classList.remove("show");
+});
+profileModalCloseX.addEventListener("click", () => {
+  if (profileModalMode !== "welcome") profileModal.classList.remove("show");
+});
 
 /* Profile header → edit profile */
 if (headerAvatar) {
@@ -3695,7 +3812,7 @@ function loadProject(data) {
   });
   normalizeLegacyMedia();
   profile.nick = normalizeNick((data.profile && data.profile.nick) || (data.profile && data.profile.name) || "");
-  profile.name = (data.profile && data.profile.name) || profile.nick || "";
+  profile.name = profile.nick || "";
   profile.avatar = (data.profile && data.profile.avatar) || null;
   if (profile.nick) saveNickLocal(profile.nick);
   state.items.forEach(i => { if (i.type === "sticker" && i.src) cacheStickerSrc(i.src); });
