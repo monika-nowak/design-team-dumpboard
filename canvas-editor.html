@@ -983,6 +983,8 @@
     align-items: center;
     padding: 32px;
     gap: 24px;
+    min-height: 372px;
+    box-sizing: border-box;
   }
   .how-dots {
     display: flex;
@@ -1013,10 +1015,12 @@
     word-break: break-word;
     display: flex;
     flex-direction: column;
+    justify-content: flex-start;
     gap: 8px;
-    max-height: 220px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    height: 208px;
+    min-height: 208px;
+    flex-shrink: 0;
+    overflow: hidden;
   }
   .how-copy h2 {
     margin: 0;
@@ -1051,7 +1055,13 @@
   }
   .how-next:hover { background: rgba(255, 255, 255, 0.88); }
   @media (max-height: 640px) {
-    .how-copy { max-height: 140px; }
+    .how-panel { min-height: 304px; }
+    .how-copy {
+      height: 140px;
+      min-height: 140px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
   }
   .modal code {
     background: rgba(255, 255, 255, 0.1);
